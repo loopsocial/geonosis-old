@@ -1,5 +1,6 @@
 <template>
   <div class="clip-window">
+    <h1>{{msg}}</h1>
     <div @click="play">播放</div>
     <div @click="stop">停止</div>
     <canvas ref="clipWindow" width="960" height="540" id="clip-window"></canvas>
@@ -18,6 +19,7 @@ import TimelineClass from "../utils/TimelineClass";
 export default {
   data() {
     return {
+      msg: "正在初始化, 请勿操作....",
       list: [
         {
           m3u8Url:
@@ -67,6 +69,7 @@ export default {
           width: 960,
           height: 540
         });
+        this.msg = "初始化完成!";
       })
       .catch(e => {
         console.error("初始化SDK失败", e);
