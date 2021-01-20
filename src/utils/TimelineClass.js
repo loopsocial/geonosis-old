@@ -4,7 +4,6 @@ export default class TimelineClass extends NvsTimeline {
     this.streamingContext = streamingContext;
     this.timeline = null;
     this.canvasId = canvasId;
-    this.liveWindow = null;
     if (options) {
       const { tracks, width, height, captions, stickers } = options;
       this.tracks = tracks || [];
@@ -29,8 +28,10 @@ export default class TimelineClass extends NvsTimeline {
       new NvsAudioResolution(44100, 2)
     );
   }
-  connectLiveWindow() {
-    const liveWindow = this.streamingContext.createLiveWindow(this.canvasId);
+  connectLiveWindow(canvasId) {
+    const liveWindow = this.streamingContext.createLiveWindow(
+      canvasId || this.canvasId
+    );
     liveWindow.setFillMode(NvsLiveWindowFillModeEnum.PreserveAspectFit);
     this.streamingContext.connectTimelineWithLiveWindow(
       this.timeline,
@@ -58,6 +59,11 @@ export default class TimelineClass extends NvsTimeline {
   }
   removeTimeline() {
     this.streamingContext.removeTimeline(this.timeline);
+  }
+  run() {
+    this.createTimeline()
+    const liveWindow = this.connectLiveWindow();
+
   }
   addCaption(caption) {
     const {
