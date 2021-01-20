@@ -11,6 +11,7 @@ export default class TimelineClass extends NvsTimeline {
       this.height = height || 960;
       this.captions = captions || [];
       this.stickers = stickers || [];
+      this.run();
     }
   }
   createTimeline(width, height) {
@@ -61,9 +62,18 @@ export default class TimelineClass extends NvsTimeline {
     this.streamingContext.removeTimeline(this.timeline);
   }
   run() {
-    this.createTimeline()
+    this.createTimeline();
     const liveWindow = this.connectLiveWindow();
-
+    this.buildTrack();
+    return liveWindow;
+  }
+  buildTrack() {
+    this.tracks.map(track => {
+      track.raw = this.timeline.appendVideoTrack();
+      track.clips.map(clip => {
+        this.addVideoClip(clip, track.raw);
+      });
+    });
   }
   addCaption(caption) {
     const {
@@ -91,5 +101,9 @@ export default class TimelineClass extends NvsTimeline {
     const offsetPointF = new NvsPointF(translationX, translationY);
     captionRaw.setCaptionTranslation(offsetPointF);
     captionRaw.setFontSize(fontSize);
+  }
+  addVideoClip(clip, track) {
+    const { m3u8Path, inPoint, trimIn, trimOut } = clip;
+    track.addClip(m3u8Path, inPoint);
   }
 }

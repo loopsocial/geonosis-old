@@ -27,7 +27,13 @@ function prepareAssetIndexDB() {
     resolve();
   });
 }
-
+// 处理FS, 创建目录
+function createFSDir() {
+  FS.mkdir("/m3u8");
+  FS.mkdir("/caption");
+  FS.mkdir("/sticker");
+}
+// SDK 鉴权
 function verifySdkLicenseFile(authUrl) {
   return new Promise(resolve => {
     const streamingContext = nvsGetStreamingContextInstance();
@@ -48,6 +54,7 @@ export default function initSDK() {
         return ensureMeisheModule();
       })
       .then(() => {
+        createFSDir();
         return prepareAssetIndexDB();
       })
       .then(() => {
