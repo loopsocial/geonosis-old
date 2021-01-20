@@ -1,130 +1,95 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router"
-          target="_blank"
-          rel="noopener"
-          >router</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex"
-          target="_blank"
-          rel="noopener"
-          >vuex</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+  <div class="clip-window">
+    <div @click="play">播放</div>
+    <div @click="stop">停止</div>
+    <canvas ref="clipWindow" id="clip-window"></canvas>
+    <div class="thumbs">
+      <div class="selected">
+        <div class="thumbs"></div>
+        <div class="selected-range"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import initSDK from "../utils/NvBase";
+import TimelineClass from "../utils/TimelineClass";
 export default {
-  name: "HelloWorld",
-  props: {
-    msg: String
+  data() {
+    return {
+      list: [
+        {
+          m3u8Url:
+            "https://alieasset.meishesdk.com/video/17/7f8da20b-ec9b-4c78-a410-17cbccaa4dea.m3u8",
+          duration: 25960000
+        },
+        {
+          m3u8Url:
+            "https://alieasset.meishesdk.com/image/6/49b95ca4-0fc3-4663-8842-4fddd05ffff3.m3u8",
+          duration: 5000000
+        },
+        {
+          m3u8Url:
+            "https://alieasset.meishesdk.com/video/6/79b2665f-6f37-44cd-94aa-a8dfd926f1a3.m3u8",
+          duration: 1560000
+        },
+        {
+          m3u8Url:
+            "https://alieasset.meishesdk.com/video/6/ca011596-597c-415f-b794-ce0bb450dcdd.m3u8",
+          duration: 37200000
+        },
+        {
+          m3u8Url:
+            "https://alieasset.meishesdk.com/video/2/4a84b0ff-4907-4d37-a5f7-e529acb54487.m3u8",
+          duration: 15000000
+        }
+      ]
+    };
+  },
+  created() {
+    initSDK()
+      .then(res => {
+        console.log("初始化SDK成功", res);
+        this.timelineClass = new TimelineClass(res, "clip-window");
+      })
+      .catch(e => {
+        console.error("初始化SDK失败", e);
+      });
+  },
+  methods: {
+    setWindowSize() {
+      let clipWindow = this.$refs.clipWindow;
+      clipWindow.width = clipWindow.offsetWidth;
+      clipWindow.height = (clipWindow.offsetWidth / 16) * 9;
+    },
+    async addClipList(list) {
+      let inPoint = 0;
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i];
+        const response = await this.axios.get(item.m3u8Url);
+        FS.writeFile(`/m3u8/${i}.m3u8`, response.data);
+        this.track.addClip(`/m3u8/${i}.m3u8`, inPoint);
+        inPoint += item.duration;
+      }
+    },
+    play() {
+      if (this.timelineClass) {
+        this.timelineClass.play();
+      }
+    },
+    stop() {
+      if (this.timelineClass) {
+        this.timelineClass.stop();
+      }
+    }
   }
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+<style lang="scss" scoped>
+#clip-window {
+  width: 50%;
+  background-color: #928;
 }
 </style>
