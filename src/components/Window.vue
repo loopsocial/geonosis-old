@@ -1,5 +1,8 @@
 <template>
   <div class="clip-window">
+    <svg-icon class="icon" icon-class="logo"></svg-icon>
+    <svg-icon class="icon" icon-class="test"></svg-icon>
+
     <h1>{{msg}}</h1>
     <div @click="play">播放</div>
     <div @click="stop">停止</div>
@@ -102,5 +105,9 @@ export default {
 #clip-window {
   width: 50%;
   background-color: #928;
+}
+.icon {
+  width: 30px;
+  height: 30px;
 }
 </style>
