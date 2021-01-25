@@ -4,6 +4,20 @@
   justify-content: center;
 }
 // 圆形按钮, 渐变色
-.round-btn {
-  
+body .el-button.round-btn {
+  background: linear-gradient(135deg, #FF720D 0%, #FE177A 50%, #A40FF4 100%);
+  &.default {
+    background: $deault-color;
+  }
+  border-radius: 18px;
+  border-width: 0;
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+  font-family: Avenir Next;
+  transition: all .3s;
+  font-style: normal;
+  &:hover {
+    opacity: .8;
+  }
 }

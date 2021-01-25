@@ -51,6 +51,8 @@ export default {
     height: 24px;
   }
   .el-breadcrumb__item {
+    height: 15px;
+    font-size: 16px;
     .el-breadcrumb__inner {
       color: $border-color;
       cursor: pointer;
