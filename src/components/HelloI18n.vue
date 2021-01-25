@@ -1,5 +1,10 @@
 <template>
-  <p>{{ $t("hello") }}</p>
+  <div>
+    {{ $t("hello") }}
+    <h1>
+    {{ $t("h") }}
+    </h1>
+  </div>
 </template>
 
 <script>
@@ -11,7 +16,8 @@ export default {
 <i18n>
 {
   "en": {
-    "hello": "Hello i18n in SFC!"
+    "hello": "Hello i18n in SFC!",
+    "h": "213132"
   }
 }
 </i18n>
