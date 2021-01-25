@@ -1,11 +1,35 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
+import Create from "../views/Create.vue";
+import Template from "../views/Template.vue";
+import SceneEditing from "../views/SceneEditing.vue";
+import Post from "../views/Post.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: "/"
+  },
+  {
+    path: "/Create",
+    name: "Create",
+    component: Create
+  },
+  {
+    path: "/Template",
+    name: "Template",
+    component: Template
+  },
+  {
+    path: "/SceneEditing",
+    name: "SceneEditing",
+    component: SceneEditing
+  },
+  {
+    path: "/Post",
+    name: "Post",
+    component: Post
   },
   {
     path: "/test",

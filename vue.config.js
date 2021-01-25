@@ -1,10 +1,16 @@
-const path = require("path")
+const path = require("path");
 function resolve(dir) {
-  return path.join(__dirname, ".", dir)
+  return path.join(__dirname, ".", dir);
 }
 module.exports = {
   lintOnSave: false,
-
+  css: {
+    loaderOptions: {
+      sass: {
+        prependData: `@import "@/assets/style/_variables.scss";`
+      }
+    }
+  },
   pluginOptions: {
     i18n: {
       locale: "en",
@@ -24,6 +30,6 @@ module.exports = {
       .loader("svg-sprite-loader")
       .options({
         symbolId: "icon-[name]"
-      })
+      });
   }
-}
+};

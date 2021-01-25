@@ -2,7 +2,6 @@
   <div class="clip-window">
     <HelloI18n></HelloI18n>
     <h1>{{ msg }}</h1>
-    <svg-icon class="icon" icon-class="logo"></svg-icon>
     <svg-icon class="icon" icon-class="test"></svg-icon>
 
     <div @click="play">播放</div>

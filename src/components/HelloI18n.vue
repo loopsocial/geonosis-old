@@ -2,7 +2,7 @@
   <div>
     {{ $t("hello") }}
     <h1>
-    {{ $t("h") }}
+      {{ $t("h") }}
     </h1>
   </div>
 </template>
@@ -18,6 +18,10 @@ export default {
   "en": {
     "hello": "Hello i18n in SFC!",
     "h": "213132"
+  },
+  "zh": {
+    "hello": "你好",
+    "h": "121"
   }
 }
 </i18n>
