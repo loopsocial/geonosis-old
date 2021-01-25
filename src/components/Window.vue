@@ -1,6 +1,7 @@
 <template>
   <div class="clip-window">
-    <h1>{{msg}}</h1>
+    <HelloI18n></HelloI18n>
+    <h1>{{ msg }}</h1>
     <div @click="play">播放</div>
     <div @click="stop">停止</div>
     <canvas ref="clipWindow" width="960" height="540" id="clip-window"></canvas>
@@ -16,7 +17,11 @@
 <script>
 import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
+import HelloI18n from "./HelloI18n";
 export default {
+  components: {
+    HelloI18n
+  },
   data() {
     return {
       msg: "正在初始化, 请勿操作....",
