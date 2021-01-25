@@ -2,6 +2,9 @@
   <div class="clip-window">
     <HelloI18n></HelloI18n>
     <h1>{{ msg }}</h1>
+    <svg-icon class="icon" icon-class="logo"></svg-icon>
+    <svg-icon class="icon" icon-class="test"></svg-icon>
+
     <div @click="play">播放</div>
     <div @click="stop">停止</div>
     <canvas ref="clipWindow" width="960" height="540" id="clip-window"></canvas>
@@ -107,5 +110,9 @@ export default {
 #clip-window {
   width: 50%;
   background-color: #928;
+}
+.icon {
+  width: 30px;
+  height: 30px;
 }
 </style>
