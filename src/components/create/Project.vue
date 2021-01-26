@@ -8,15 +8,23 @@
     <div class="content flex">
       <svg-icon icon-class="project" class="project-icon"></svg-icon>
       <span class="message">{{ $t("msg") }}</span>
-      <el-button round class="round-btn" size="medium">{{ $t("addMedia") }}</el-button>
+      <el-button
+        round
+        class="round-btn lang"
+        autofocus
+        size="medium"
+        @click="$emit('open-media')"
+      >
+        {{ $t("addMedia") }}
+      </el-button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-
-}
+  methods: {}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -29,10 +37,13 @@ export default {
   }
   .content {
     flex-direction: column;
+    .lang {
+      padding: 10px 52px;
+    }
   }
   .message {
     letter-spacing: -0.434118px;
-    color: #FFFFFF;
+    color: white;
     margin: 30px 0;
   }
   .pre-project {
@@ -49,7 +60,6 @@ export default {
       width: 121px;
       height: 179px;
       background-color: #C4C4C4;
-;
     }
   }
 }

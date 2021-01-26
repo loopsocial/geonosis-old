@@ -25,12 +25,14 @@ body {
   padding: 0;
 }
 #app {
-  font-family: "Avenir Next";
   background-color: $main-bgc;
   height: 100vh;
   display: flex;
   > * {
     padding: 0 48px;
+  }
+  * {
+    font-family: "Avenir Next" !important;
   }
   .app {
     &-header {
