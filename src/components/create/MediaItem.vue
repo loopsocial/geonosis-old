@@ -12,7 +12,10 @@
       (media.type === "video" ? media.duration : 3000) | msFormat
     }}</span>
     <div class="play flex" v-if="media.type === 'video'" @click.stop="play">
-      <svg-icon icon-class="play"></svg-icon>
+      <svg-icon
+        :class="playingId !== media.id ? 'icon-play' : 'icon-pause'"
+        :icon-class="playingId !== media.id ? 'play' : 'pause'"
+      ></svg-icon>
     </div>
     <el-image
       class="media-cover"
@@ -103,6 +106,10 @@ export default {
     transition: all 0.3s;
     &:hover {
       background-color: rgba(0, 0, 0, 0.3);
+    }
+    .icon-pause {
+      width: 24px;
+      height: 24px;
     }
   }
   &:hover {

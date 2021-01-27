@@ -130,6 +130,7 @@ export default {
         { label: this.$t("gif"), value: "gif" }
       ],
       checkedList: ["image", "video", "gif"],
+      selectedList: [], // 选中的素材列表, 有顺序
       playingId: null // 正在播放的素材id
     };
   },
@@ -165,12 +166,6 @@ export default {
     }
   },
   computed: {
-    selectedList() {
-      return [
-        ...this.uploadList.filter(item => item.selected),
-        ...this.libraryList.filter(item => item.selected)
-      ];
-    },
     durationTotal() {
       const duration = this.selectedList.reduce((res, item) => {
         if (item.type === "image") {
@@ -184,8 +179,8 @@ export default {
     }
   },
   methods: {
-    play(media) {
-      this.playingId = media;
+    play(id) {
+      this.playingId = id;
     },
     loadMore(e) {
       const { target } = e;
@@ -221,6 +216,12 @@ export default {
     },
     selectedMedia(media) {
       media.selected = !media.selected;
+      if (media.selected) {
+        this.selectedList.push(media);
+      } else {
+        const index = this.selectedList.findIndex(m => m.id === media.id);
+        this.selectedList.splice(index, 1);
+      }
     },
     cancel() {
       this.uploadList.map(item => {
