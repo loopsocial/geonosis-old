@@ -92,7 +92,12 @@
         <el-button type="text" size="medium" @click="cancel">{{
           $t("cancel")
         }}</el-button>
-        <el-button round class="round-btn" :disabled="true" size="medium">
+        <el-button
+          round
+          class="round-btn"
+          :disabled="selectedList.length === 0"
+          size="medium"
+        >
           {{ $t("next") }}
         </el-button>
       </div>

@@ -1,7 +1,9 @@
 <template>
   <div class="project flex">
     <div class="pre-project">
-      <el-button round class="round-btn default" size="medium">{{ $t("previous") }}</el-button>
+      <el-button round class="round-btn default" size="medium">{{
+        $t("previous")
+      }}</el-button>
       <span class="message">{{ $t("Draft") }}</span>
       <div class="what-is-it"></div>
     </div>
@@ -59,7 +61,7 @@ export default {
     > div {
       width: 121px;
       height: 179px;
-      background-color: #C4C4C4;
+      background-color: #c4c4c4;
     }
   }
 }

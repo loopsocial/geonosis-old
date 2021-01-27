@@ -31,7 +31,7 @@ body {
   > * {
     padding: 0 48px;
   }
-  * {
+  *:not(i) {
     font-family: "Avenir Next" !important;
   }
   .app {

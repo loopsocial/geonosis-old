@@ -57,6 +57,9 @@ body .ln-dialog {
       color: white;
     }
   }
+  .el-dialog__headerbtn:hover .el-dialog__close {
+    color: white;
+  }
   .el-dialog__body {
     padding-top: 10px;
     // flex: 1;

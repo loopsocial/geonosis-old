@@ -16,7 +16,9 @@
       </el-breadcrumb-item>
     </el-breadcrumb>
     <div class="btn">
-      <el-button round class="round-btn" size="medium">{{ $t("next") }}</el-button>
+      <el-button round class="round-btn" size="medium">{{
+        $t("next")
+      }}</el-button>
     </div>
   </div>
 </template>
