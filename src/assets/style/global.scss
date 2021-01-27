@@ -7,23 +7,25 @@
 // 按钮, 渐变色
 body .el-button {
   &.el-button--text {
-    color: rgba($color: white, $alpha: .8);
+    color: white;
     font-weight: 500;
     font-size: 16px;
-    &:hover {
-      color: white;
-    }
   }
   &.round-btn {
-    background: linear-gradient(135deg, #FF720D 0%, #FE177A 50%, #A40FF4 100%);
+    background: linear-gradient(135deg, #ff720d 0%, #fe177a 50%, #a40ff4 100%);
     padding: 10px 24px;
     &.default {
       background: $default-color;
     }
     &.is-disabled {
       color: white;
-      opacity: .3 !important;
-      background: linear-gradient(135deg, #FF720D 0%, #FE177A 50%, #A40FF4 100%);
+      opacity: 0.3 !important;
+      background: linear-gradient(
+        135deg,
+        #ff720d 0%,
+        #fe177a 50%,
+        #a40ff4 100%
+      );
     }
     border-radius: 18px;
     border-width: 0;
@@ -31,10 +33,10 @@ body .el-button {
     font-weight: 500;
     font-size: 16px;
     font-family: Avenir Next;
-    transition: all .3s;
+    transition: all 0.3s;
     font-style: normal;
     &:hover {
-      opacity: .8;
+      opacity: 0.8;
     }
   }
 }
@@ -42,21 +44,24 @@ body .el-button {
 body .ln-dialog {
   display: flex;
   flex-direction: column;
-  height: 80%;
+  height: 85%;
+  min-width: 600px;
   background-color: $dialog-bgc;
   .el-dialog__title {
     color: white;
   }
   .el-dialog__close {
-    color: rgba($color: white, $alpha: .8);
-    transition: color .2s;
+    color: rgba($color: white, $alpha: 0.8);
+    transition: color 0.2s;
     &:hover {
       color: white;
     }
   }
   .el-dialog__body {
     padding-top: 10px;
-    flex: 1;
+    // flex: 1;
+    height: calc(100% - 54px);
+    box-sizing: border-box;
   }
 }
 // 标签页
@@ -68,7 +73,7 @@ body .ln-tabs-body {
     padding: 0 30px;
   }
   .el-tabs__nav-wrap::after {
-    background-color: rgba($color: white, $alpha: .3);
+    background-color: rgba($color: white, $alpha: 0.3);
   }
   .el-tabs__active-bar {
     background-color: white;

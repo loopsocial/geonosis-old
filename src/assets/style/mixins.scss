@@ -1,0 +1,16 @@
+@mixin scrollBarStyle() {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px $btn-bgc;
+    background: $btn-bgc;
+  }
+  &::-webkit-scrollbar-track { /*滚动条里面轨道*/
+    box-shadow: inset 0 0 5px $dialog-bgc;
+    border-radius: 10px;
+    background: $dialog-bgc;
+  }
+}

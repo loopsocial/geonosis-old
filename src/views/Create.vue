@@ -9,7 +9,7 @@
       center
       :visible.sync="mediaDialog"
     >
-      <Medias></Medias>
+      <Medias @cancel="cancel"></Medias>
     </el-dialog>
   </div>
 </template>
@@ -30,6 +30,9 @@ export default {
   methods: {
     openMedia() {
       this.mediaDialog = true;
+    },
+    cancel() {
+      this.mediaDialog = false;
     }
   }
 };
