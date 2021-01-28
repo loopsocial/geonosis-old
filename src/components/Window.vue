@@ -1,6 +1,5 @@
 <template>
   <div class="clip-window">
-    <HelloI18n></HelloI18n>
     <h1>{{ msg }}</h1>
     <svg-icon class="icon" icon-class="test"></svg-icon>
 
@@ -19,11 +18,8 @@
 <script>
 import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
-import HelloI18n from "./HelloI18n";
 export default {
-  components: {
-    HelloI18n
-  },
+  components: {},
   data() {
     return {
       msg: "正在初始化, 请勿操作....",

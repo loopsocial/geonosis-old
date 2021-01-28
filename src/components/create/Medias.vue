@@ -77,12 +77,13 @@
     <el-divider></el-divider>
     <div class="media-footage flex">
       <div class="selected-medias">
-        <img
-          :src="item.coverUrl"
-          srcset=""
-          v-for="item in selectedList"
-          :key="item.id"
-        />
+        <transition-group name="el-zoom-in-center">
+          <img
+            :src="item.coverUrl"
+            v-for="item in selectedList"
+            :key="item.id"
+          />
+        </transition-group>
       </div>
       <div class="duration-total" v-if="selectedList.length">
         {{ durationTotal }}s
@@ -97,6 +98,7 @@
           class="round-btn"
           :disabled="selectedList.length === 0"
           size="medium"
+          @click="next"
         >
           {{ $t("next") }}
         </el-button>
@@ -223,10 +225,15 @@ export default {
         this.selectedList.splice(index, 1);
       }
     },
+    next() {
+      this.playingId = null;
+      this.$emit("selected-finish", this.selectedList);
+    },
     cancel() {
       this.uploadList.map(item => {
         item.selected = false;
       });
+      this.selectedList = [];
       this.playingId = null;
       this.$emit("cancel");
     },

@@ -81,12 +81,6 @@ export default {
   }
   .duration {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 10;
-    color: white;
-    border-radius: 4px;
-    font-size: 12px;
-    padding: 2px 6px;
     top: 4px;
     right: 4px;
   }
