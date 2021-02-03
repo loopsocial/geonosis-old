@@ -87,14 +87,17 @@ export function getAssetFromIndexDB(packageUrl) {
  */
 export function getAssetFromNetwork(packageUrl) {
   return new Promise((resolve, reject) => {
+    const key = getNameFromUrl(packageUrl);
+    const storeName = getStoreName(key);
+    const option = {};
+    if (storeName !== "m3u8") {
+      option.responseType = "arraybuffer";
+    }
     window.axios
-      .get(packageUrl, { responseType: "arraybuffer" })
+      .get(packageUrl, option)
       .then(res => {
-        const key = getNameFromUrl(packageUrl);
-        const storeName = getStoreName(key);
-        const data = storeName === "m3u8" ? res.data : new Uint8Array(res.data);
-        saveAssetToIndexDB(packageUrl, data);
-        resolve(data);
+        saveAssetToIndexDB(packageUrl, res.data);
+        resolve(res.data);
       })
       .catch(e => {
         reject(e);
