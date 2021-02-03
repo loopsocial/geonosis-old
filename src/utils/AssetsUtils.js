@@ -74,7 +74,7 @@ export function getAssetFromIndexDB(packageUrl) {
     let request = store.get(id);
     request.onsuccess = e => {
       const ret = e.target.result;
-      resolve(ret && ret.data ? new Uint8Array(ret.data) : "");
+      resolve(ret ? ret.data : "");
     };
     request.onerror = () => {
       resolve("");
@@ -90,8 +90,11 @@ export function getAssetFromNetwork(packageUrl) {
     window.axios
       .get(packageUrl, { responseType: "arraybuffer" })
       .then(res => {
-        saveAssetToIndexDB(packageUrl, new Uint8Array(res.data));
-        resolve(new Uint8Array(res.data));
+        const key = getNameFromUrl(packageUrl);
+        const storeName = getStoreName(key);
+        const data = storeName === "m3u8" ? res.data : new Uint8Array(res.data);
+        saveAssetToIndexDB(packageUrl, data);
+        resolve(data);
       })
       .catch(e => {
         reject(e);
@@ -136,19 +139,22 @@ export async function installAsset(packageUrl, checkLic) {
               FS.writeFile(licPath);
             }
           }
-          nvsGetStreamingContextInstance().onFinishAssetPackageInstallation = (
-            id,
-            filePath,
-            type,
-            error
-          ) => {
-            nvsGetStreamingContextInstance().onFinishAssetPackageInstallation = () => {};
-            FS.unlink(filePath, 0); // 安装完成后删除FS内的文件
-            if (licPath) FS.unlink(licPath, 0);
-            if (error === 0) resolve(filePath);
-            else reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
-          };
-          nvsGetStreamingContextInstance()
+          window.streamingContext.addEventListener(
+            "onFinishAssetPackageInstallation",
+            function slot(id, filePath, type, error) {
+              window.streamingContext.removeEventListener(
+                "onFinishAssetPackageInstallation",
+                slot
+              );
+              FS.unlink(filePath, 0); // 安装完成后删除FS内的文件
+              if (licPath) FS.unlink(licPath, 0);
+              if (error === 0) resolve(filePath);
+              else {
+                reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
+              }
+            }
+          );
+          window.streamingContext
             .getAssetPackageManager()
             .installAssetPackage(filePath, licPath, assetTypes[storeName]);
         }

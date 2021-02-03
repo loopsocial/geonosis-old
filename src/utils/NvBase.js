@@ -1,5 +1,6 @@
 import { objectStores } from "./Global";
 import { initIndexDB } from "./AssetsUtils";
+import StreamingContext from "./StreamingContext";
 // 初始化wasm
 function initPlayerWasm() {
   return new Promise((resolve, reject) => {
@@ -59,13 +60,19 @@ function slot() {
 }
 export default function initSDK() {
   return new Promise((resolve, reject) => {
-    if (Module.Meishe) resolve();
+    if (Module.Meishe) {
+      createFSDir();
+      initIndexDB()
+        .then(resolve)
+        .catch(reject);
+    }
     initPlayerWasm()
       .then(() => {
         return ensureMeisheModule();
       })
       .then(() => {
         createFSDir();
+        window.streamingContext = new StreamingContext();
         return initIndexDB();
       })
       .then(() => {

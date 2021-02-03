@@ -1,7 +1,6 @@
-import StreamingContext from "./StreamingContext";
-export default class TimelineClass extends StreamingContext {
+export default class TimelineClass {
   constructor(canvasId, options) {
-    super();
+    this.streamingContext = nvsGetStreamingContextInstance();
     this.timeline = null;
     this.canvasId = canvasId;
     if (options) {
@@ -65,7 +64,7 @@ export default class TimelineClass extends StreamingContext {
     this.stickers.map(s => this.addSticker(s));
   }
   async play() {
-    await this.streamingContext.streamingEngineReadyForTimelineModification();
+    console.log("timeline class 播放!!", this.timeline, NvsVideoPreviewSizeModeEnum.LiveWindowSize);
     this.streamingContext.playbackTimeline(
       this.timeline,
       0,
@@ -88,17 +87,21 @@ export default class TimelineClass extends StreamingContext {
     if (!this.videoTrack.raw) {
       this.videoTrack.raw = this.timeline.appendVideoTrack();
     }
-    this.videoTrack.clips.map(clip => {
-      clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
-    });
+    if (Array.isArray(this.videoTrack.clips)) {
+      this.videoTrack.clips.map(clip => {
+        clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
+      });
+    }
   }
   buildAudioTrack() {
     if (!this.audioTrack.raw) {
       this.audioTrack.raw = this.timeline.appendAudioTrack();
     }
-    this.audioTrack.clips.map(clip => {
-      clip.raw = this.addAudioClip(clip, this.videoTrack.raw);
-    });
+    if (Array.isArray(this.audioTrack.clips)) {
+      this.audioTrack.clips.map(clip => {
+        clip.raw = this.addAudioClip(clip, this.videoTrack.raw);
+      });
+    }
   }
   addCaption(caption) {
     const {

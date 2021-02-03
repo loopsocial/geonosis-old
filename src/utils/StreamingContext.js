@@ -48,6 +48,7 @@ export default class StreamingContext {
   addEventListener(event, callback) {
     if (this[event] && callback) {
       this[event].push(callback);
+      console.log("添加事件", event, this[event]);
     } else {
       console.warn("添加事件监听失败", event, callback);
     }
@@ -62,6 +63,19 @@ export default class StreamingContext {
       }
     } else {
       console.warn("添加事件监听失败", event, callback);
+    }
+  }
+  // 清空回调事件, 传参的话只清空这个事件, 不传的话清空全部事件
+  clearEvents(event) {
+    if (event && this[event]) {
+      this[event] = [];
+    } else {
+      this.streamingContext = nvsGetStreamingContextInstance();
+      this.onPlaybackStopped = [];
+      this.onPlaybackTimelinePosition = [];
+      this.onFinishAssetPackageInstallation = [];
+      this.onImageGrabbedArrived = [];
+      this.onWebRequestWaitStatusChange = [];
     }
   }
 }
