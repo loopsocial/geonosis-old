@@ -7,17 +7,24 @@
       :width="width"
       :style="{ width: width + 'px' }"
     ></canvas>
+    <svg-icon
+      :class="[isPlaying ? 'icon-play' : 'icon-pause', 'preview-icon']"
+      :icon-class="isPlaying ? 'play' : 'pause'"
+      @click="play"
+    ></svg-icon>
   </div>
 </template>
 
 <script>
 import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
+import resource from "../mock/resource.json";
+
 export default {
   data() {
     return {
       width: 0,
-      streamingContext: null
+      isPlaying: false
     };
   },
   props: {
@@ -28,7 +35,6 @@ export default {
     initSDK()
       .then(() => {
         console.log("初始化完成");
-        this.streamingContext = nvsGetStreamingContextInstance();
         this.createTimeline();
       })
       .catch(e => {
@@ -38,19 +44,41 @@ export default {
     window.addEventListener("resize", this.resize);
   },
   methods: {
+    mockClips() {
+      const clips = JSON.parse(resource);
+      let inPoint = 0;
+      this.videoClips = clips.map(item => {
+        const clip = {
+          inPoint,
+          m3u8Url: item.m3u8Url,
+          url: item.url,
+          trimIn: 0,
+          trimOut: item.duration,
+          orgDuration: item.duration
+        };
+        inPoint += item.duration;
+        return clip;
+      });
+    },
     createTimeline() {
-      this.timelineClass = new TimelineClass(
-        this.streamingContext,
-        "live-window",
-        {
-          videoTrack: { clips: this.videoClips }
-        }
-      );
+      this.timelineClass = new TimelineClass("live-window", {
+        videoTrack: { clips: this.mockClips() }
+      });
+      console.log(this.timelineClass);
+      this.timelineClass.buildTimeline();
     },
     resize() {
       const liveWindow = this.$refs.liveWindow;
       const height = liveWindow.offsetHeight;
       this.width = Math.ceil((height / 16) * 9);
+    },
+    play() {
+      if (this.isPlaying) {
+        this.timelineClass.play();
+      } else {
+        this.timelineClass.stop();
+      }
+      this.isPlaying = !this.isPlaying();
     }
   },
   beforeDestroy() {

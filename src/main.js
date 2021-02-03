@@ -7,7 +7,7 @@ import store from "./store";
 import i18n from "./i18n";
 import "./plugins/element.js";
 import "./icons";
-import api from "./api/apiHost";
+import api from "./api/apiPath";
 require("./mock/index");
 Vue.config.productionTip = false;
 Vue.prototype.$api = api;

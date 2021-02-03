@@ -1,7 +1,7 @@
-export default class TimelineClass extends NvsTimeline {
-  constructor(streamingContext, canvasId, options) {
+import StreamingContext from "./StreamingContext";
+export default class TimelineClass extends StreamingContext {
+  constructor(canvasId, options) {
     super();
-    this.streamingContext = streamingContext;
     this.timeline = null;
     this.canvasId = canvasId;
     if (options) {
@@ -20,21 +20,26 @@ export default class TimelineClass extends NvsTimeline {
       this.captions = captions || [];
       this.stickers = stickers || [];
     }
+    this.init();
   }
-  createTimeline(width, height) {
+  // 初始化
+  init() {
+    this.createTimeline();
+    this.connectLiveWindow();
+  }
+  // 创建时间线实例
+  createTimeline() {
     if (!this.streamingContext) {
       console.error("stream context is null");
       return;
     }
-    const resolution = new NvsVideoResolution(
-      width || this.width,
-      height || this.height
-    );
+    const resolution = new NvsVideoResolution(this.width, this.height);
     this.timeline = this.streamingContext.createTimeline(
       resolution,
       new NvsRational(25, 1),
       new NvsAudioResolution(44100, 2)
     );
+    console.log("初始化时间线完成");
   }
   connectLiveWindow(canvasId) {
     this.liveWindow = this.streamingContext.createLiveWindow(
@@ -45,6 +50,19 @@ export default class TimelineClass extends NvsTimeline {
       this.timeline,
       this.liveWindow
     );
+    console.log("连接liveWindow完成");
+  }
+  // 构建时间线
+  async buildTimeline() {
+    await this.streamingContext.streamingEngineReadyForTimelineModification();
+    this.clearVideoTrack();
+    this.clearAudioTrack();
+    this.clearCaptions();
+    this.clearStickers();
+    this.buildVideoTrack();
+    this.buildAudioTrack();
+    this.captions.map(c => this.addCaption(c));
+    this.stickers.map(s => this.addSticker(s));
   }
   async play() {
     await this.streamingContext.streamingEngineReadyForTimelineModification();
@@ -65,11 +83,6 @@ export default class TimelineClass extends NvsTimeline {
   }
   removeTimeline() {
     this.streamingContext.removeTimeline(this.timeline);
-  }
-  run() {
-    this.createTimeline();
-    this.connectLiveWindow();
-    this.buildTrack();
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
@@ -188,5 +201,9 @@ export default class TimelineClass extends NvsTimeline {
     while (this.timeline.audioTrackCount() !== 0) {
       this.timeline.removeAudioTrack(0);
     }
+  }
+  destroyed() {
+    this.liveWindow && this.removeLiveWindow(this.liveWindow);
+    this.removeTimeline();
   }
 }

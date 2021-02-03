@@ -1,4 +1,5 @@
 import { objectStores } from "./Global";
+import { initIndexDB } from "./AssetsUtils";
 // 初始化wasm
 function initPlayerWasm() {
   return new Promise((resolve, reject) => {
@@ -22,13 +23,6 @@ function ensureMeisheModule() {
     }
   };
   return new Promise(poll);
-}
-// 处理indexDB
-function prepareAssetIndexDB() {
-  return new Promise((resolve, reject) => {
-    // ....
-    resolve();
-  });
 }
 // 处理FS, 创建目录
 function createFSDir() {
@@ -72,7 +66,7 @@ export default function initSDK() {
       })
       .then(() => {
         createFSDir();
-        return prepareAssetIndexDB();
+        return initIndexDB();
       })
       .then(() => {
         resumeAudio();
