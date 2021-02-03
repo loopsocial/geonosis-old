@@ -88,4 +88,12 @@ body .ln-tabs-body {
   .el-tabs__active-bar {
     background-color: white;
   }
+  .el-tabs__active-bar {
+    transition: all .3s cubic-bezier(.645,.045,.355,1);
+  }
+  &.ln-template-tabs {
+    .el-tabs__nav-wrap::after {
+      background-color: transparent;
+    }
+  }
 }

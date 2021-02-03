@@ -1,6 +1,7 @@
+// 初始化wasm
 function initPlayerWasm() {
   return new Promise((resolve, reject) => {
-    console.warn(`${process.env.BASE_URL}static/NvWasmPlayer_1_4_0`);
+    console.log("加载 wasm");
     const loader = WASMLoader({
       showError: reject,
       loadingFinished: resolve
@@ -10,6 +11,7 @@ function initPlayerWasm() {
     );
   });
 }
+// 确保wasm加载完成
 function ensureMeisheModule() {
   const poll = (resolve, reject) => {
     if (Module.Meishe !== undefined) {
@@ -29,9 +31,12 @@ function prepareAssetIndexDB() {
 }
 // 处理FS, 创建目录
 function createFSDir() {
-  FS.mkdir("/m3u8");
-  FS.mkdir("/caption");
-  FS.mkdir("/sticker");
+  const dirs = FS.readdir("/");
+  ["m3u8", "caption", "sticker"].map(item => {
+    if (!dirs.includes(item)) {
+      FS.mkdir(`/${item}`);
+    }
+  });
 }
 // SDK 鉴权
 function verifySdkLicenseFile(authUrl) {
@@ -46,9 +51,20 @@ function verifySdkLicenseFile(authUrl) {
     );
   });
 }
-
+// 添加音频上下文
+function resumeAudio() {
+  document.body.addEventListener("mousedown", slot);
+  window.addEventListener("keydown", slot);
+}
+function slot() {
+  console.log("调用音频上下文");
+  nvsResumeAudioContext();
+  document.body.removeEventListener("mousedown", slot);
+  window.removeEventListener("keydown", slot);
+}
 export default function initSDK() {
   return new Promise((resolve, reject) => {
+    if (Module.Meishe) resolve();
     initPlayerWasm()
       .then(() => {
         return ensureMeisheModule();
@@ -58,6 +74,7 @@ export default function initSDK() {
         return prepareAssetIndexDB();
       })
       .then(() => {
+        resumeAudio();
         return verifySdkLicenseFile();
       })
       .then(resolve)

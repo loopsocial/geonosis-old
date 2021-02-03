@@ -5,13 +5,20 @@ export default class TimelineClass extends NvsTimeline {
     this.timeline = null;
     this.canvasId = canvasId;
     if (options) {
-      const { tracks, width, height, captions, stickers } = options;
-      this.tracks = tracks || [];
+      const {
+        videoTrack,
+        audioTrack,
+        width,
+        height,
+        captions,
+        stickers
+      } = options;
+      this.videoTrack = videoTrack || {};
+      this.audioTrack = audioTrack || {};
       this.width = width || 540;
       this.height = height || 960;
       this.captions = captions || [];
       this.stickers = stickers || [];
-      this.run();
     }
   }
   createTimeline(width, height) {
@@ -30,18 +37,16 @@ export default class TimelineClass extends NvsTimeline {
     );
   }
   connectLiveWindow(canvasId) {
-    const liveWindow = this.streamingContext.createLiveWindow(
+    this.liveWindow = this.streamingContext.createLiveWindow(
       canvasId || this.canvasId
     );
-    liveWindow.setFillMode(NvsLiveWindowFillModeEnum.PreserveAspectFit);
+    this.liveWindow.setFillMode(NvsLiveWindowFillModeEnum.PreserveAspectFit);
     this.streamingContext.connectTimelineWithLiveWindow(
       this.timeline,
-      liveWindow
+      this.liveWindow
     );
-    return liveWindow;
   }
   async play() {
-    nvsResumeAudioContext();
     await this.streamingContext.streamingEngineReadyForTimelineModification();
     this.streamingContext.playbackTimeline(
       this.timeline,
@@ -63,16 +68,23 @@ export default class TimelineClass extends NvsTimeline {
   }
   run() {
     this.createTimeline();
-    const liveWindow = this.connectLiveWindow();
+    this.connectLiveWindow();
     this.buildTrack();
-    return liveWindow;
   }
-  buildTrack() {
-    this.tracks.map(track => {
-      track.raw = this.timeline.appendVideoTrack();
-      track.clips.map(clip => {
-        this.addVideoClip(clip, track.raw);
-      });
+  buildVideoTrack() {
+    if (!this.videoTrack.raw) {
+      this.videoTrack.raw = this.timeline.appendVideoTrack();
+    }
+    this.videoTrack.clips.map(clip => {
+      clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
+    });
+  }
+  buildAudioTrack() {
+    if (!this.audioTrack.raw) {
+      this.audioTrack.raw = this.timeline.appendAudioTrack();
+    }
+    this.audioTrack.clips.map(clip => {
+      clip.raw = this.addAudioClip(clip, this.videoTrack.raw);
     });
   }
   addCaption(caption) {
@@ -95,15 +107,86 @@ export default class TimelineClass extends NvsTimeline {
       styleDesc,
       false
     );
-    captionRaw.setScaleX(scaleX);
-    captionRaw.setScaleY(scaleY);
-    captionRaw.setRotationZ(rotation);
-    const offsetPointF = new NvsPointF(translationX, translationY);
-    captionRaw.setCaptionTranslation(offsetPointF);
-    captionRaw.setFontSize(fontSize);
+    scaleX !== undefined && captionRaw.setScaleX(scaleX);
+    scaleY !== undefined && captionRaw.setScaleY(scaleY);
+    rotation !== undefined && captionRaw.setRotationZ(rotation);
+    if (translationX !== undefined && translationX !== undefined) {
+      const offsetPointF = new NvsPointF(translationX, translationY);
+      captionRaw.setCaptionTranslation(offsetPointF);
+    }
+    fontSize !== undefined && captionRaw.setFontSize(fontSize);
+    return captionRaw;
   }
-  addVideoClip(clip, track) {
-    const { m3u8Path, inPoint, trimIn, trimOut } = clip;
-    track.addClip(m3u8Path, inPoint);
+  addSticker(sticker) {
+    const {
+      inPoint,
+      duration,
+      desc,
+      scale,
+      rotation,
+      translationX,
+      translationY,
+      horizontalFlip,
+      verticalFlip,
+      z
+    } = sticker;
+    const stickerRaw = this.timeline.addAnimatedSticker(
+      inPoint,
+      duration,
+      desc + "",
+      false,
+      false,
+      ""
+    );
+    scale !== undefined && stickerRaw.setScale(scale);
+    rotation !== undefined && stickerRaw.setRotationZ(rotation);
+    if (translationX !== undefined && translationX !== undefined) {
+      const offsetPointF = new NvsPointF(translationX, translationY);
+      stickerRaw.setTranslation(offsetPointF);
+    }
+    horizontalFlip !== undefined &&
+      stickerRaw.setHorizontalFlip(horizontalFlip);
+    verticalFlip !== undefined && stickerRaw.setVerticalFlip(verticalFlip);
+    z !== undefined && stickerRaw.setZValue(z);
+  }
+  addVideoClip(clip, trackRaw) {
+    const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
+    return trackRaw.addClip2(
+      m3u8Path,
+      inPoint,
+      trimIn || 0,
+      trimOut || orgDuration
+    );
+  }
+  addAudioClip(clip, trackRaw) {
+    const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
+    return trackRaw.addClip2(
+      m3u8Path,
+      inPoint,
+      trimIn || 0,
+      trimOut || orgDuration
+    );
+  }
+  clearCaptions() {
+    let caption = this.timeline.getFirstCaption();
+    while (caption) {
+      caption = this.timeline.removeCaption(caption);
+    }
+  }
+  clearStickers() {
+    let sticker = this.timeline.getFirstAnimatedSticker();
+    while (sticker) {
+      sticker = this.timeline.removeAnimatedSticker(sticker);
+    }
+  }
+  clearVideoTrack() {
+    while (this.timeline.videoTrackCount() !== 0) {
+      this.timeline.removeVideoTrack(0);
+    }
+  }
+  clearAudioTrack() {
+    while (this.timeline.audioTrackCount() !== 0) {
+      this.timeline.removeAudioTrack(0);
+    }
   }
 }
