@@ -20,17 +20,16 @@ export default {
       streamingContext: null
     };
   },
+  props: {
+    videoClips: Array
+  },
   mounted() {
     console.log("mounted");
     initSDK()
       .then(() => {
         console.log("初始化完成");
         this.streamingContext = nvsGetStreamingContextInstance();
-        this.timelineClass = new TimelineClass(
-          this.streamingContext,
-          "live-window",
-          {}
-        );
+        this.createTimeline();
       })
       .catch(e => {
         console.error("初始化失败", e);
@@ -39,6 +38,15 @@ export default {
     window.addEventListener("resize", this.resize);
   },
   methods: {
+    createTimeline() {
+      this.timelineClass = new TimelineClass(
+        this.streamingContext,
+        "live-window",
+        {
+          videoTrack: { clips: this.videoClips }
+        }
+      );
+    },
     resize() {
       const liveWindow = this.$refs.liveWindow;
       const height = liveWindow.offsetHeight;

@@ -1,3 +1,4 @@
+import { objectStores } from "./Global";
 // 初始化wasm
 function initPlayerWasm() {
   return new Promise((resolve, reject) => {
@@ -32,7 +33,7 @@ function prepareAssetIndexDB() {
 // 处理FS, 创建目录
 function createFSDir() {
   const dirs = FS.readdir("/");
-  ["m3u8", "caption", "sticker"].map(item => {
+  objectStores.map(item => {
     if (!dirs.includes(item)) {
       FS.mkdir(`/${item}`);
     }

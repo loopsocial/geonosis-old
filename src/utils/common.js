@@ -5,3 +5,10 @@ export function sleep(timeout) {
     }, timeout);
   });
 }
+export function getNameFromUrl(url) {
+  return url
+    .split("/")
+    .pop()
+    .split("?")
+    .shift();
+}

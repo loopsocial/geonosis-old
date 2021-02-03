@@ -1,3 +1,7 @@
+body > canvas {
+  position: absolute;
+  top: 0;
+}
 .flex {
   display: flex;
   align-items: center;
