@@ -1,0 +1,104 @@
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+span.duration {
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+// 按钮, 渐变色
+body .el-button {
+  &.el-button--text {
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  &.round-btn {
+    background: linear-gradient(135deg, #ff720d 0%, #fe177a 50%, #a40ff4 100%);
+    padding: 10px 24px;
+    &.default {
+      background: $default-color;
+    }
+    &.is-disabled {
+      color: white;
+      opacity: 0.3 !important;
+      background: linear-gradient(
+        135deg,
+        #ff720d 0%,
+        #fe177a 50%,
+        #a40ff4 100%
+      );
+    }
+    border-radius: 18px;
+    border-width: 0;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    font-family: Avenir Next;
+    transition: all 0.3s;
+    font-style: normal;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+// 弹窗样式
+body .ln-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 85%;
+  min-width: 600px;
+  background-color: $dialog-bgc;
+  .el-dialog__title {
+    color: white;
+  }
+  .el-dialog__close {
+    color: rgba($color: white, $alpha: 0.8);
+    transition: color 0.2s;
+    &:hover {
+      color: white;
+    }
+  }
+  .el-dialog__headerbtn:hover .el-dialog__close {
+    color: white;
+  }
+  .el-dialog__body {
+    padding-top: 10px;
+    // flex: 1;
+    height: calc(100% - 54px);
+    box-sizing: border-box;
+  }
+}
+// 标签页
+body .ln-tabs-body {
+  flex: 1;
+  .el-tabs__item {
+    color: white;
+    font-weight: bold;
+    padding: 0 30px;
+  }
+  .el-tabs__nav-wrap::after {
+    background-color: rgba($color: white, $alpha: 0.3);
+  }
+  .el-tabs__active-bar {
+    background-color: white;
+  }
+  .el-tabs__active-bar {
+    transition: all .3s cubic-bezier(.645,.045,.355,1);
+  }
+  &.ln-template-tabs {
+    .el-tabs__nav-wrap::after {
+      background-color: transparent;
+    }
+  }
+}
+
+// loading
+body .el-loading-mask{
+  background-color: rgba(10,10,10,.6);
+}
