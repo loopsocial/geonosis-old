@@ -4,7 +4,7 @@ import Create from "../views/Create.vue";
 import Template from "../views/Template.vue";
 import SceneEditing from "../views/SceneEditing.vue";
 import Post from "../views/Post.vue";
-
+import Scenes from "../views/Scenes";
 Vue.use(VueRouter);
 
 const routes = [
@@ -15,6 +15,11 @@ const routes = [
     path: "/Create",
     name: "Create",
     component: Create
+  },
+  {
+    path: "/Scenes",
+    name: "Scenes",
+    component: Scenes
   },
   {
     path: "/Template",

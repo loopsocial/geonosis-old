@@ -147,7 +147,7 @@ export default {
 
 <style lang="scss" scoped>
 .preview {
-  flex: 1;
+  margin-left: 32px;
   max-width: 100%;
   position: relative;
   &:hover {

@@ -8,7 +8,7 @@ import i18n from "./i18n";
 import "./plugins/element.js";
 import "./icons";
 import api from "./api/apiPath";
-// require("./mock/index");
+require("./mock/index");
 Vue.config.productionTip = false;
 Vue.prototype.$api = api;
 // 毫秒格式化
