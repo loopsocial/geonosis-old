@@ -5,6 +5,7 @@
       v-infinite-scroll="load"
       :infinite-scroll-distance="3"
       :infinite-scroll-delay="500"
+      :infinite-scroll-disabled="disabled"
     >
       <li
         v-for="sticker of stickerList"
@@ -12,13 +13,13 @@
         class="list-item"
         v-loading="sticker.isInstalling"
         infinite-scroll-immediate
-        :infinite-scroll-disabled="disabled"
       >
         <img :src="stickerImage" alt="" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-if="isNoMore">{{ $t("nomore") }}</p>
+    <p v-else-if="isNoMore">{{ $t("nomore") }}</p>
+    <p v-else>{{ $t(" ") }}</p>
   </div>
 </template>
 
