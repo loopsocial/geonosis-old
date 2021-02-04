@@ -21,6 +21,7 @@ export default {
 <style lang="scss" scoped>
 .ln-template {
   display: grid;
+  flex: 1;
   grid-template-columns: repeat(2, 1fr);
   height: 100%;
   .realtime-preview {

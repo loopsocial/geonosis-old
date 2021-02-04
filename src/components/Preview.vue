@@ -11,7 +11,7 @@
         id="live-window"
         :width="width"
         :height="height"
-        :style="{ width: width + 'px', height: height + 'px' }"
+        :style="{ width: width + 'px' }"
       ></canvas>
     </div>
     <div class="controls flex">
@@ -89,7 +89,7 @@ export default {
     resize() {
       const liveWindow = this.$refs.liveWindow;
       this.height = liveWindow.offsetHeight;
-      this.width = Math.ceil((this.height / 16) * 9);
+      this.width = parseInt((this.height / 16) * 9);
     },
     play() {
       console.log(this.isPlaying);
@@ -149,6 +149,7 @@ export default {
 .preview {
   margin-left: 32px;
   max-width: 100%;
+  height: 100%;
   position: relative;
   &:hover {
     .controls {
@@ -158,7 +159,11 @@ export default {
   }
   .live-window-container {
     height: 100%;
+    position: relative;
     .live-window {
+      position: absolute;
+      top: 0;
+      left: 0;
       height: 100%;
       background-color: whitesmoke;
     }
