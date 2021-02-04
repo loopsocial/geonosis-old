@@ -1,5 +1,6 @@
 import { getNameFromUrl } from "./common";
 import { objectStores, assetTypes, needInstall } from "./Global";
+import axios from "axios";
 const name = "nvBSEditorAssets";
 const version = 1;
 let db;
@@ -49,9 +50,9 @@ function getStoreName(key) {
  * @param {*} value 资源包的内容
  */
 export function saveAssetToIndexDB(packageUrl, value) {
-  const key = getNameFromUrl(packageUrl);
-  const storeName = getStoreName(key);
-  const uuid = key.split(".").shift();
+  const key = getNameFromUrl(packageUrl); // E6AD8162-1394-44F5-BA22-6402C828B12F.2.captionstyle
+  const storeName = getStoreName(key); // captionstyle
+  const uuid = key.split(".").shift(); // E6AD8162-1394-44F5-BA22-6402C828B12F
   if (db !== undefined && db.objectStoreNames.contains(storeName)) {
     var transaction = db.transaction(storeName, "readwrite");
     var store = transaction.objectStore(storeName);
@@ -87,9 +88,10 @@ export function getAssetFromIndexDB(packageUrl) {
  */
 export function getAssetFromNetwork(packageUrl) {
   return new Promise((resolve, reject) => {
-    window.axios
+    axios
       .get(packageUrl, { responseType: "arraybuffer" })
       .then(res => {
+        console.log("network data", res);
         saveAssetToIndexDB(packageUrl, new Uint8Array(res.data));
         resolve(new Uint8Array(res.data));
       })
@@ -138,20 +140,27 @@ export async function installAsset(packageUrl, checkLic) {
           }
           window.streamingContext.addEventListener(
             "onFinishAssetPackageInstallation",
-            function slot(id, filePath, type, error) {
+            function slot(id, path, type, error) {
+              if (id !== uuid) return;
               window.streamingContext.removeEventListener(
                 "onFinishAssetPackageInstallation",
                 slot
               );
-              FS.unlink(filePath, 0); // 安装完成后删除FS内的文件
-              if (licPath) FS.unlink(licPath, 0);
+              try {
+                // 安装完成后删除FS内的文件
+                FS.unlink(path, 0);
+                if (licPath) FS.unlink(licPath, 0);
+              } catch (error) {
+                console.log("FS 删除失败", path, licPath);
+              }
               if (error === 0) resolve(filePath);
               else {
                 reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
               }
             }
           );
-          window.streamingContext
+          console.log("安装", filePath);
+          window.streamingContext.streamingContext
             .getAssetPackageManager()
             .installAssetPackage(filePath, licPath, assetTypes[storeName]);
         }

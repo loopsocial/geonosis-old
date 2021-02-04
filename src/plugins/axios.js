@@ -9,9 +9,13 @@ import axios from "axios";
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 let config = {
-  // baseURL: process.env.baseURL || process.env.apiUrl || ""
+  baseURL: "https://testeapi.meishesdk.com:8443",
   // timeout: 60 * 1000, // Timeout
   // withCredentials: true, // Check cross-site Access-Control
+  headers: {
+    Authorization:
+      "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxMjQyMDY5NSwiZXhwIjoxNjEzMDI1NDk1fQ.ccajXMKew0Jchtbz56Gxcb7FvzCn-NVOsFeSdJgI5r0uDSMcxwDnkm4pppn70wmBpRIsUq96IfGt5Txsm07Slg"
+  }
 };
 
 const _axios = axios.create(config);
@@ -31,7 +35,7 @@ _axios.interceptors.request.use(
 _axios.interceptors.response.use(
   function(response) {
     // Do something with response data
-    return response;
+    return response.data;
   },
   function(error) {
     // Do something with response error

@@ -3,34 +3,37 @@
     <ul
       class="list"
       v-infinite-scroll="load"
-      :infinite-scroll-distance="30"
+      :infinite-scroll-distance="3"
+      :infinite-scroll-delay="1000"
+      infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
     >
       <li
-        v-for="sticker of stickerList"
-        :key="sticker.key"
+        v-for="caption of captionList"
+        :key="caption.uuid"
         class="list-item"
-        v-loading="sticker.isInstalling"
+        v-loading="caption.isInstalling"
       >
-        <img :src="stickerImage" alt="" />
+        <img :src="caption.coverUrl" alt="" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
     <p v-else-if="isNoMore">{{ $t("nomore") }}</p>
-    <p v-else>{{ $t(" ") }}</p>
+    <!-- <p v-else>{{ $t(" ") }}</p> -->
   </div>
 </template>
 
 <script>
-import { sleep } from "@/utils/common.js";
+import { installAsset } from "@/utils/AssetsUtils";
 export default {
   components: {},
   data() {
     return {
-      stickerList: [],
+      captionList: [],
+      page: 0,
       isLoading: false,
       isNoMore: false,
-      stickerImage: require("@/assets/images/test-text-sticker-01.png")
+      captionCount: 0
     };
   },
   computed: {
@@ -42,10 +45,6 @@ export default {
     this.getStickers();
   },
   methods: {
-    // getImageSrc(textSticker) {
-    //   if (!textSticker) return "";
-    //   return require("@/assets/images/test-text-sticker-0" + textSticker);
-    // },
     async load() {
       this.isLoading = true;
       try {
@@ -57,20 +56,29 @@ export default {
       // this.$emit('onLoad')
     },
     async getStickers() {
-      const res = await this.axios.get(this.$api.materialList);
-      await sleep(1000);
-      res.data.rows.forEach((item, idx) => {
-        res.data.rows[idx].isInstalling = true;
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 3,
+          page: this.page,
+          pageSize: 20,
+          category: 3
+        }
       });
-      console.log(res);
-      this.stickerList = [...this.stickerList, ...res.data.rows];
-      if (!res.data.rows.length) {
+      const { materialCount, materialList } = res.data;
+      this.captionCount = materialCount;
+      for (let i = 0; i < materialList.length; i++) {
+        const sticker = {
+          ...materialList[i],
+          isInstalling: true
+        };
+        this.captionList.push(sticker);
+        installAsset(materialList[i].packageUrl).then(() => {
+          sticker.isInstalling = false;
+        });
+      }
+      if (this.captionList.length >= this.captionCount) {
         this.isNoMore = true;
       }
-      await sleep(1000);
-      res.data.rows.forEach((item, idx) => {
-        res.data.rows[idx].isInstalling = false;
-      });
     }
   }
 };

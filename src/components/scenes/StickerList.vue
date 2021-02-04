@@ -5,16 +5,16 @@
       v-infinite-scroll="load"
       :infinite-scroll-distance="3"
       :infinite-scroll-delay="500"
+      infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
     >
       <li
         v-for="sticker of stickerList"
-        :key="sticker.key"
+        :key="sticker.uuid"
         class="list-item"
         v-loading="sticker.isInstalling"
-        infinite-scroll-immediate
       >
-        <img :src="stickerImage" alt="" />
+        <img :src="sticker.coverUrl" alt="" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { sleep } from "@/utils/common.js";
+import { installAsset } from "@/utils/AssetsUtils";
 export default {
   components: {},
   data() {
@@ -32,7 +32,7 @@ export default {
       stickerList: [],
       isLoading: false,
       isNoMore: false,
-      stickerImage: require("@/assets/images/test-sticker-80's.png")
+      page: 0
     };
   },
   computed: {
@@ -45,8 +45,10 @@ export default {
   },
   methods: {
     async load() {
+      if (this.isNoMore) return;
       this.isLoading = true;
       try {
+        this.page++;
         await this.getStickers();
       } catch (e) {
         this.$message({ type: "warning", message: e });
@@ -55,19 +57,29 @@ export default {
       // this.$emit('onLoad')
     },
     async getStickers() {
-      const res = await this.axios.get(this.$api.materialList);
-      await sleep(1000);
-      res.data.rows.forEach((item, idx) => {
-        res.data.rows[idx].isInstalling = true;
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 4,
+          page: this.page,
+          pageSize: 40,
+          category: 1
+        }
       });
-      this.stickerList = [...this.stickerList, ...res.data.rows];
-      if (!res.data.rows.length) {
+      const { materialCount, materialList } = res.data;
+      this.stickerCount = materialCount;
+      for (let i = 0; i < materialList.length; i++) {
+        const sticker = {
+          ...materialList[i],
+          isInstalling: true
+        };
+        this.stickerList.push(sticker);
+        installAsset(materialList[i].packageUrl).then(() => {
+          sticker.isInstalling = false;
+        });
+      }
+      if (this.stickerList.length >= this.stickerCount) {
         this.isNoMore = true;
       }
-      await sleep(1000);
-      res.data.rows.forEach((item, idx) => {
-        res.data.rows[idx].isInstalling = false;
-      });
     }
   }
 };

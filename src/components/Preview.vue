@@ -3,6 +3,7 @@
     <div
       class="live-window-container"
       v-loading="waiting"
+      :style="{ width: width + 'px' }"
       element-loading-background="rgba(0, 0, 0, 0.5)"
     >
       <canvas

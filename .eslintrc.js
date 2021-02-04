@@ -25,7 +25,6 @@ module.exports = {
     nvsGetStreamingContextInstance: true,
     WASMLoader: true,
     Module: true,
-    videojs: true,
     NvsXmlStreamWriter: true,
     NvsTimeline: true,
     NvsPointF: true

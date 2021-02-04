@@ -48,7 +48,6 @@ export default class StreamingContext {
   addEventListener(event, callback) {
     if (this[event] && callback) {
       this[event].push(callback);
-      console.log("添加事件", event, this[event]);
     } else {
       console.warn("添加事件监听失败", event, callback);
     }
