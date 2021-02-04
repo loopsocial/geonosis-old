@@ -94,7 +94,7 @@ export function getAssetFromNetwork(packageUrl) {
       option.responseType = "arraybuffer";
     }
     window.axios
-      .get(packageUrl)
+      .get(packageUrl, option)
       .then(res => {
         saveAssetToIndexDB(packageUrl, res.data);
         resolve(res.data);
