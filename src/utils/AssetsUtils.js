@@ -1,6 +1,8 @@
 import { getNameFromUrl } from "./common";
 import { objectStores, assetTypes, needInstall } from "./Global";
 import axios from "axios";
+import store from "../store";
+
 const name = "nvBSEditorAssets";
 const version = 1;
 let db;
@@ -25,7 +27,17 @@ export function initIndexDB() {
     };
   });
 }
-
+// 确保底层SDK加载完成
+function ensureMeisheModule() {
+  const poll = (resolve, reject) => {
+    if (store.state.isFinishNvs) {
+      resolve();
+    } else {
+      setTimeout(() => poll(resolve, reject), 400);
+    }
+  };
+  return new Promise(poll);
+}
 function ensureAssetIndexDBObject(ret, name) {
   if (!ret.objectStoreNames.contains(name)) {
     ret.createObjectStore(name, { keyPath: "id" });
@@ -107,7 +119,10 @@ export function getAssetFromNetwork(packageUrl) {
  */
 export async function installAsset(packageUrl, checkLic) {
   return new Promise((resolve, reject) => {
-    getAssetFromIndexDB(packageUrl)
+    ensureMeisheModule()
+      .then(() => {
+        return getAssetFromIndexDB(packageUrl);
+      })
       .then(data => {
         if (data) return data;
         return getAssetFromNetwork(packageUrl);
@@ -159,7 +174,6 @@ export async function installAsset(packageUrl, checkLic) {
               }
             }
           );
-          console.log("安装", filePath);
           window.streamingContext.streamingContext
             .getAssetPackageManager()
             .installAssetPackage(filePath, licPath, assetTypes[storeName]);

@@ -10,7 +10,6 @@
       <el-menu
         :default-active="defaultActive"
         class="el-menu-vertical"
-        @select="handleSelect"
         router
         :collapse-transition="false"
       >

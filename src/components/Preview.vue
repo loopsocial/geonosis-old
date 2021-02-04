@@ -30,6 +30,8 @@ import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
+import { mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -47,6 +49,7 @@ export default {
     initSDK()
       .then(() => {
         console.log("初始化完成");
+        this.setNvsStatus(true);
         this.createTimeline();
       })
       .catch(e => {
@@ -56,6 +59,9 @@ export default {
     window.addEventListener("resize", this.resize);
   },
   methods: {
+    ...mapActions({
+      setNvsStatus: "setNvsStatus"
+    }),
     // 测试数据
     async mockClips() {
       const clips = resource.resourceList;
