@@ -1,6 +1,6 @@
 <template>
   <div class="materials">
-    <el-tabs v-model="activeName" @tab-click="handleClick">
+    <el-tabs v-model="activeName">
       <el-tab-pane label="text" name="text" lazy>
         <template #label>
           <svg-icon class="text-icon" icon-class="text"></svg-icon>

@@ -1,23 +1,10 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ name: 'Create' }" :class="getClasses(0)">
-        {{ $t("create") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'Template' }" :class="getClasses(1)">
-        {{ $t("template") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'SceneEditing' }" :class="getClasses(2)">
-        {{ $t("sceneEditing") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'Post' }" :class="getClasses(3)">
-        {{ $t("post") }}
-      </el-breadcrumb-item>
-    </el-breadcrumb>
     <div class="btn">
+      <el-button type="text" size="medium">{{ $t("preview") }}</el-button>
       <el-button round class="round-btn" size="medium">{{
-        $t("next")
+        $t("publish")
       }}</el-button>
     </div>
   </div>
@@ -52,6 +39,9 @@ export default {
     width: 105px;
     height: 24px;
   }
+  .round-btn {
+    margin-left: 33px;
+  }
   .el-breadcrumb__item {
     height: 15px;
     font-size: 16px;
@@ -77,6 +67,8 @@ export default {
 <i18n>
 {
   "en": {
+    "preview":"Preivew",
+    "publish":"Publish",
     "create": "Create",
     "template": "Template",
     "sceneEditing": "Scene Editing",

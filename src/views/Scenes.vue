@@ -42,7 +42,7 @@ export default {
 <style lang="scss" scoped>
 .scenes {
   display: flex;
-  width: 100%;
+  width: 92%;
 }
 </style>
 

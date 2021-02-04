@@ -3,16 +3,14 @@
     <ul
       class="list"
       v-infinite-scroll="load"
-      :infinite-scroll-distance="3"
-      :infinite-scroll-delay="1000"
+      :infinite-scroll-distance="30"
+      :infinite-scroll-disabled="disabled"
     >
       <li
         v-for="sticker of stickerList"
         :key="sticker.key"
         class="list-item"
         v-loading="sticker.isInstalling"
-        infinite-scroll-immediate
-        :infinite-scroll-disabled="disabled"
       >
         <img :src="stickerImage" alt="" />
       </li>
@@ -64,6 +62,7 @@ export default {
       res.data.rows.forEach((item, idx) => {
         res.data.rows[idx].isInstalling = true;
       });
+      console.log(res);
       this.stickerList = [...this.stickerList, ...res.data.rows];
       if (!res.data.rows.length) {
         this.isNoMore = true;
@@ -99,35 +98,28 @@ export default {
   }
   @media screen and (max-width: 3000px) {
     .list {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 20px;
-    }
-    .template-load-more {
-      grid-column-start: span 5;
     }
   }
   @media screen and (max-width: 1800px) {
     .list {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .template-load-more {
-      grid-column-start: span 4;
+      grid-template-columns: repeat(5, 1fr);
     }
   }
-  @media screen and (max-width: 1400px) {
+  @media screen and (max-width: 1500px) {
     .list {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .template-load-more {
-      grid-column-start: span 3;
+      grid-template-columns: repeat(4, 1fr);
     }
   }
   @media screen and (max-width: 1200px) {
     .list {
-      grid-template-columns: repeat(1, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
-    .template-load-more {
-      grid-column-start: span 2;
+  }
+  @media screen and (max-width: 1000px) {
+    .list {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 }
