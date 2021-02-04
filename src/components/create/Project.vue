@@ -19,19 +19,14 @@
       >
         {{ $t("addMedia") }}
       </el-button>
-      <StickerList />
     </div>
   </div>
 </template>
 
 <script>
-import StickerList from "./StickerList";
-
 export default {
   methods: {},
-  components: {
-    StickerList
-  }
+  components: {}
 };
 </script>
 

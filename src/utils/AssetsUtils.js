@@ -88,7 +88,7 @@ export function getAssetFromIndexDB(packageUrl) {
 export function getAssetFromNetwork(packageUrl) {
   return new Promise((resolve, reject) => {
     window.axios
-      .get(packageUrl, { responseType: "arraybuffer" })
+      .get(packageUrl)
       .then(res => {
         const key = getNameFromUrl(packageUrl);
         const storeName = getStoreName(key);
