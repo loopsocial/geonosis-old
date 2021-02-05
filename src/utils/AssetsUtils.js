@@ -144,39 +144,50 @@ export async function installAsset(packageUrl, checkLic) {
         } else if (storeName === "m3u8") {
           resolve(filePath);
         } else if (needInstall.includes(storeName)) {
-          let licPath = "";
-          if (checkLic) {
-            // 是否需要授权
-            const data = await getAssetFromIndexDB(`${uuid}.lic`);
-            if (data) {
-              licPath = `lic/${uuid}.lic`;
-              FS.writeFile(licPath);
-            }
-          }
-          window.streamingContext.addEventListener(
-            "onFinishAssetPackageInstallation",
-            function slot(id, path, type, error) {
-              if (id !== uuid) return;
-              window.streamingContext.removeEventListener(
-                "onFinishAssetPackageInstallation",
-                slot
-              );
-              try {
-                // 安装完成后删除FS内的文件
-                FS.unlink(path, 0);
-                if (licPath) FS.unlink(licPath, 0);
-              } catch (error) {
-                console.log("FS 删除失败", path, licPath);
-              }
-              if (error === 0) resolve(filePath);
-              else {
-                reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
-              }
-            }
-          );
-          window.streamingContext.streamingContext
+          const status = window.streamingContext.streamingContext
             .getAssetPackageManager()
-            .installAssetPackage(filePath, licPath, assetTypes[storeName]);
+            .getAssetPackageStatus(uuid, assetTypes[storeName]);
+          if (status === NvsAssetPackageStatusEnum.NotInstalled) {
+            let licPath = "";
+            if (checkLic) {
+              // 是否需要授权
+              const data = await getAssetFromIndexDB(`${uuid}.lic`);
+              if (data) {
+                licPath = `lic/${uuid}.lic`;
+                FS.writeFile(licPath);
+              }
+            }
+            window.streamingContext.addEventListener(
+              "onFinishAssetPackageInstallation",
+              function slot(id, path, type, error) {
+                if (id !== uuid) return;
+                window.streamingContext.removeEventListener(
+                  "onFinishAssetPackageInstallation",
+                  slot
+                );
+                try {
+                  // 安装完成后删除FS内的文件
+                  FS.unlink(path, 0);
+                  if (licPath) FS.unlink(licPath, 0);
+                } catch (error) {
+                  console.log("FS 删除失败", path, licPath);
+                }
+                if (error === 0) resolve(filePath);
+                else {
+                  reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
+                }
+                const status = window.streamingContext.streamingContext
+                  .getAssetPackageManager()
+                  .getAssetPackageStatus(uuid, assetTypes[storeName]);
+                console.log("回调内部", uuid, "状态", status);
+              }
+            );
+            window.streamingContext.streamingContext
+              .getAssetPackageManager()
+              .installAssetPackage(filePath, licPath, assetTypes[storeName]);
+          } else {
+            resolve(filePath);
+          }
         }
       })
       .catch(reject);

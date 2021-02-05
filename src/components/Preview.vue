@@ -38,7 +38,8 @@ export default {
       width: 0,
       height: null,
       isPlaying: false,
-      waiting: false
+      waiting: false,
+      timelineClass: null
     };
   },
   props: {
@@ -49,8 +50,8 @@ export default {
     initSDK()
       .then(() => {
         console.log("初始化完成");
-        this.setNvsStatus(true);
         this.createTimeline();
+        this.setNvsStatus(true);
       })
       .catch(e => {
         console.error("初始化失败", e);
@@ -81,7 +82,6 @@ export default {
         });
         inPoint += clip.duration * 1000;
       }
-      console.log(res);
       return res;
     },
     async createTimeline() {
@@ -92,6 +92,7 @@ export default {
       window.timelineClass = this.timelineClass; // 调试用
       await this.timelineClass.buildTimeline();
       this.setContextEvent();
+      console.log("时间线创建完成", this.timelineClass);
     },
     resize() {
       const liveWindow = this.$refs.liveWindow;
@@ -148,6 +149,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener("resize", this.resize);
+    this.timelineClass.destroy();
   }
 };
 </script>

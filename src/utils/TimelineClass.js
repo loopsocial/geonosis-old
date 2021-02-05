@@ -205,7 +205,7 @@ export default class TimelineClass {
       this.timeline.removeAudioTrack(0);
     }
   }
-  destroyed() {
+  destroy() {
     this.liveWindow && this.removeLiveWindow(this.liveWindow);
     this.removeTimeline();
   }

@@ -14,7 +14,7 @@
         class="list-item"
         v-loading="caption.isInstalling"
       >
-        <img :src="caption.coverUrl" alt="" />
+        <img :src="caption.coverUrl" :alt="caption.displayName || ''" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>

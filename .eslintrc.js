@@ -27,6 +27,7 @@ module.exports = {
     Module: true,
     NvsXmlStreamWriter: true,
     NvsTimeline: true,
-    NvsPointF: true
+    NvsPointF: true,
+    NvsAssetPackageStatusEnum: true
   }
 };

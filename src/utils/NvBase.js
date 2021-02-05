@@ -65,21 +65,22 @@ export default function initSDK() {
       initIndexDB()
         .then(resolve)
         .catch(reject);
+    } else {
+      initPlayerWasm()
+        .then(() => {
+          return ensureMeisheModule();
+        })
+        .then(() => {
+          createFSDir();
+          window.streamingContext = new StreamingContext();
+          return initIndexDB();
+        })
+        .then(() => {
+          resumeAudio();
+          return verifySdkLicenseFile();
+        })
+        .then(resolve)
+        .catch(reject);
     }
-    initPlayerWasm()
-      .then(() => {
-        return ensureMeisheModule();
-      })
-      .then(() => {
-        createFSDir();
-        window.streamingContext = new StreamingContext();
-        return initIndexDB();
-      })
-      .then(() => {
-        resumeAudio();
-        return verifySdkLicenseFile();
-      })
-      .then(resolve)
-      .catch(reject);
   });
 }

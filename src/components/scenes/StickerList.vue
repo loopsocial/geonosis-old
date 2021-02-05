@@ -14,7 +14,7 @@
         class="list-item"
         v-loading="sticker.isInstalling"
       >
-        <img :src="sticker.coverUrl" alt="" />
+        <img :src="sticker.coverUrl" :alt="sticker.displayName || ''" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
