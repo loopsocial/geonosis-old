@@ -31,7 +31,6 @@ export default {
   }
   .draft-list {
     height: 100%;
-    width: 17%;
   }
   .canvas {
     margin-left: 32px;

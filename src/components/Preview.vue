@@ -55,6 +55,10 @@ export default {
       })
       .catch(e => {
         console.error("初始化失败", e);
+        this.$message({
+          type: "error",
+          message: this.$t("loadModulesFailed")
+        });
       });
     this.resize();
     window.addEventListener("resize", this.resize);
@@ -200,3 +204,11 @@ export default {
   }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "loadModulesFailed": "Loading Failed"
+  }
+}
+</i18n>

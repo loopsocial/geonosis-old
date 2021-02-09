@@ -1,30 +1,40 @@
 <template>
   <div class="draft-list">
     <div class="draft-list-container">
-      <div class="draft-list-item">
-        <div class="draft-list-item-content onfocus">
-          <div class="cover-info">
-            <div class="order-number">1</div>
-            <div class="duration">00:12</div>
-            <div class="operate-btns">
-              <svg-icon class="cut-icon" icon-class="cut"></svg-icon>
-              <svg-icon class="delete-icon" icon-class="trash"></svg-icon>
+      <div
+        :class="['draft-list-item', active === item.uuid ? 'onfocus' : '']"
+        v-for="(item, index) in medias"
+        :key="item.uuid"
+        @click="selected(item)"
+        :style="{
+          background: `linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 0.3) 100%
+          ),
+          url('${item.coverUrl}') no-repeat center center/auto 100%`
+        }"
+      >
+        <div class="order-number">{{ index + 1 }}</div>
+        <div class="duration">{{ format(item.duration) }}</div>
+        <transition name="el-fade-in-linear">
+          <div class="operate-btns" v-if="active === item.uuid">
+            <div class="icon flex">
+              <svg-icon
+                class="cut-icon"
+                icon-class="cut"
+                @click="cut(item)"
+              ></svg-icon>
+            </div>
+            <div class="icon flex">
+              <svg-icon
+                class="delete-icon"
+                icon-class="trash"
+                @click="del(index)"
+              ></svg-icon>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="draft-list-item">
-        <div class="draft-list-item-content onfocus">
-          <div class="cover-info">
-            <div class="order-number">2</div>
-            <div class="duration">00:13</div>
-            <div class="operate-btns">
-              <svg-icon class="cut-icon" icon-class="cut"></svg-icon>
-              <svg-icon class="delete-icon" icon-class="trash"></svg-icon>
-            </div>
-          </div>
-        </div>
+        </transition>
       </div>
     </div>
 
@@ -37,16 +47,32 @@
 
 <script>
 // import DraftListItem from "./DraftListItem";
+import resource from "../../mock/resource.json";
+import { us2time } from "../../utils/common";
 export default {
   components: {
     // DraftListItem
   },
   props: {},
   data() {
-    return {};
+    return {
+      medias: resource.resourceList,
+      active: resource.resourceList[0].uuid,
+      height: 0
+    };
   },
+  mounted() {},
   methods: {
-    handleResize() {}
+    handleResize() {},
+    del(index) {
+      this.medias.splice(index, 1);
+    },
+    selected(item) {
+      this.active = item.uuid;
+    },
+    format(ms) {
+      return us2time(ms * 1000);
+    }
   },
   beforeDestroy() {}
 };
@@ -63,73 +89,82 @@ $white: #fff;
     &::-webkit-scrollbar {
       display: none;
     }
-
-    /* Hide scrollbar for IE, Edge and Firefox */
-
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
-
     position: relative;
     height: 100%;
     width: 100%;
-    background-color: #2b2b2b;
     border-radius: 12px;
     overflow-y: auto;
-
+    padding: 16px;
+    box-sizing: border-box;
     .draft-list-item {
-      padding: 12px;
-      .onfocus {
-        border: 2px solid $white !important;
+      position: relative;
+      height: 180px;
+      width: 180px;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      transition: 0.3s;
+      .order-number {
+        position: absolute;
+        top: 6px;
+        left: 4px;
+        width: 2em;
+        height: 2em;
+        line-height: 2em;
+        text-align: center;
+        background-color: $infoBgc;
+        border-radius: 50%;
+        color: $white;
       }
-      .draft-list-item-content {
-        position: relative;
-        padding-bottom: 100%;
-        border-radius: 12px;
-        border: 2px solid transparent;
-        .cover-info {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          font-weight: bold;
-          font-size: 1.5vw;
-
-          .order-number {
-            margin: 6px 0 0 4px;
-            width: 2em;
-            height: 2em;
-            line-height: 2em;
-            text-align: center;
-            background-color: $infoBgc;
-            border-radius: 50%;
-            color: $white;
-          }
-          .duration {
-            position: absolute;
-            right: 3.07%;
-            top: 6px;
-            padding: 4% 5% 3% 5%;
-            background-color: $infoBgc;
-            border-radius: 6px;
-            color: $white;
-          }
-          .cut-icon {
-            position: absolute;
-            bottom: 5%;
-            left: 9.54%;
-            width: 30%;
-            height: 23%;
-            cursor: pointer;
-          }
-          .delete-icon {
-            position: absolute;
-            bottom: 10%;
-            right: 10%;
-            width: 18%;
-            height: 13%;
-            cursor: pointer;
+      .duration {
+        position: absolute;
+        right: 4px;
+        top: 6px;
+        padding: 4px 8px;
+        background-color: $infoBgc;
+        border-radius: 6px;
+        color: $white;
+      }
+      .operate-btns {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        box-sizing: border-box;
+        .icon {
+          border-radius: 50%;
+          height: 28px;
+          width: 28px;
+          transition: all 0.3s;
+          cursor: pointer;
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.3);
           }
         }
       }
+      .cut-icon {
+        bottom: 10px;
+        left: 10px;
+        width: 26px;
+        height: 26px;
+      }
+      .delete-icon {
+        bottom: 10px;
+        right: 10px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+    .draft-list-item + .draft-list-item {
+      margin-top: 12px;
+    }
+    .onfocus {
+      border-color: $white;
     }
   }
 
@@ -138,27 +173,26 @@ $white: #fff;
     left: 50%;
     transform: translateX(-50%);
     bottom: 12px;
-    width: 81.8%;
-    height: 5vw;
-    border-radius: 6vw;
+    width: calc(100% - 32px);
+    height: 44px;
+    border-radius: 6px;
     background-color: #474747;
     line-height: 46px;
     white-space: nowrap;
     cursor: pointer;
+    box-shadow: 0 0 30px #000000;
     .add-icon {
       display: inline-block;
-      height: 3.5vw;
-      width: 3.5vw;
+      height: 24px;
+      width: 24px;
       text-align: center;
-      font-size: 20px;
-      font-weight: 600;
       vertical-align: middle;
+      margin-right: 8px;
     }
     .add-text {
       margin-right: 6%;
-      font-size: 1.4vw;
+      font-size: 14px;
       color: $white;
-      font-weight: 600;
       user-select: none;
     }
   }

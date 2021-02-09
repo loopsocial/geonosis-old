@@ -103,7 +103,6 @@ export function getAssetFromNetwork(packageUrl) {
     axios
       .get(packageUrl, { responseType: "arraybuffer" })
       .then(res => {
-        console.log("network data", res);
         saveAssetToIndexDB(packageUrl, new Uint8Array(res.data));
         resolve(new Uint8Array(res.data));
       })
