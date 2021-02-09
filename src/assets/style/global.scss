@@ -79,7 +79,7 @@ body .ln-tabs-body {
   flex: 1;
   .el-tabs__item {
     color: white;
-    font-weight: bold;
+    font-weight: middle;
     padding: 0 30px;
   }
   .el-tabs__nav-wrap::after {
@@ -122,8 +122,8 @@ body .ln-color-picker{
 }
 
 // 单选组：
-body .ln-checkbox-group{
-  .el-checkbox-button__inner{
+body .ln-radio-group{
+  .el-radio-button__inner{
     background: transparent;
     border: none !important;
     height: 36px;
@@ -132,10 +132,20 @@ body .ln-checkbox-group{
     padding: 12px 15px;
     color: transparent;
   }
+  .el-radio-button__orig-radio:checked+.el-radio-button__inner{
+    background-color: transparent;
+    box-shadow: none;
+  
+  }
+  svg{
+    path {
+      color: red;
+    fill: currentColor !important;
+}}
   .is-checked{
-    .el-checkbox-button__inner{
-      background-color: #fff;
+    .el-radio-button__inner{
     }
+   
   }
 }
 // loading

@@ -27,37 +27,37 @@
         <div class="font box">
           <div class="title">{{ $t("font") }}</div>
           <div class="content">
-            <el-select class="ln-select">
-              <el-option></el-option>
-            </el-select>
-            <el-checkbox-group v-model="alignType" class="ln-checkbox-group">
-              <el-checkbox-button>
+            <el-select class="ln-select" v-model="value"></el-select>
+
+            <el-radio-group v-model="alignType" class="ln-radio-group">
+              <el-radio-button label="left">
                 <svg-icon
                   class="align-icon"
                   icon-class="align-left"
                   ref="align"
                 ></svg-icon>
-              </el-checkbox-button>
-              <el-checkbox-button>
+              </el-radio-button>
+              <el-radio-button label="center">
                 <svg-icon
                   class="align-icon"
                   icon-class="align-center"
                   ref="align"
                 ></svg-icon>
-              </el-checkbox-button>
-              <el-checkbox-button>
+              </el-radio-button>
+              <el-radio-button label="right">
                 <svg-icon
                   class="align-icon"
                   icon-class="align-right"
                   ref="align"
                 ></svg-icon>
-              </el-checkbox-button>
-            </el-checkbox-group>
+              </el-radio-button>
+            </el-radio-group>
+
             <div class="color-options">
               <div class="text-color">
                 {{ $t("textColor") }}
                 <el-color-picker
-                  v-model="color"
+                  v-model="textColor"
                   show-alpha
                   class="ln-color-picker"
                 ></el-color-picker>
@@ -65,7 +65,7 @@
               <div class="bg-color">
                 {{ $t("backgroundColor") }}
                 <el-color-picker
-                  v-model="color"
+                  v-model="backgroundColor"
                   show-alpha
                   class="ln-color-picker"
                 ></el-color-picker>
@@ -83,7 +83,10 @@ export default {
   data() {
     return {
       scale: 0,
-      alignType: ""
+      alignType: "",
+      value: "",
+      textColor: "",
+      backgroundColor: ""
     };
   },
   mounted() {
