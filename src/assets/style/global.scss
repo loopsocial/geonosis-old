@@ -2,11 +2,7 @@ body > canvas {
   position: absolute;
   top: 0;
 }
-.flex {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+
 span.duration {
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 10;
@@ -102,7 +98,59 @@ body .ln-tabs-body {
   }
 }
 
+// 下拉菜单
+body .ln-select{
+  width: 100%;
+  .el-input__inner{
+    background: rgb(65,65,65);
+    border: none;
+  }
+
+}
+
+// 颜色选择器
+body .ln-color-picker{
+  .el-color-picker__trigger{
+    border: none;
+    padding: 0;
+    .el-color-picker__color{
+      border: none;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+  }
+}
+
+// 单选组：
+body .ln-checkbox-group{
+  .el-checkbox-button__inner{
+    background: transparent;
+    border: none !important;
+    height: 36px;
+    width: 46.3px;
+    border: none;    
+    padding: 12px 15px;
+    color: transparent;
+  }
+  .is-checked{
+    .el-checkbox-button__inner{
+      background-color: #fff;
+    }
+  }
+}
 // loading
 body .el-loading-mask{
   background-color: rgba(10,10,10,.6);
+}
+
+
+// utils:
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.text-center-h{
+  width: 100%;
+  text-align: center;
 }

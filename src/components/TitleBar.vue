@@ -1,7 +1,7 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    <div class="btn">
+    <div class="btn" v-if="!$route.name === 'Create'">
       <el-button type="text" size="medium">{{ $t("preview") }}</el-button>
       <el-button round class="round-btn" size="medium">{{
         $t("publish")

@@ -1,12 +1,13 @@
 <template>
   <div class="materials">
-    <el-tabs v-model="activeName">
+    <el-tabs v-model="activeName" class="ln-tabs-body">
       <el-tab-pane label="text" name="text" lazy>
         <template #label>
           <svg-icon class="text-icon" icon-class="text"></svg-icon>
           {{ $t("text") }}
         </template>
         <TextList />
+        <FontPanel />
       </el-tab-pane>
       <el-tab-pane label="sticker" name="sticker" lazy>
         <template #label>
@@ -22,10 +23,12 @@
 <script>
 import StickerList from "./StickerList";
 import TextList from "./TextList";
+import FontPanel from "./FontPanel";
 export default {
   components: {
     StickerList,
-    TextList
+    TextList,
+    FontPanel
   },
   data() {
     return {
@@ -52,13 +55,8 @@ export default {
     .el-tabs__content {
       height: calc(100% - 50px);
     }
-    .el-tabs__nav-wrap::after {
-      height: 1px;
-      background-color: rgba(255, 255, 255, 0.3);
-    }
     .el-tabs__active-bar {
       background-color: #fff;
-      height: 1px;
     }
     .el-tab-pane {
       height: 100%;

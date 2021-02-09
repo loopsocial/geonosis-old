@@ -40,6 +40,7 @@
       </el-menu>
       <router-view></router-view>
     </el-main>
+    <div class="drag-item" v-show="dragDivVisible" :style="dragDivStyle"></div>
   </el-container>
 </template>
 
@@ -53,6 +54,7 @@ export default {
     Create
   },
   data() {
+    console.log(this.$store);
     return {};
   },
   computed: {
@@ -61,9 +63,14 @@ export default {
     },
     defaultActive() {
       return this.$route.path.split("/")[1] || "";
+    },
+    dragDivStyle() {
+      return this.$store.state.draggable.style;
+    },
+    dragDivVisible() {
+      return this.$store.state.draggable.isDragging;
     }
   },
-
   methods: {}
 };
 </script>
@@ -138,6 +145,12 @@ body {
       flex: 1;
       padding: 0;
     }
+  }
+
+  .drag-item {
+    position: absolute;
+    background-size: contain;
+    background-position: center;
   }
 }
 </style>

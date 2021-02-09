@@ -3,6 +3,7 @@
     <DraftList />
     <Preview />
     <Materials />
+    <div v-if="isDragging" :style="style"></div>
   </div>
 </template>
 

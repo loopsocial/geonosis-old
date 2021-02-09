@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
-
+import draggable from "./modules/draggable";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -17,5 +17,7 @@ export default new Vuex.Store({
       commit("setNvsStatus", isFinish);
     }
   },
-  modules: {}
+  modules: {
+    draggable
+  }
 });
