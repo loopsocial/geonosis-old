@@ -26,8 +26,10 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
+import { createNamespacedHelpers } from "vuex";
 
-let ghostDiv = null;
+const { mapState, mapMutations } = createNamespacedHelpers("draggable");
+
 export default {
   components: {},
   data() {
@@ -52,42 +54,44 @@ export default {
     this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
   },
   methods: {
+      ...mapMutations(["changeDragVisible", "changeStyle"]),
+
     handleMousedown(e, caption) {
-      console.log(e.target, e.clientY);
-      ghostDiv = e.target.cloneNode(true);
-      ghostDiv.style.width = e.target.offsetWidth + "px";
-      ghostDiv.style.height = e.target.offsetHeight + "px";
-      ghostDiv.style.position = "absolute";
-      ghostDiv.style.zIndex = "100";
-
-      ghostDiv.style.top = e.clientY + "px";
-      ghostDiv.style.left = e.clientX + "px";
-
-      document.body.appendChild(ghostDiv);
+      this.changeStyle({
+        width: e.target.offsetWidth + "px",
+        height: e.target.offsetHeight + "px",
+        top: e.clientY + "px",
+        left: e.clientX + "px",
+        backgroundImage: `url(${e.target.src})`
+      });
+      this.changeDragVisible(true);
       document.body.addEventListener("mousemove", this.handleMousemove);
       document.body.addEventListener("mouseup", this.handleMouseup, true);
     },
     handleMousemove(e) {
       e.preventDefault();
-      ghostDiv.style.top = e.clientY + "px";
-      ghostDiv.style.left = e.clientX + "px";
+      this.changeStyle({
+        top: e.clientY + "px",
+        left: e.clientX + "px"
+      });
     },
+
     handleMouseup(e) {
-      console.log(e.path[0].className === "preview-mask");
-      document.body.removeChild(ghostDiv);
       document.body.removeEventListener("mousemove", this.handleMousemove);
       document.body.removeEventListener("mouseup", this.handleMouseup);
-      if (e.path[0].className === "preview-mask") {
-        this.$message({
-          message: "添加到canvas",
-          type: "successs"
-        });
-      } else {
-        this.$message({
-          message: "没有添加到canvas",
-          type: "warning"
-        });
+      this.changeDragVisible(false);
+      if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
+        console.log("is in live window");
       }
+    },
+    inLiveWindowRangeOrNot(mouseLeft, mouseTop) {
+      const liveWindow = document.getElementById("live-window");
+      if (!liveWindow) return false;
+      const { left, top, width, height } = liveWindow.getBoundingClientRect();
+      if (mouseLeft <= left + width && mouseTop <= top + height) {
+        return true;
+      }
+      return false;
     },
     async load() {
       this.isLoading = true;

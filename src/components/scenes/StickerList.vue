@@ -27,9 +27,8 @@
 import { installAsset } from "@/utils/AssetsUtils";
 import { createNamespacedHelpers } from "vuex";
 
-const { mapState, mapMutations } = createNamespacedHelpers("draggable");
+const { mapMutations } = createNamespacedHelpers("draggable");
 
-let ghostDiv = null;
 export default {
   components: {},
   data() {
