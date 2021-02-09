@@ -1,9 +1,14 @@
 <template>
-  <font color="white">Music</font>
+  <Product />
 </template>
 
 <script>
-export default {};
+import Product from "../components/music/Project";
+export default {
+  components: {
+    Product
+  }
+};
 </script>
 
 <style></style>

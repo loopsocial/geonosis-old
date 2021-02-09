@@ -42,6 +42,8 @@
       <svg-icon class="add-icon" icon-class="plus"></svg-icon>
       <span class="add-text">{{ $t("addMedia") }}</span>
     </div>
+
+    <el-dialog class="ln-dialog" :visible.sync="dialogVisible"></el-dialog>
   </div>
 </template>
 
@@ -58,7 +60,8 @@ export default {
     return {
       medias: resource.resourceList,
       active: resource.resourceList[0].uuid,
-      height: 0
+      height: 0,
+      dialogVisible: false
     };
   },
   mounted() {},
@@ -82,6 +85,7 @@ export default {
 $infoBgc: rgba(0, 0, 0, 0.5);
 $white: #fff;
 .draft-list {
+  min-width: 111px;
   height: 100%;
   position: relative;
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -138,8 +142,8 @@ $white: #fff;
         box-sizing: border-box;
         .icon {
           border-radius: 50%;
-          height: 28px;
-          width: 28px;
+          height: 40px;
+          width: 40px;
           transition: all 0.3s;
           cursor: pointer;
           &:hover {
@@ -150,14 +154,14 @@ $white: #fff;
       .cut-icon {
         bottom: 10px;
         left: 10px;
-        width: 26px;
-        height: 26px;
+        width: 100%;
+        height: 100%;
       }
       .delete-icon {
         bottom: 10px;
         right: 10px;
-        width: 18px;
-        height: 18px;
+        width: 100%;
+        height: 100%;
       }
     }
     .draft-list-item + .draft-list-item {

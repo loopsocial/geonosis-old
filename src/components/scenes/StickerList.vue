@@ -4,9 +4,9 @@
       class="list"
       v-infinite-scroll="load"
       :infinite-scroll-distance="3"
-      :infinite-scroll-delay="500"
       infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
+      @mousedown="handleMousedown"
     >
       <li
         v-for="sticker of stickerList"
@@ -25,6 +25,11 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
+import { createNamespacedHelpers } from "vuex";
+
+const { mapState, mapMutations } = createNamespacedHelpers("draggable");
+
+let ghostDiv = null;
 export default {
   components: {},
   data() {
@@ -44,6 +49,45 @@ export default {
     this.getStickers();
   },
   methods: {
+    ...mapMutations(["changeDragVisible", "changeStyle"]),
+
+    handleMousedown(e, caption) {
+      this.changeStyle({
+        width: e.target.offsetWidth + "px",
+        height: e.target.offsetHeight + "px",
+        top: e.clientY + "px",
+        left: e.clientX + "px",
+        backgroundImage: `url(${e.target.src})`
+      });
+      this.changeDragVisible(true);
+      document.body.addEventListener("mousemove", this.handleMousemove);
+      document.body.addEventListener("mouseup", this.handleMouseup, true);
+    },
+    handleMousemove(e) {
+      e.preventDefault();
+      this.changeStyle({
+        top: e.clientY + "px",
+        left: e.clientX + "px"
+      });
+    },
+
+    handleMouseup(e) {
+      document.body.removeEventListener("mousemove", this.handleMousemove);
+      document.body.removeEventListener("mouseup", this.handleMouseup);
+      this.changeDragVisible(false);
+      if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
+        console.log("is in live window");
+      }
+    },
+    inLiveWindowRangeOrNot(mouseLeft, mouseTop) {
+      const liveWindow = document.getElementById("live-window");
+      if (!liveWindow) return false;
+      const { left, top, width, height } = liveWindow.getBoundingClientRect();
+      if (mouseLeft <= left + width && mouseTop <= top + height) {
+        return true;
+      }
+      return false;
+    },
     async load() {
       if (this.isNoMore) return;
       this.isLoading = true;
@@ -102,8 +146,7 @@ export default {
     }
   }
   p {
-    width: 100%;
-    text-align: center;
+    @include textAlignH();
   }
 }
 
@@ -141,12 +184,3 @@ export default {
   }
 }
 </style>
-
-<i18n>
-{
-  "en":{
-    "loading":"Loading...",
-    "nomore":"No More!"
-  }
-}
-</i18n>

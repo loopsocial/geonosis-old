@@ -1,3 +1,10 @@
 {
-  "message": "hello i18n !!"
+  "message": "hello i18n !!",
+  "loading":"Loading...",
+  "noMore":"No More!",
+  "animation":"Animation",
+  "scale":"Scale",
+  "font":"Font",
+  "textColor":"Text Color",
+  "backgroundColor":"Background Color"
 }

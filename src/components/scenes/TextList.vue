@@ -4,9 +4,10 @@
       class="list"
       v-infinite-scroll="load"
       :infinite-scroll-distance="3"
-      :infinite-scroll-delay="1000"
       infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
+      @mousedown="handleMousedown"
+      ref="list"
     >
       <li
         v-for="caption of captionList"
@@ -18,13 +19,15 @@
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-else-if="isNoMore">{{ $t("nomore") }}</p>
+    <p v-else-if="isNoMore">{{ $t("noMore") }}</p>
     <!-- <p v-else>{{ $t(" ") }}</p> -->
   </div>
 </template>
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
+
+let ghostDiv = null;
 export default {
   components: {},
   data() {
@@ -33,7 +36,8 @@ export default {
       page: 0,
       isLoading: false,
       isNoMore: false,
-      captionCount: 0
+      captionCount: 0,
+      ghostDiv: null
     };
   },
   computed: {
@@ -44,7 +48,47 @@ export default {
   created() {
     this.getStickers();
   },
+  beforeDestroy() {
+    this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
+  },
   methods: {
+    handleMousedown(e, caption) {
+      console.log(e.target, e.clientY);
+      ghostDiv = e.target.cloneNode(true);
+      ghostDiv.style.width = e.target.offsetWidth + "px";
+      ghostDiv.style.height = e.target.offsetHeight + "px";
+      ghostDiv.style.position = "absolute";
+      ghostDiv.style.zIndex = "100";
+
+      ghostDiv.style.top = e.clientY + "px";
+      ghostDiv.style.left = e.clientX + "px";
+
+      document.body.appendChild(ghostDiv);
+      document.body.addEventListener("mousemove", this.handleMousemove);
+      document.body.addEventListener("mouseup", this.handleMouseup, true);
+    },
+    handleMousemove(e) {
+      e.preventDefault();
+      ghostDiv.style.top = e.clientY + "px";
+      ghostDiv.style.left = e.clientX + "px";
+    },
+    handleMouseup(e) {
+      console.log(e.path[0].className === "preview-mask");
+      document.body.removeChild(ghostDiv);
+      document.body.removeEventListener("mousemove", this.handleMousemove);
+      document.body.removeEventListener("mouseup", this.handleMouseup);
+      if (e.path[0].className === "preview-mask") {
+        this.$message({
+          message: "添加到canvas",
+          type: "successs"
+        });
+      } else {
+        this.$message({
+          message: "没有添加到canvas",
+          type: "warning"
+        });
+      }
+    },
     async load() {
       this.isLoading = true;
       try {
@@ -99,10 +143,10 @@ export default {
   }
   img {
     width: 100%;
+    user-select: none;
   }
   p {
-    width: 100%;
-    text-align: center;
+    @include textAlignH();
   }
   @media screen and (max-width: 3000px) {
     .list {
@@ -132,12 +176,3 @@ export default {
   }
 }
 </style>
-
-<i18n>
-{
-  "en":{
-    "loading":"Loading...",
-    "nomore":"No More!"
-  }
-}
-</i18n>

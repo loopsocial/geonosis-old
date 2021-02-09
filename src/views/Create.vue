@@ -53,6 +53,7 @@ export default {
       this.mediaDialog = false;
     },
     selectedFinish(list) {
+      this.$router.push({ name: "Scenes" });
       this.medias = list;
       this.mediaDialog = false;
       this.status = this.statusMap.edit;
@@ -64,6 +65,7 @@ export default {
 <style lang="scss" scoped>
 .create {
   height: 100%;
+  width: 100%;
 }
 </style>
 
