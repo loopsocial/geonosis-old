@@ -1,6 +1,6 @@
 <template>
   <div class="scenes">
-    <DraftList :medias="medias"></DraftList>
+    <DraftList :medias="medias" ref="draft"></DraftList>
     <Preview :medias="medias" ref="preview"></Preview>
     <Materials></Materials>
   </div>
@@ -12,7 +12,7 @@ import Materials from "../components/scenes/Materials";
 import Preview from "../components/Preview";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
-
+import { VideoClip } from "@/utils/ProjectData";
 export default {
   components: {
     DraftList,
@@ -21,20 +21,19 @@ export default {
   },
   data() {
     return {
-      medias: resource.resourceList // 已选择的素材
+      medias: [] // 已选择的素材
     };
   },
-  async mounted() {
-    console.log("m3u8 开始安装");
+  async created() {
     await this.installM3u8();
-    console.log("m3u8 安装完成");
     this.$refs.preview.createTimeline();
+    this.$refs.draft.setActive(this.medias[0].uuid);
   },
   methods: {
     async installM3u8() {
       let pos = 0;
-      for (let i = 0; i < this.medias.length; i++) {
-        const clip = this.medias[i];
+      for (let i = 0; i < resource.resourceList.length; i++) {
+        const clip = resource.resourceList[i];
         clip.m3u8Path = await installAsset(clip.m3u8Url);
         // todo 以下是测试代码
         clip.inPoint = pos;
@@ -42,6 +41,7 @@ export default {
         clip.trimOut = clip.duration * 1000;
         clip.orgDuration = clip.duration * 1000;
         pos += clip.duration * 1000;
+        this.medias.push(new VideoClip(clip));
       }
     }
   }

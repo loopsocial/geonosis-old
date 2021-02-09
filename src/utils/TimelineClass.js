@@ -190,7 +190,6 @@ export default class TimelineClass {
     );
   }
   deleteClipByIndex(type, index) {
-    console.log(this[`${type}Track`]);
     this[`${type}Track`].raw.removeClip(index, false);
   }
   addAudioClip(clip, trackRaw) {

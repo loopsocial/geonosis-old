@@ -59,12 +59,15 @@ export default {
   },
   data() {
     return {
-      active: this.medias[0].uuid,
+      active: null,
       height: 0
     };
   },
   mounted() {},
   methods: {
+    setActive(uuid) {
+      this.active = uuid;
+    },
     handleResize() {},
     cut(item) {
       this.dialogVisible = true;

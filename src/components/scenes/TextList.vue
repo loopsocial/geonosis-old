@@ -54,7 +54,7 @@ export default {
     this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
   },
   methods: {
-      ...mapMutations(["changeDragVisible", "changeStyle"]),
+    ...mapMutations(["changeDragVisible", "changeStyle"]),
 
     handleMousedown(e, caption) {
       this.changeStyle({

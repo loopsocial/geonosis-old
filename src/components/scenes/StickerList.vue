@@ -183,3 +183,12 @@ export default {
   }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "loading": "Loading",
+    "nomore": "Nomore"
+  }
+}
+</i18n>

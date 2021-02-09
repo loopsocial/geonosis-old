@@ -15,9 +15,10 @@ export default {
       state.isDragging = payload;
     },
     changeStyle(state, style) {
-      Object.keys(style).forEach(item => {
-        state.style[item] = style[item];
-      });
+      state.style = {
+        ...state.style,
+        ...style
+      };
     }
   }
 };
