@@ -29,9 +29,8 @@
 <script>
 import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
-import resource from "../mock/resource.json";
-import { installAsset } from "../utils/AssetsUtils";
 import { mapActions } from "vuex";
+import { CLIP_TYPES } from "@/utils/Global";
 
 export default {
   data() {
@@ -44,59 +43,51 @@ export default {
     };
   },
   props: {
-    videoClips: Array
+    medias: Array
   },
-  mounted() {
+  async mounted() {
     console.log("mounted");
-    initSDK()
-      .then(() => {
-        console.log("初始化完成");
-        this.createTimeline();
-        this.setNvsStatus(true);
-      })
-      .catch(e => {
-        console.error("初始化失败", e);
-        this.$message({
-          type: "error",
-          message: this.$t("loadModulesFailed")
-        });
-      });
     this.resize();
     window.addEventListener("resize", this.resize);
+    try {
+      await initSDK();
+      this.setNvsStatus(true); // 设置状态. 表示SDK已加载完成
+    } catch (error) {
+      console.error("初始化失败", error);
+      this.$message({
+        type: "error",
+        message: this.$t("loadModulesFailed")
+      });
+    }
   },
   methods: {
+    setEventBus() {
+      this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
+      this.$once("hook:beforeDestroy", () => {
+        this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+      });
+    },
+    async deleteClip(type, index) {
+      const { VIDEO, AUDIO } = CLIP_TYPES;
+      await this.timelineClass.stopEngin();
+      if ([VIDEO, AUDIO].includes(type)) {
+        this.timelineClass.deleteClipByIndex(type, index);
+      }
+      this.timelineClass.seekTimeline();
+    },
     ...mapActions({
       setNvsStatus: "setNvsStatus"
     }),
-    // 测试数据
-    async mockClips() {
-      const clips = resource.resourceList;
-      let inPoint = 0;
-      const res = [];
-      for (let i = 0; i < clips.length; i++) {
-        const clip = clips[i];
-        const m3u8Path = await installAsset(clip.m3u8Url);
-        res.push({
-          inPoint,
-          m3u8Url: clip.m3u8Url,
-          url: clip.url,
-          trimIn: 0,
-          trimOut: clip.duration * 1000,
-          orgDuration: clip.duration * 1000,
-          m3u8Path
-        });
-        inPoint += clip.duration * 1000;
-      }
-      return res;
-    },
     async createTimeline() {
-      const clips = await this.mockClips();
+      console.log('创建时间线')
       this.timelineClass = new TimelineClass("live-window", {
-        videoTrack: { clips }
+        videoTrack: { clips: this.medias }
       });
       window.timelineClass = this.timelineClass; // 调试用
       await this.timelineClass.buildTimeline();
-      this.setContextEvent();
+      this.setContextEvent(); // 绑定SDK相关事件
+      this.setEventBus(); // 绑定eventBus相关事件
+      this.timelineClass.seekTimeline();
       console.log("时间线创建完成", this.timelineClass);
     },
     resize() {
@@ -105,7 +96,6 @@ export default {
       this.width = parseInt((this.height / 16) * 9);
     },
     play() {
-      console.log(this.isPlaying);
       if (this.isPlaying) {
         this.timelineClass.stop();
       } else {
@@ -174,12 +164,13 @@ export default {
   .live-window-container {
     height: 100%;
     position: relative;
+    border-radius: 6px;
+    border: 2px solid white;
     .live-window {
       position: absolute;
       top: 0;
       left: 0;
       height: 100%;
-      background-color: whitesmoke;
     }
   }
   .controls {

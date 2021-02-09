@@ -64,7 +64,6 @@ export default class TimelineClass {
     this.stickers.map(s => this.addSticker(s));
   }
   async play() {
-    console.log("timeline class 播放!!", this.timeline, NvsVideoPreviewSizeModeEnum.LiveWindowSize);
     this.streamingContext.playbackTimeline(
       this.timeline,
       0,
@@ -82,6 +81,22 @@ export default class TimelineClass {
   }
   removeTimeline() {
     this.streamingContext.removeTimeline(this.timeline);
+  }
+  stopEngin() {
+    return this.streamingContext.streamingEngineReadyForTimelineModification();
+  }
+  seekTimeline(t) {
+    t =
+      t === undefined
+        ? this.streamingContext.getTimelineCurrentPosition(this.timeline)
+        : Math.min(t, this.timeline.getDuration());
+    this.streamingContext.seekTimeline(
+      this.timeline,
+      t,
+      NvsVideoPreviewSizeModeEnum.LiveWindowSize,
+      NvsSeekFlagEnum.ShowCaptionPoster |
+        NvsSeekFlagEnum.ShowAnimatedStickerPoster
+    );
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
@@ -173,6 +188,10 @@ export default class TimelineClass {
       trimIn || 0,
       trimOut || orgDuration
     );
+  }
+  deleteClipByIndex(type, index) {
+    console.log(this[`${type}Track`]);
+    this[`${type}Track`].raw.removeClip(index, false);
   }
   addAudioClip(clip, trackRaw) {
     const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;

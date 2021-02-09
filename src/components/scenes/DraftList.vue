@@ -18,7 +18,7 @@
         <div class="order-number">{{ index + 1 }}</div>
         <div class="duration">{{ format(item.duration) }}</div>
         <transition name="el-fade-in-linear">
-          <div class="operate-btns" v-if="active === item.uuid">
+          <div class="operate-btns" v-if="active === item.uuid" @click.stop>
             <div class="icon flex">
               <svg-icon
                 class="cut-icon"
@@ -43,25 +43,24 @@
       <span class="add-text">{{ $t("addMedia") }}</span>
     </div>
 
-    <el-dialog class="ln-dialog" :visible.sync="dialogVisible"></el-dialog>
+    <!-- <el-dialog class="ln-dialog" :visible.sync="dialogVisible"></el-dialog> -->
   </div>
 </template>
 
 <script>
-// import DraftListItem from "./DraftListItem";
-import resource from "../../mock/resource.json";
 import { us2time } from "../../utils/common";
+import { CLIP_TYPES } from "@/utils/Global";
 export default {
   components: {
     // DraftListItem
   },
-  props: {},
+  props: {
+    medias: Array
+  },
   data() {
     return {
-      medias: resource.resourceList,
-      active: resource.resourceList[0].uuid,
-      height: 0,
-      dialogVisible: false
+      active: this.medias[0].uuid,
+      height: 0
     };
   },
   mounted() {},
@@ -72,7 +71,9 @@ export default {
       console.log(item);
     },
     del(index) {
-      this.medias.splice(index, 1);
+      this.active = this.medias[index + 1] ? this.medias[index + 1].uuid : null;
+      this.$delete(this.medias, index);
+      this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
     },
     selected(item) {
       this.active = item.uuid;

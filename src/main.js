@@ -8,9 +8,21 @@ import i18n from "./i18n";
 import "./plugins/element.js";
 import "./icons";
 import api from "./api/apiPath";
+import EventBus from "./EventBus";
+import EventBusKeys from "./utils/EventBusKeys"
+
 // require("./mock/index");
 Vue.config.productionTip = false;
 Vue.prototype.$api = api;
+Vue.prototype.$keys = EventBusKeys;
+
+Object.defineProperties(Vue.prototype, {
+  $bus: {
+    get: function() {
+      return EventBus;
+    }
+  }
+});
 // 毫秒格式化
 Vue.filter("msFormat", val => {
   const s = parseInt(val / 1000);

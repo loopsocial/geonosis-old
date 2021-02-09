@@ -39,7 +39,7 @@ function verifySdkLicenseFile(authUrl) {
   return new Promise(resolve => {
     const streamingContext = nvsGetStreamingContextInstance();
     streamingContext.onWebRequestAuthFinish = success => {
-      if (success) console.error("SDK 鉴权失败");
+      if (!success) console.error("SDK 鉴权失败");
       resolve(streamingContext);
     };
     streamingContext.verifySdkLicenseFile(

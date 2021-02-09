@@ -175,10 +175,6 @@ export async function installAsset(packageUrl, checkLic) {
                 else {
                   reject(new Error(`资源安装失败${filePath} 错误码: ${error}`));
                 }
-                const status = window.streamingContext.streamingContext
-                  .getAssetPackageManager()
-                  .getAssetPackageStatus(uuid, assetTypes[storeName]);
-                console.log("回调内部", uuid, "状态", status);
               }
             );
             window.streamingContext.streamingContext
