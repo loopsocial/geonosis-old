@@ -67,6 +67,10 @@ export default {
   mounted() {},
   methods: {
     handleResize() {},
+    cut(item) {
+      this.dialogVisible = true;
+      console.log(item);
+    },
     del(index) {
       this.medias.splice(index, 1);
     },
