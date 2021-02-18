@@ -137,16 +137,6 @@ body .ln-radio-group{
     box-shadow: none;
   
   }
-  svg{
-    path {
-      color: red;
-    fill: currentColor !important;
-}}
-  .is-checked{
-    .el-radio-button__inner{
-    }
-   
-  }
 }
 // loading
 body .el-loading-mask{

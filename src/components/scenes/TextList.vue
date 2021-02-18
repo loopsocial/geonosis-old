@@ -65,7 +65,9 @@ export default {
       this.isDragging = true;
       this.draggingClip = caption;
       document.body.addEventListener("mousemove", this.handleMousemove);
-      document.body.addEventListener("mouseup", this.handleMouseup, true);
+      document.body.addEventListener("mouseup", this.handleMouseup, {
+        once: true
+      });
     },
     handleMousemove(e) {
       e.preventDefault();
@@ -76,8 +78,7 @@ export default {
     },
 
     handleMouseup(e) {
-      document.body.removeEventListener("mousemove", this.handleMousemove);
-      document.body.removeEventListener("mouseup", this.handleMouseup);
+      // this.changeDragVisible(false);
       this.isDragging = false;
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
         console.log("is in live window");
@@ -86,6 +87,7 @@ export default {
           target: this.draggingClip
         });
       }
+      document.body.removeEventListener("mousemove", this.handleMousemove);
     },
     inLiveWindowRangeOrNot(mouseLeft, mouseTop) {
       const liveWindow = document.getElementById("live-window");
