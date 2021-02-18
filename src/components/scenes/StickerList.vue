@@ -6,13 +6,13 @@
       :infinite-scroll-distance="3"
       infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
-      @mousedown="handleMousedown"
     >
       <li
         v-for="sticker of stickerList"
         :key="sticker.uuid"
         class="list-item"
         v-loading="sticker.isInstalling"
+        @mousedown="handleMousedown($event, sticker)"
       >
         <img :src="sticker.coverUrl" :alt="sticker.displayName || ''" />
       </li>
@@ -50,13 +50,13 @@ export default {
   methods: {
     ...mapMutations(["changeDragVisible", "changeStyle"]),
 
-    handleMousedown(e, caption) {
+    handleMousedown(e, sticker) {
       this.changeStyle({
         width: e.target.offsetWidth + "px",
         height: e.target.offsetHeight + "px",
         top: e.clientY + "px",
         left: e.clientX + "px",
-        backgroundImage: `url(${e.target.src})`
+        backgroundImage: `url(${sticker.coverUrl})`
       });
       this.changeDragVisible(true);
       document.body.addEventListener("mousemove", this.handleMousemove);

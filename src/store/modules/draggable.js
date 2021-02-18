@@ -8,7 +8,8 @@ export default {
       top: 0,
       left: 0,
       backgroundImage: ""
-    }
+    },
+    draggingClip: null
   }),
   mutations: {
     changeDragVisible(state, payload) {
@@ -19,6 +20,9 @@ export default {
         ...state.style,
         ...style
       };
+    },
+    setDraggingClip(state, clip) {
+      state.draggingClip = clip;
     }
   }
 };

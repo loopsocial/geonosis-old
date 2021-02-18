@@ -6,7 +6,6 @@
       :infinite-scroll-distance="3"
       infinite-scroll-immediate
       :infinite-scroll-disabled="disabled"
-      @mousedown="handleMousedown"
       ref="list"
     >
       <li
@@ -14,6 +13,7 @@
         :key="caption.uuid"
         class="list-item"
         v-loading="caption.isInstalling"
+        @mousedown="handleMousedown($event, caption)"
       >
         <img :src="caption.coverUrl" :alt="caption.displayName || ''" />
       </li>
@@ -26,12 +26,11 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
-import { createNamespacedHelpers } from "vuex";
-
-const { mapState, mapMutations } = createNamespacedHelpers("draggable");
+import dragMixin from "@/mixins/dragMixin";
 
 export default {
   components: {},
+  mixins: [dragMixin],
   data() {
     return {
       captionList: [],
@@ -54,32 +53,32 @@ export default {
     this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
   },
   methods: {
-    ...mapMutations(["changeDragVisible", "changeStyle"]),
-
     handleMousedown(e, caption) {
-      this.changeStyle({
+      this.draggingStyle = {
         width: e.target.offsetWidth + "px",
         height: e.target.offsetHeight + "px",
         top: e.clientY + "px",
         left: e.clientX + "px",
-        backgroundImage: `url(${e.target.src})`
-      });
-      this.changeDragVisible(true);
+        backgroundImage: `url(${caption.coverUrl})`
+      };
+      this.isDragging = true;
+      this.draggingClip = caption;
       document.body.addEventListener("mousemove", this.handleMousemove);
       document.body.addEventListener("mouseup", this.handleMouseup, true);
     },
     handleMousemove(e) {
       e.preventDefault();
-      this.changeStyle({
+      this.draggingStyle = {
         top: e.clientY + "px",
         left: e.clientX + "px"
-      });
+      };
     },
 
     handleMouseup(e) {
       document.body.removeEventListener("mousemove", this.handleMousemove);
       document.body.removeEventListener("mouseup", this.handleMouseup);
-      this.changeDragVisible(false);
+      // this.changeDragVisible(false);
+      this.isDragging = false;
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
         console.log("is in live window");
       }
