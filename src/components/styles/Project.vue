@@ -3,7 +3,7 @@
     <div class="material">
       <el-tabs v-model="active" class="ln-tabs-body ln-template-tabs">
         <el-tab-pane :label="$t('styles')" name="styles">
-          <StyleList />
+          <StyleList :cover-data="coverData" />
         </el-tab-pane>
         <el-tab-pane name="likes">
           <svg-icon
@@ -17,7 +17,7 @@
         {{ $t("none") }}
       </div>
     </div>
-    <Preview />
+    <Preview ref="preview" />
   </div>
 </template>
 
@@ -28,8 +28,13 @@ export default {
   components: { Preview, StyleList },
   data() {
     return {
-      active: "styles"
+      active: "styles",
+      coverData: ""
     };
+  },
+  async mounted() {
+    await this.$refs.preview.createTimeline();
+    this.coverData = await this.$refs.preview.getImgFromTimeline();
   }
 };
 </script>

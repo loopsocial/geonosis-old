@@ -133,6 +133,7 @@ $white: #fff;
         background-color: $infoBgc;
         border-radius: 50%;
         color: $white;
+        font-size: 14px;
       }
       .duration {
         position: absolute;
@@ -142,6 +143,7 @@ $white: #fff;
         background-color: $infoBgc;
         border-radius: 6px;
         color: $white;
+        font-size: 14px;
       }
       .operate-btns {
         position: absolute;

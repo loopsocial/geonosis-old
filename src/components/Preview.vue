@@ -183,6 +183,22 @@ export default {
           this.statusChangeEvent
         );
       });
+    },
+    getImgFromTimeline(t) {
+      return new Promise((resolve, reject) => {
+        this.timelineClass
+          .getImgFromTimeline(t)
+          .then(data => {
+            var array = new Uint8Array(data);
+            var reader = new FileReader();
+            reader.readAsDataURL(new Blob([array]));
+            reader.onload = () => {
+              resolve(reader.result);
+            };
+            reader.onerror = reject;
+          })
+          .catch(reject);
+      });
     }
   },
   beforeDestroy() {

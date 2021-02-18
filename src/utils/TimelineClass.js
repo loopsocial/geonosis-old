@@ -22,12 +22,13 @@ export default class TimelineClass {
     this.init();
   }
   // 初始化
-  init() {
-    this.createTimeline();
+  async init() {
+    await this.createTimeline();
     this.connectLiveWindow();
   }
   // 创建时间线实例
-  createTimeline() {
+  async createTimeline() {
+    await this.stopEngin();
     if (!this.streamingContext) {
       console.error("stream context is null");
       return;
@@ -38,7 +39,11 @@ export default class TimelineClass {
       new NvsRational(25, 1),
       new NvsAudioResolution(44100, 2)
     );
-    console.log("初始化时间线完成");
+    if (this.timeline) {
+      console.log("初始化时间线完成");
+    } else {
+      console.warn("时间线创建失败");
+    }
   }
   connectLiveWindow(canvasId) {
     this.liveWindow = this.streamingContext.createLiveWindow(
@@ -242,6 +247,29 @@ export default class TimelineClass {
   destroy() {
     this.liveWindow && this.removeLiveWindow(this.liveWindow);
     this.removeTimeline();
+  }
+  getImgFromTimeline(point) {
+    return new Promise((resolve, reject) => {
+      window.streamingContext.addEventListener(
+        "onImageGrabbedArrived",
+        function slot(data) {
+          window.streamingContext.removeEventListener(
+            "onImageGrabbedArrived",
+            slot
+          );
+          resolve(data);
+        }
+      );
+      setTimeout(() => {
+        reject(new Error("Get cover timeout"));
+      }, 5000);
+      this.streamingContext.grabImageFromTimeline(
+        this.timeline,
+        point || 0,
+        new NvsRational(1, 1),
+        0
+      );
+    });
   }
 }
 // 字幕放置到中心点

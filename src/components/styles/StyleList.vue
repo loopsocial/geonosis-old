@@ -14,7 +14,7 @@
         v-loading="style.isInstalling"
       >
         <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
-        <!-- <img :src="style.coverUrl" alt="" /> -->
+        <img class="cover" :src="coverData" alt="" v-if="coverData" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -27,6 +27,9 @@
 import SvgIcon from "../SvgIcon.vue";
 export default {
   components: { SvgIcon },
+  props: {
+    coverData: String
+  },
   data() {
     return {
       styleList: [1, 2, 2, 2, 2, 22, 21, 132, 312, 123, 312, 2],
@@ -67,12 +70,21 @@ export default {
     .list-item {
       position: relative;
       padding-top: 178%;
+      position: relative;
       border: 2px solid #fff;
       border-radius: 6px;
       .heart-icon {
         position: absolute;
         left: 10px;
         top: 10px;
+        z-index: 10;
+      }
+      .cover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
       }
     }
   }
