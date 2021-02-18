@@ -88,7 +88,7 @@ export default class TimelineClass {
   seekTimeline(t) {
     t =
       t === undefined
-        ? this.streamingContext.getTimelineCurrentPosition(this.timeline)
+        ? this.getCurrentPosition()
         : Math.min(t, this.timeline.getDuration());
     this.streamingContext.seekTimeline(
       this.timeline,
@@ -97,6 +97,9 @@ export default class TimelineClass {
       NvsSeekFlagEnum.ShowCaptionPoster |
         NvsSeekFlagEnum.ShowAnimatedStickerPoster
     );
+  }
+  getCurrentPosition() {
+    return this.streamingContext.getTimelineCurrentPosition(this.timeline);
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
@@ -131,6 +134,7 @@ export default class TimelineClass {
       translationX,
       translationY
     } = caption;
+    console.log("添加字幕", caption);
     const captionRaw = this.timeline.addCaption(
       text,
       inPoint,
@@ -138,13 +142,18 @@ export default class TimelineClass {
       styleDesc,
       false
     );
+    if (!captionRaw) {
+      console.warn("caption add fail", caption);
+      return;
+    }
+    const { x, y } = getCenter(captionRaw);
+    caption.raw = captionRaw;
+    this.captions.push(caption); // 可能需要改成按照inPoint进行插入
     scaleX !== undefined && captionRaw.setScaleX(scaleX);
     scaleY !== undefined && captionRaw.setScaleY(scaleY);
     rotation !== undefined && captionRaw.setRotationZ(rotation);
-    if (translationX !== undefined && translationX !== undefined) {
-      const offsetPointF = new NvsPointF(translationX, translationY);
-      captionRaw.setCaptionTranslation(offsetPointF);
-    }
+    const offsetPointF = new NvsPointF(translationX - x, translationY - y);
+    captionRaw.setCaptionTranslation(offsetPointF);
     fontSize !== undefined && captionRaw.setFontSize(fontSize);
     return captionRaw;
   }
@@ -169,6 +178,12 @@ export default class TimelineClass {
       false,
       ""
     );
+    if (!stickerRaw) {
+      console.warn("sticker add fail", sticker);
+      return false;
+    }
+    sticker.raw = stickerRaw;
+    this.stickers.push(sticker); // 可能需要改成按照inPoint进行插入
     scale !== undefined && stickerRaw.setScale(scale);
     rotation !== undefined && stickerRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationX !== undefined) {
@@ -179,6 +194,7 @@ export default class TimelineClass {
       stickerRaw.setHorizontalFlip(horizontalFlip);
     verticalFlip !== undefined && stickerRaw.setVerticalFlip(verticalFlip);
     z !== undefined && stickerRaw.setZValue(z);
+    return true;
   }
   addVideoClip(clip, trackRaw) {
     const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
@@ -227,4 +243,16 @@ export default class TimelineClass {
     this.liveWindow && this.removeLiveWindow(this.liveWindow);
     this.removeTimeline();
   }
+}
+// 字幕放置到中心点
+function getCenter(captionRaw) {
+  const vertices = captionRaw.getBoundingRectangleVertices();
+  const p1 = vertices.get(0);
+  // const p2 = vertices.get(1);
+  const p3 = vertices.get(2);
+  // const p4 = vertices.get(3);
+  return {
+    x: (p1.x + p3.x) / 2,
+    y: (p3.y + p1.y) / 2
+  };
 }

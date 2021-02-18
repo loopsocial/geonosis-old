@@ -27,6 +27,7 @@
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
 import dragMixin from "@/mixins/dragMixin";
+import { CLIP_TYPES } from "@/utils/Global";
 
 export default {
   components: {},
@@ -77,10 +78,13 @@ export default {
     handleMouseup(e) {
       document.body.removeEventListener("mousemove", this.handleMousemove);
       document.body.removeEventListener("mouseup", this.handleMouseup);
-      // this.changeDragVisible(false);
       this.isDragging = false;
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
         console.log("is in live window");
+        this.$bus.$emit(this.$keys.editClip, e, {
+          type: CLIP_TYPES.CAPTION,
+          target: this.draggingClip
+        });
       }
     },
     inLiveWindowRangeOrNot(mouseLeft, mouseTop) {

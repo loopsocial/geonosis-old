@@ -31,8 +31,14 @@ import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
 import { mapActions } from "vuex";
 import { CLIP_TYPES } from "@/utils/Global";
+import dragMixin from "@/mixins/dragMixin";
+import { CaptionClip, StickerClip } from "@/utils/ProjectData";
 
 export default {
+  mixins: [dragMixin],
+  props: {
+    medias: Array
+  },
   data() {
     return {
       width: 0,
@@ -41,9 +47,6 @@ export default {
       waiting: false,
       timelineClass: null
     };
-  },
-  props: {
-    medias: Array
   },
   async mounted() {
     console.log("mounted");
@@ -63,9 +66,48 @@ export default {
   methods: {
     setEventBus() {
       this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
+      this.$bus.$on(this.$keys.editClip, this.editClip);
+
       this.$once("hook:beforeDestroy", () => {
         this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+        this.$bus.$off(this.$keys.editClip, this.editClip);
       });
+    },
+    async editClip(e, option) {
+      const { type, target, raw } = option;
+      if (!raw && !target) return;
+      await this.timelineClass.stopEngin();
+      if (raw) {
+        // 修改原有的clip
+      } else {
+        const container = document.getElementById("live-window");
+        const { x, y, width, height } = container.getBoundingClientRect();
+        const translationX = e.clientX - x - width / 2;
+        const translationY = y + height / 2 - e.clientY;
+        let result;
+        if (type === CLIP_TYPES.STICKER) {
+          const sticker = new StickerClip({
+            ...target,
+            inPoint: this.timelineClass.getCurrentPosition(),
+            desc: target.id,
+            translationX,
+            translationY
+          });
+          result = this.timelineClass.addSticker(sticker);
+        } else if (type === CLIP_TYPES.CAPTION) {
+          const caption = new CaptionClip({
+            ...target,
+            inPoint: this.timelineClass.getCurrentPosition(),
+            translationX,
+            translationY
+          });
+          result = this.timelineClass.addCaption(caption);
+        }
+        if (result) {
+          this.draggingClip = null;
+        }
+      }
+      this.timelineClass.seekTimeline();
     },
     async deleteClip(type, index) {
       const { VIDEO, AUDIO } = CLIP_TYPES;
@@ -79,7 +121,6 @@ export default {
       setNvsStatus: "setNvsStatus"
     }),
     async createTimeline() {
-      console.log('创建时间线')
       this.timelineClass = new TimelineClass("live-window", {
         videoTrack: { clips: this.medias }
       });

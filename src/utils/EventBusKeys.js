@@ -1,3 +1,4 @@
 export default {
-  deleteClip: "deleteClip"
+  deleteClip: "deleteClip",
+  editClip: "editClip"
 };

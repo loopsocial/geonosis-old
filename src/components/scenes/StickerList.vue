@@ -25,12 +25,13 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
-import { createNamespacedHelpers } from "vuex";
-
-const { mapMutations } = createNamespacedHelpers("draggable");
+import dragMixin from "@/mixins/dragMixin";
+import { CLIP_TYPES } from "@/utils/Global";
 
 export default {
   components: {},
+  mixins: [dragMixin],
+
   data() {
     return {
       stickerList: [],
@@ -48,34 +49,36 @@ export default {
     this.getStickers();
   },
   methods: {
-    ...mapMutations(["changeDragVisible", "changeStyle"]),
-
     handleMousedown(e, sticker) {
-      this.changeStyle({
+      this.draggingStyle = {
         width: e.target.offsetWidth + "px",
         height: e.target.offsetHeight + "px",
         top: e.clientY + "px",
         left: e.clientX + "px",
         backgroundImage: `url(${sticker.coverUrl})`
-      });
-      this.changeDragVisible(true);
+      };
+      this.isDragging = true;
+      this.draggingClip = sticker;
       document.body.addEventListener("mousemove", this.handleMousemove);
       document.body.addEventListener("mouseup", this.handleMouseup, true);
     },
     handleMousemove(e) {
       e.preventDefault();
-      this.changeStyle({
+      this.draggingStyle = {
         top: e.clientY + "px",
         left: e.clientX + "px"
-      });
+      };
     },
 
     handleMouseup(e) {
       document.body.removeEventListener("mousemove", this.handleMousemove);
       document.body.removeEventListener("mouseup", this.handleMouseup);
-      this.changeDragVisible(false);
+      this.isDragging = false;
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
-        console.log("is in live window");
+        this.$bus.$emit(this.$keys.editClip, e, {
+          type: CLIP_TYPES.STICKER,
+          target: this.draggingClip
+        });
       }
     },
     inLiveWindowRangeOrNot(mouseLeft, mouseTop) {

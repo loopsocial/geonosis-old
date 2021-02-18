@@ -17,11 +17,13 @@ export const assetTypes = {
 // 需要安装的资源
 export const needInstall = Object.keys(assetTypes);
 
-// clip类型 不要轻易改这个
+// clip类型
 export const CLIP_TYPES = {
   VIDEO: "video",
   AUDIO: "audio",
-  IMAGE: "image"
+  IMAGE: "image",
+  CAPTION: "caption",
+  STICKER: "sticker"
 };
 // track 类型
 export const TRACK_TYPES = {
