@@ -6,5 +6,7 @@
   "scale":"Scale",
   "font":"Font",
   "textColor":"Text Color",
-  "backgroundColor":"Background Color"
+  "backgroundColor":"Background Color",
+  "cancel":"Cancel",
+  "next":"Next"
 }

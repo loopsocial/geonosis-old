@@ -60,7 +60,9 @@ export default {
       this.isDragging = true;
       this.draggingClip = sticker;
       document.body.addEventListener("mousemove", this.handleMousemove);
-      document.body.addEventListener("mouseup", this.handleMouseup, true);
+      document.body.addEventListener("mouseup", this.handleMouseup, {
+        once: true
+      });
     },
     handleMousemove(e) {
       e.preventDefault();
@@ -71,15 +73,14 @@ export default {
     },
 
     handleMouseup(e) {
-      document.body.removeEventListener("mousemove", this.handleMousemove);
-      document.body.removeEventListener("mouseup", this.handleMouseup);
-      this.isDragging = false;
+      this.changeDragVisible(false);
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
         this.$bus.$emit(this.$keys.editClip, e, {
           type: CLIP_TYPES.STICKER,
           target: this.draggingClip
         });
       }
+      document.body.removeEventListener("mousemove", this.handleMousemove);
     },
     inLiveWindowRangeOrNot(mouseLeft, mouseTop) {
       const liveWindow = document.getElementById("live-window");
