@@ -13,9 +13,11 @@
         :key="music.uuid"
         v-loading="music.isInstalling"
       >
-        <div class="cover"></div>
+        <div class="cover">
+          <img :src="music.coverUrl" alt="" srcset="" v-if="music.coverUrl" />
+        </div>
         <div class="info">
-          <div class="name">Lofi hiphop music</div>
+          <div class="name">{{ music.name }}</div>
           <div class="singer">Icarus</div>
         </div>
         <div class="btns">
@@ -26,20 +28,20 @@
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-else-if="isNoMore">{{ $t("nomore") }}</p>
-    <p v-else>{{ $t(" ") }}</p>
+    <p v-else-if="isNoMore">{{ $t("noMore") }}</p>
+    <!-- <p v-else>{{ $t(" ") }}</p> -->
   </div>
 </template>
 
 <script>
-import SvgIcon from "../SvgIcon.vue";
+import { installAsset } from "@/utils/AssetsUtils";
 export default {
-  components: { SvgIcon },
   data() {
     return {
-      musicList: [1, 2, 2, 2, 2, 22, 21, 132, 312, 123, 312, 2],
+      musicList: [],
       isLoading: false,
       isNoMore: false,
+      musicCount: 0,
       page: 0
     };
   },
@@ -48,15 +50,41 @@ export default {
       return this.isLoading || this.isNoMore;
     }
   },
+  created() {
+    this.getMusic();
+  },
   methods: {
-    load() {
+    async load() {
       console.log(33);
       this.isLoading = true;
-      setTimeout(() => {
-        this.musicList.push(1, 2, 3);
-
-        this.isLoading = false;
-      }, 1999);
+      await this.getMusic();
+      this.isLoading = false;
+    },
+    async getMusic() {
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 7,
+          page: this.page,
+          pageSize: 40,
+          category: 1
+        }
+      });
+      const { materialCount, materialList } = res.data;
+      this.musicCount = materialCount;
+      for (let i = 0; i < materialList.length; i++) {
+        const sticker = {
+          ...materialList[i],
+          name: materialList[i].displayName,
+          isInstalling: true
+        };
+        this.musicList.push(sticker);
+        installAsset(materialList[i].m3u8Url).then(() => {
+          sticker.isInstalling = false;
+        });
+      }
+      if (this.musicList.length >= this.musicCount) {
+        this.isNoMore = true;
+      }
     }
   }
 };
@@ -81,6 +109,10 @@ export default {
         width: 63px;
         background-color: pink;
         border-radius: 6px;
+        img {
+          height: 100%;
+          width: 100%;
+        }
       }
       .info {
         margin-left: 7px;
@@ -109,7 +141,9 @@ export default {
 
 <i18n>
 {
+  "en": {
     "trim":"Trim",
     "use":"Use"
+  }
 }
 </i18n>

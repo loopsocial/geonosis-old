@@ -17,7 +17,7 @@
         {{ $t("none") }}
       </div>
     </div>
-    <Preview />
+    <Preview ref="preview" />
   </div>
 </template>
 
@@ -30,6 +30,9 @@ export default {
     return {
       active: "styles"
     };
+  },
+  async mounted() {
+    await this.$refs.preview.createTimeline();
   }
 };
 </script>

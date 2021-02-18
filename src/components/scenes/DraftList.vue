@@ -116,7 +116,6 @@ export default {
   props: {},
   data() {
     return {
-      active: "",
       height: 0,
       dialogVisible: false,
       splitterWidth: 0, // 可计算用滑块宽度
@@ -132,8 +131,8 @@ export default {
   },
   computed: {
     activeClip() {
-      if (!this.active) return;
-      return this.medias.find(item => this.active === item.uuid);
+      if (!this.currentVideoUuid) return;
+      return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
     videoDuration() {
       if (!this.activeClip) return NaN;
