@@ -1,7 +1,7 @@
 <template>
   <div class="scenes">
-    <DraftList :medias="medias" ref="draft"></DraftList>
-    <Preview :medias="medias" ref="preview"></Preview>
+    <DraftList ref="draft"></DraftList>
+    <Preview ref="preview"></Preview>
     <Materials></Materials>
   </div>
 </template>
@@ -13,6 +13,8 @@ import Preview from "../components/Preview";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
+import { CLIP_TYPES } from "@/utils/Global";
+
 export default {
   components: {
     DraftList,
@@ -20,14 +22,11 @@ export default {
     Preview
   },
   data() {
-    return {
-      medias: [] // 已选择的素材
-    };
+    return {};
   },
   async created() {
     await this.installM3u8();
     this.$refs.preview.createTimeline();
-    this.$refs.draft.setActive(this.medias[0].uuid);
   },
   methods: {
     async installM3u8() {
@@ -41,7 +40,10 @@ export default {
         clip.trimOut = clip.duration * 1000;
         clip.orgDuration = clip.duration * 1000;
         pos += clip.duration * 1000;
-        this.medias.push(new VideoClip(clip));
+        this.addClipToVuex({
+          type: CLIP_TYPES.VIDEO,
+          clip: new VideoClip(clip)
+        });
       }
     }
   }

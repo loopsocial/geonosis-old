@@ -2,8 +2,11 @@
   <div class="draft-list">
     <div class="draft-list-container">
       <div
-        :class="['draft-list-item', active === item.uuid ? 'onfocus' : '']"
-        v-for="(item, index) in medias"
+        :class="[
+          'draft-list-item',
+          currentVideoUuid === item.uuid ? 'onfocus' : ''
+        ]"
+        v-for="(item, index) in videos"
         :key="item.uuid"
         @click="selected(item)"
         :style="{
@@ -18,7 +21,11 @@
         <div class="order-number">{{ index + 1 }}</div>
         <div class="duration">{{ format(item.duration) }}</div>
         <transition name="el-fade-in-linear">
-          <div class="operate-btns" v-if="active === item.uuid" @click.stop>
+          <div
+            class="operate-btns"
+            v-if="currentVideoUuid === item.uuid"
+            @click.stop
+          >
             <div class="icon flex">
               <svg-icon
                 class="cut-icon"
@@ -54,32 +61,30 @@ export default {
   components: {
     // DraftListItem
   },
-  props: {
-    medias: Array
-  },
+  props: {},
   data() {
     return {
-      active: null,
       height: 0
     };
   },
   mounted() {},
   methods: {
-    setActive(uuid) {
-      this.active = uuid;
-    },
     handleResize() {},
     cut(item) {
       this.dialogVisible = true;
       console.log(item);
     },
     del(index) {
-      this.active = this.medias[index + 1] ? this.medias[index + 1].uuid : null;
-      this.$delete(this.medias, index);
+      this.deleteClipToVuex({
+        type: CLIP_TYPES.VIDEO,
+        index
+      });
+      const i = Math.min(index, this.videos.length);
+      this.currentVideoUuid = this.videos[i].uuid;
       this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
     },
     selected(item) {
-      this.active = item.uuid;
+      this.currentVideoUuid = item.uuid;
     },
     format(ms) {
       return us2time(ms * 1000);

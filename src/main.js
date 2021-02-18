@@ -9,7 +9,8 @@ import "./plugins/element.js";
 import "./icons";
 import api from "./api/apiPath";
 import EventBus from "./EventBus";
-import EventBusKeys from "./utils/EventBusKeys"
+import EventBusKeys from "./utils/EventBusKeys";
+import clipMixin from "@/mixins/clipMixin";
 
 // require("./mock/index");
 Vue.config.productionTip = false;
@@ -31,6 +32,7 @@ Vue.filter("msFormat", val => {
   const fix = v => (v > 9 ? v : "0" + v);
   return `${fix(h)}:${fix(min % 60)}:${fix(s % 60)}`;
 });
+Vue.mixin(clipMixin);
 new Vue({
   router,
   store,

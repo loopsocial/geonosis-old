@@ -53,6 +53,8 @@ export class CaptionClip extends Clip {
     this.scaleX = option.scaleX || 1;
     this.scaleY = option.scaleY || 1;
     this.rotation = option.rotation || 0;
+
+    // 相对于监视器中心点的位置
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;
     this.z = option.z;

@@ -31,14 +31,12 @@ import initSDK from "../utils/NvBase";
 import TimelineClass from "../utils/TimelineClass";
 import { mapActions } from "vuex";
 import { CLIP_TYPES } from "@/utils/Global";
-import dragMixin from "@/mixins/dragMixin";
 import { CaptionClip, StickerClip } from "@/utils/ProjectData";
+import dragMixin from "@/mixins/dragMixin";
 
 export default {
   mixins: [dragMixin],
-  props: {
-    medias: Array
-  },
+  props: {},
   data() {
     return {
       width: 0,
@@ -55,6 +53,7 @@ export default {
     try {
       await initSDK();
       this.setNvsStatus(true); // 设置状态. 表示SDK已加载完成
+      console.log("SDK 初始化完成");
     } catch (error) {
       console.error("初始化失败", error);
       this.$message({
@@ -122,7 +121,10 @@ export default {
     }),
     async createTimeline() {
       this.timelineClass = new TimelineClass("live-window", {
-        videoTrack: { clips: this.medias }
+        videoTrack: { clips: this.videos },
+        audioTrack: { clips: this.audios },
+        captions: this.captions,
+        stickers: this.stickers
       });
       window.timelineClass = this.timelineClass; // 调试用
       await this.timelineClass.buildTimeline();
@@ -185,7 +187,11 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener("resize", this.resize);
-    this.timelineClass.destroy();
+    if (this.timelineClass) {
+      this.timelineClass.stopEngin().then(() => {
+        this.timelineClass.destroy();
+      });
+    }
   }
 };
 </script>

@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import draggable from "./modules/draggable";
+import clip from "./modules/clip";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -18,6 +19,7 @@ export default new Vuex.Store({
     }
   },
   modules: {
-    draggable
+    draggable,
+    clip
   }
 });
