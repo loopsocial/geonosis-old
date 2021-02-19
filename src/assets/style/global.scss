@@ -89,7 +89,7 @@ body .ln-tabs-body {
     background-color: white;
   }
   .el-tabs__active-bar {
-    transition: all .3s cubic-bezier(.645,.045,.355,1);
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
   &.ln-template-tabs {
     .el-tabs__nav-wrap::after {
@@ -99,21 +99,20 @@ body .ln-tabs-body {
 }
 
 // 下拉菜单
-body .ln-select{
+body .ln-select {
   width: 100%;
-  .el-input__inner{
-    background: rgb(65,65,65);
+  .el-input__inner {
+    background: rgb(65, 65, 65);
     border: none;
   }
-
 }
 
 // 颜色选择器
-body .ln-color-picker{
-  .el-color-picker__trigger{
+body .ln-color-picker {
+  .el-color-picker__trigger {
     border: none;
     padding: 0;
-    .el-color-picker__color{
+    .el-color-picker__color {
       border: none;
       border-radius: 50%;
       overflow: hidden;
@@ -122,27 +121,25 @@ body .ln-color-picker{
 }
 
 // 单选组：
-body .ln-radio-group{
-  .el-radio-button__inner{
+body .ln-radio-group {
+  .el-radio-button__inner {
     background: transparent;
     border: none !important;
     height: 36px;
     width: 46.3px;
-    border: none;    
+    border: none;
     padding: 12px 15px;
     color: transparent;
   }
-  .el-radio-button__orig-radio:checked+.el-radio-button__inner{
+  .el-radio-button__orig-radio:checked + .el-radio-button__inner {
     background-color: transparent;
     box-shadow: none;
-  
   }
 }
 // loading
-body .el-loading-mask{
-  background-color: rgba(10,10,10,.6);
+body .el-loading-mask {
+  background-color: rgba(10, 10, 10, 0.6);
 }
-
 
 // utils:
 .flex {
@@ -150,10 +147,19 @@ body .el-loading-mask{
   align-items: center;
   justify-content: center;
 }
-.text-center-h{
+.text-center-h {
   width: 100%;
   text-align: center;
 }
-.inline-block{
+.inline-block {
   display: inline-block;
+}
+
+@for $i from 1 through 100 {
+  .margin-top-#{$i} {
+    margin-top: #{$i}px;
+  }
+}
+.white{
+  color: white;
 }
