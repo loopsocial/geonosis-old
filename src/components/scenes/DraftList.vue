@@ -61,8 +61,29 @@
     >
       <h1>{{ $t("trimVideo") }}</h1>
 
-      <div class="live-window"></div>
+      <div class="live-window-wrapper">
+        <div class="undo-btn inline-block">
+          <svg-icon
+            @click="handleRedo"
+            class="icon"
+            icon-class="redo"
+          ></svg-icon>
+          <svg-icon
+            @click="handleUndo"
+            class="icon"
+            icon-class="undo"
+          ></svg-icon>
+        </div>
 
+        <div class="live-window inline-block"></div>
+
+        <div class="split-btn inline-block">
+          <svg-icon class="split-icon" icon-class="split"></svg-icon>
+          <span>{{ $t("split") }}</span>
+        </div>
+      </div>
+
+      <!-- 缩略图 -->
       <div class="clips-wrapper">
         <svg-icon
           @click="handlePlay"
@@ -160,6 +181,12 @@ export default {
     format(ms) {
       return us2time(ms * 1000);
     },
+    handleUndo() {
+      //
+    },
+    handleRedo() {
+      //
+    },
     handlePlay() {
       const durationOfOnePx =
         this.activeClip.duration / this.$refs.clipList.offsetWidth;
@@ -237,9 +264,6 @@ export default {
     },
     handleLeftMouseUp() {
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
-
-      this.getStartTime();
-      this.getEndTime();
     },
     handleRightMouseDown(e) {
       e.stopPropagation();
@@ -265,9 +289,6 @@ export default {
     },
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
-
-      this.getStartTime();
-      this.getEndTime();
     },
     handleSplitterMouseDown(e) {
       e.stopPropagation();
@@ -322,7 +343,6 @@ export default {
 
 <style lang="scss" scoped>
 $infoBgc: rgba(0, 0, 0, 0.5);
-$white: #fff;
 .draft-list {
   min-width: 111px;
   height: 100%;
@@ -358,7 +378,7 @@ $white: #fff;
         text-align: center;
         background-color: $infoBgc;
         border-radius: 50%;
-        color: $white;
+        color: #fff;
         font-size: 14px;
       }
       .duration {
@@ -368,7 +388,7 @@ $white: #fff;
         padding: 4px 8px;
         background-color: $infoBgc;
         border-radius: 6px;
-        color: $white;
+        color: #fff;
         font-size: 14px;
       }
       .operate-btns {
@@ -409,7 +429,7 @@ $white: #fff;
       margin-top: 12px;
     }
     .onfocus {
-      border-color: $white;
+      border-color: #fff;
     }
   }
 
@@ -437,25 +457,54 @@ $white: #fff;
     .add-text {
       margin-right: 6%;
       font-size: 14px;
-      color: $white;
+      color: #fff;
       user-select: none;
     }
   }
 }
-::v-deep.el-dialog__wrapper{
-  .el-dialog{
-  width: 600px;
-  height: 560px;
+::v-deep.el-dialog__wrapper {
+  .el-dialog {
+    width: 600px;
+    height: 560px;
   }
 }
 .ln-dialog {
+  .live-window-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    .undo-btn {
+      margin-bottom: 25px;
+      .icon {
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+      }
+    }
+    .split-btn {
+      margin-bottom: 30px;
+      margin-right: 30px;
+      color: #fff;
+      cursor: pointer;
 
-  .live-window {
-    height: 276px;
-    height: 360px;
+      .split-icon {
+        width: 20px;
+        height: 18.95px;
+      }
+      span {
+        margin-left: 10px;
+        vertical-align: 3px;
+
+      }
+    }
+    .live-window {
+      width: 276px;
+      height: 360px;
+    }
   }
+
   h1 {
-    color: $white;
+    color: #fff;
     margin: 0;
     text-align: center;
     font-weight: 500;
@@ -554,7 +603,8 @@ $white: #fff;
     "addMedia": "Add Media",
     "trimVideo":"Trim Video",
     "next": "Next",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "split":"Split"
   }
 }
 </i18n>
