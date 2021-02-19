@@ -1,31 +1,42 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    <div class="btn" v-if="!$route.name === 'Create'">
-      <el-button type="text" size="medium">{{ $t("preview") }}</el-button>
-      <el-button round class="round-btn" size="medium">{{
-        $t("publish")
-      }}</el-button>
+    <div class="btn">
+      <el-button type="text" size="medium" @click="preview">
+        {{ $t("preview") }}
+      </el-button>
+      <el-button round class="round-btn" size="medium">
+        {{ $t("publish") }}
+      </el-button>
     </div>
+    <transition name="el-fade-in">
+      <FullPreview
+        v-if="showPreview"
+        class="preview-box"
+        @close="close"
+      ></FullPreview>
+    </transition>
   </div>
 </template>
 
 <script>
+import FullPreview from "./FullPreview";
 export default {
   data() {
     return {
-      pathList: ["create", "template", "sceneediting", "post"] // 这个顺序不可改
+      showPreview: false
     };
+  },
+  components: {
+    FullPreview
   },
   computed: {},
   methods: {
-    getClasses(i) {
-      let { fullPath } = this.$route;
-      fullPath = fullPath.toLocaleLowerCase();
-      const index = this.pathList.findIndex(path => fullPath.includes(path));
-      if (index < i) return "";
-      if (index === i) return "current-path";
-      return "finish-path";
+    preview() {
+      this.showPreview = true;
+    },
+    close() {
+      this.showPreview = false;
     }
   }
 };

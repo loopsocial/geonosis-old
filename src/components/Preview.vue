@@ -68,10 +68,12 @@ export default {
       this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
       this.$bus.$on(this.$keys.editClip, this.editClip);
       this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
+      this.$bus.$on(this.$keys.getTimeline, this.getTimeline); // 切换监视器
       this.$once("hook:beforeDestroy", () => {
         this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
         this.$bus.$off(this.$keys.editClip, this.editClip);
         this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
+        this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
       });
     },
     async editClip(e, option) {
@@ -138,6 +140,14 @@ export default {
     changeMonitor(canvasId) {
       canvasId = canvasId || "live-window";
       this.timelineClass.connectLiveWindow(canvasId);
+      this.$nextTick(() => {
+        this.timelineClass.seekTimeline(0);
+      });
+    },
+    getTimeline(callback) {
+      if (callback) {
+        callback(this.timelineClass);
+      }
     },
     resize() {
       const liveWindow = this.$refs.liveWindow;
@@ -158,7 +168,9 @@ export default {
       }
     },
     stopEvent(timeline) {
-      this.isPlaying = false;
+      if (timeline === this.timelineClass.timeline) {
+        this.isPlaying = false;
+      }
     },
     statusChangeEvent(isVideo, waiting) {
       this.waiting = waiting;

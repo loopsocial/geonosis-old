@@ -39,7 +39,8 @@ export default {
         clip.trimIn = 0;
         clip.trimOut = clip.duration * 1000;
         clip.orgDuration = clip.duration * 1000;
-        pos += clip.duration * 1000;
+        clip.duration = clip.duration * 1000;
+        pos += clip.duration;
         this.addClipToVuex({
           type: CLIP_TYPES.VIDEO,
           clip: new VideoClip(clip)

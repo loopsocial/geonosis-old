@@ -411,6 +411,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
 .draft-list {
   min-width: 111px;
   height: 100%;
+  width: 216px;
   position: relative;
   /* Hide scrollbar for Chrome, Safari and Opera */
   .draft-list-container {

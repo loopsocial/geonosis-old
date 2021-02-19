@@ -46,6 +46,9 @@ export default class TimelineClass {
     }
   }
   connectLiveWindow(canvasId) {
+    if (this.liveWindow) {
+      this.streamingContext.removeLiveWindow(this.liveWindow);
+    }
     this.liveWindow = this.streamingContext.createLiveWindow(
       canvasId || this.canvasId
     );
