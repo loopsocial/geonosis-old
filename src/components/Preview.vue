@@ -63,13 +63,15 @@ export default {
     }
   },
   methods: {
+    // eventBus事件绑定/解绑
     setEventBus() {
       this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
       this.$bus.$on(this.$keys.editClip, this.editClip);
-
+      this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
       this.$once("hook:beforeDestroy", () => {
         this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
         this.$bus.$off(this.$keys.editClip, this.editClip);
+        this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
       });
     },
     async editClip(e, option) {
@@ -133,6 +135,10 @@ export default {
       this.timelineClass.seekTimeline();
       console.log("时间线创建完成", this.timelineClass);
     },
+    changeMonitor(canvasId) {
+      canvasId = canvasId || "live-window";
+      this.timelineClass.connectLiveWindow(canvasId);
+    },
     resize() {
       const liveWindow = this.$refs.liveWindow;
       this.height = liveWindow.offsetHeight;
@@ -147,7 +153,9 @@ export default {
       this.isPlaying = !this.isPlaying;
     },
     playingEvent(timeline, position) {
-      // console.log("播放中", position);
+      if (timeline === this.timelineClass.timeline) {
+        // console.log('2');
+      }
     },
     stopEvent(timeline) {
       this.isPlaying = false;

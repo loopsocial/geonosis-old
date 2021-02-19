@@ -68,14 +68,22 @@ export default class TimelineClass {
     this.captions.map(c => this.addCaption(c));
     this.stickers.map(s => this.addSticker(s));
   }
-  async play() {
+  async play(t) {
+    t = t === undefined ? this.getCurrentPosition() : t;
     this.streamingContext.playbackTimeline(
       this.timeline,
-      0,
+      t,
       -1,
       NvsVideoPreviewSizeModeEnum.LiveWindowSize,
       true,
       0
+    );
+  }
+  isPlaying() {
+    const streamingEngineState = this.streamingContext.getStreamingEngineState();
+    return (
+      streamingEngineState ===
+      NvsStreamingEngineStateEnum.StreamingEngineStatePlayback
     );
   }
   stop() {
@@ -245,6 +253,7 @@ export default class TimelineClass {
     }
   }
   destroy() {
+    if (this.isPlaying) this.stop();
     this.liveWindow && this.removeLiveWindow(this.liveWindow);
     this.removeTimeline();
   }

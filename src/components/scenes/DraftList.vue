@@ -75,7 +75,12 @@
           ></svg-icon>
         </div>
 
-        <div class="live-window inline-block"></div>
+        <canvas
+          width="540"
+          height="960"
+          class="live-window inline-block"
+          id="trim-window"
+        ></canvas>
 
         <div class="split-btn inline-block">
           <svg-icon class="split-icon" icon-class="split"></svg-icon>
@@ -88,7 +93,7 @@
         <svg-icon
           @click="handlePlay"
           class="play-icon"
-          icon-class="play-button"
+          :icon-class="!isPlaying ? 'play-button' : 'pause'"
         ></svg-icon>
 
         <div class="clip-list-container">
@@ -129,6 +134,8 @@
 <script>
 import { us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
+import TimelineClass from "../../utils/TimelineClass";
+
 export default {
   components: {
     // DraftListItem
@@ -145,7 +152,8 @@ export default {
       vectorLeft: 0,
       item: null,
       background: "",
-      duration: 0
+      duration: 0,
+      isPlaying: false
     };
   },
   computed: {
@@ -161,10 +169,14 @@ export default {
   mounted() {},
   methods: {
     handleResize() {},
+    // 视频裁剪
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      this.$nextTick(this.getClipListImages);
+      this.$nextTick(() => {
+        this.createTrimTimeline();
+        this.getClipListImages();
+      });
     },
     del(index) {
       this.deleteClipToVuex({
@@ -174,6 +186,16 @@ export default {
       const i = Math.min(index, this.videos.length);
       this.currentVideoUuid = this.videos[i].uuid;
       this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
+    },
+    // 创建监视器时间线
+    async createTrimTimeline() {
+      this.trimTimeline = new TimelineClass("trim-window", {
+        videoTrack: { clips: [this.activeClip] }
+      });
+      await this.trimTimeline.stopEngin();
+      await this.trimTimeline.buildTimeline();
+      this.setContextEvent();
+      this.trimTimeline.seekTimeline();
     },
     selected(item) {
       this.currentVideoUuid = item.uuid;
@@ -188,9 +210,12 @@ export default {
       //
     },
     handlePlay() {
-      const durationOfOnePx =
-        this.activeClip.duration / this.$refs.clipList.offsetWidth;
-      console.log(durationOfOnePx.toFixed());
+      if (!this.isPlaying) {
+        this.trimTimeline.play();
+      } else {
+        this.trimTimeline.stop();
+      }
+      this.isPlaying = !this.isPlaying;
     },
     handleClose() {
       document.body.removeEventListener("mouseup", this.handleLeftMouseUp);
@@ -332,6 +357,30 @@ export default {
       document.body.removeEventListener(
         "mousemove",
         this.handleSplitterMouseMove
+      );
+    },
+    // 播放停止的事件
+    stopEvent(timeline) {
+      if (timeline === this.trimTimeline.timeline) {
+        this.isPlaying = false;
+      }
+    },
+    setContextEvent() {
+      window.streamingContext.addEventListener(
+        "onPlaybackStopped",
+        this.stopEvent
+      );
+    },
+    // 销毁时间线, 并解除事件绑定
+    destroy() {
+      if (this.trimTimeline) {
+        this.trimTimeline.stopEngin().then(() => {
+          this.trimTimeline.destroy();
+        });
+      }
+      window.streamingContext.removeEventListener(
+        "onPlaybackStopped",
+        this.stopEvent
       );
     }
   },
@@ -494,12 +543,12 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       span {
         margin-left: 10px;
         vertical-align: 3px;
-
       }
     }
     .live-window {
       width: 276px;
       height: 360px;
+      background-color: violet;
     }
   }
 
