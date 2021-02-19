@@ -69,11 +69,13 @@ export default {
       this.$bus.$on(this.$keys.editClip, this.editClip);
       this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
       this.$bus.$on(this.$keys.getTimeline, this.getTimeline); // 切换监视器
+      this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
       this.$once("hook:beforeDestroy", () => {
         this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
         this.$bus.$off(this.$keys.editClip, this.editClip);
         this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
         this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
+        this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
       });
     },
     async editClip(e, option) {
@@ -148,6 +150,11 @@ export default {
       if (callback) {
         callback(this.timelineClass);
       }
+    },
+    async afreshVideoClip(clip) {
+      await this.timelineClass.stopEngin();
+      this.timelineClass.afreshVideoClip(clip);
+      this.timelineClass.seekTimeline();
     },
     resize() {
       const liveWindow = this.$refs.liveWindow;
@@ -247,9 +254,9 @@ export default {
   .live-window-container {
     height: 100%;
     position: relative;
-    border-radius: 6px;
-    border: 2px solid white;
     .live-window {
+      border-radius: 6px;
+      border: 2px solid white;
       position: absolute;
       top: 0;
       left: 0;

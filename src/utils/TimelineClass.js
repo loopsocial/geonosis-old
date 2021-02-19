@@ -3,22 +3,14 @@ export default class TimelineClass {
     this.streamingContext = nvsGetStreamingContextInstance();
     this.timeline = null;
     this.canvasId = canvasId;
-    if (options) {
-      const {
-        videoTrack,
-        audioTrack,
-        width,
-        height,
-        captions,
-        stickers
-      } = options;
-      this.videoTrack = videoTrack || {};
-      this.audioTrack = audioTrack || {};
-      this.width = width || 540;
-      this.height = height || 960;
-      this.captions = captions || [];
-      this.stickers = stickers || [];
-    }
+    const { videoTrack, audioTrack, width, height, captions, stickers } =
+      options || {};
+    this.videoTrack = videoTrack || {};
+    this.audioTrack = audioTrack || {};
+    this.width = width || 540;
+    this.height = height || 960;
+    this.captions = captions || [];
+    this.stickers = stickers || [];
     this.init();
   }
   // 初始化
@@ -126,6 +118,12 @@ export default class TimelineClass {
         clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
       });
     }
+  }
+  // 重新添加一次clip
+  afreshVideoClip(clip) {
+    const index = clip.raw.getIndex();
+    this.videoTrack.raw.removeClip(index, false);
+    this.addVideoClip(clip, this.videoTrack.raw);
   }
   buildAudioTrack() {
     if (!this.audioTrack.raw) {

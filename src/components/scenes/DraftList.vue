@@ -109,7 +109,7 @@
           >
             <div class="vector" :style="{ left: vectorLeft }"></div>
             <div class="splitter-inner" @mousedown="handleSplitterMouseDown">
-              <div class="slice-duration">{{ format(duration / 1000) }}</div>
+              <div class="slice-duration">{{ format(duration) }}</div>
               <div class="left-controller" @mousedown="handleLeftMouseDown">
                 <svg-icon class="arrow-icon" icon-class="left-arrow"></svg-icon>
               </div>
@@ -206,7 +206,7 @@ export default {
       this.currentVideoUuid = item.uuid;
     },
     format(ms) {
-      return us2time(ms * 1000);
+      return us2time(ms);
     },
     handleUndo() {
       //
@@ -348,14 +348,14 @@ export default {
     getStartTime() {
       const startPercentage =
         this.splitterLeft / this.$refs.clipList.offsetWidth;
-      const startTime = startPercentage * this.activeClip.duration * 1000;
+      const startTime = startPercentage * this.activeClip.duration;
       return parseInt(startTime.toFixed());
     },
     getEndTime() {
       const endPercentage =
         (this.splitterLeft + this.splitterWidth) /
         this.$refs.clipList.offsetWidth;
-      const endTime = endPercentage * this.activeClip.duration * 1000;
+      const endTime = endPercentage * this.activeClip.duration;
       return parseInt(endTime.toFixed());
     },
     handleSplitterMouseUp() {
@@ -427,6 +427,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     overflow-y: auto;
     padding: 16px;
     box-sizing: border-box;
+    padding-bottom: 68px;
     .draft-list-item {
       position: relative;
       height: 180px;
