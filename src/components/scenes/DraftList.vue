@@ -59,7 +59,9 @@
       @close="handleClose"
       ref="dialog"
     >
-      <h1>{{ $t("trimVideo") }}</h1>
+      <template #title>
+        <h1>{{ $t("trimVideo") }}</h1>
+      </template>
 
       <div
         class="live-window-wrapper"
@@ -86,14 +88,31 @@
           id="trim-window"
         ></canvas>
 
-        <div class="split-btn inline-block">
+        <div
+          class="split-btn inline-block"
+          :style="{ visibility: isImage ? 'hidden' : 'visible' }"
+        >
           <svg-icon class="split-icon" icon-class="split"></svg-icon>
           <span>{{ $t("split") }}</span>
         </div>
       </div>
 
+      <!-- 图片时长设置 -->
+      <div class="duration-input flex margin-top-10" v-if="isImage">
+        <svg-icon
+          @click="handleImageDurationPlus"
+          class="duration-modify-icon"
+          icon-class="plus"
+        ></svg-icon>
+        <span class="white">{{ format(imageDuration) }}</span>
+        <svg-icon
+          @click="handleImageDurationMinus"
+          class="duration-modify-icon"
+          icon-class="minus"
+        ></svg-icon>
+      </div>
       <!-- 缩略图 -->
-      <div class="clips-wrapper">
+      <div class="clips-wrapper margin-top-20" v-else>
         <svg-icon
           @click="handlePlay"
           class="play-icon"
@@ -101,13 +120,13 @@
         ></svg-icon>
 
         <div class="clip-list-container">
-          <div class="clip-list" ref="clipList" :style="{ background }"></div>
-
+          <div class="clip-list" ref="clipList" :style="{ background }">
+            <div class="vector" :style="{ left: vectorLeft }"></div>
+          </div>
           <div
             class="splitter-wrapper"
             :style="{ width: splitterWidth + 'px', left: splitterLeft + 'px' }"
           >
-            <div class="vector" :style="{ left: vectorLeft }"></div>
             <div class="splitter-inner" @mousedown="handleSplitterMouseDown">
               <div class="slice-duration">{{ format(duration) }}</div>
               <div class="left-controller" @mousedown="handleLeftMouseDown">
@@ -125,9 +144,11 @@
       </div>
 
       <span slot="footer" class="dialog-footer flex">
-        <span>Total video duration {{ videoDuration | msFormat }}</span>
+        <span
+          >{{ $t("totalVideoDuration") }} {{ totalDuration | msFormat }}</span
+        >
         <el-button @click="dialogVisible = false">{{ $t("cancel") }}</el-button>
-        <el-button type="primary" @click="dialogVisible = false">{{
+        <el-button type="primary" @click="handleNext">{{
           $t("next")
         }}</el-button>
       </span>
@@ -158,30 +179,62 @@ export default {
       background: "",
       duration: 0,
       isPlaying: false,
-      waiting: false
+      waiting: false,
+      imageDuration: 0
     };
   },
   computed: {
+    // 当前选中被编辑的视频
     activeClip() {
       if (!this.currentVideoUuid) return;
       return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
+    isImage() {
+      return false;
+    },
     videoDuration() {
       if (!this.activeClip) return NaN;
       return this.activeClip.duration;
+    },
+    totalDuration() {
+      if (!this.videos.length) return NaN;
+      return this.videos.reduce((prev, cur) => prev + cur.duration, 0);
     }
   },
   mounted() {},
   methods: {
+    handleImageDurationPlus() {
+      this.imageDuration += 1000;
+    },
+    handleImageDurationMinus() {
+      this.imageDuration -= 1000;
+      if (this.imageDuration < 0) {
+        this.imageDuration = 0;
+      }
+    },
+    handlePlaying(timeline, currentTime) {
+      this.vectorLeft = this.calcCurrentPercentage(currentTime) * 100 + "%";
+      console.log(this.calcCurrentPercentage(currentTime));
+      console.log(currentTime);
+    },
+    resetVector() {
+      this.vectorLeft = this.splitterLeft + "px";
+    },
     handleResize() {},
+    handleNext() {
+      this.activeClip.trimIn = this.getStartTime();
+      this.activeClip.trimOut = this.getEndTime();
+      this.dialogVisible = false;
+    },
     // 视频裁剪
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      this.$nextTick(() => {
-        this.createTrimTimeline();
-        this.getClipListImages();
-      });
+      this.isImage ||
+        this.$nextTick(() => {
+          this.createTrimTimeline();
+          this.getClipListImages();
+        });
     },
     del(index) {
       this.deleteClipToVuex({
@@ -191,6 +244,11 @@ export default {
       const i = Math.min(index, this.videos.length);
       this.currentVideoUuid = this.videos[i].uuid;
       this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
+    },
+    // 计算出当前播放位置占总体百分比
+    calcCurrentPercentage(currentTime) {
+      const currentPercentage = currentTime / (this.activeClip.duration * 1000);
+      return currentPercentage;
     },
     // 创建监视器时间线
     async createTrimTimeline() {
@@ -252,11 +310,12 @@ export default {
       }
       this.background = bg.substring(0, bg.length - 1);
       this.changeSplitterSize(1);
+      this.splitterLeft = 0;
     },
     // 调整裁剪器大小
     changeSplitterSize(percentage) {
       this.splitterWidth = percentage * this.$refs.clipList.offsetWidth;
-      this.duration = this.calcDuration();
+      this.duration = this.getEndTime() - this.getStartTime();
     },
     handleLeftMouseDown(e) {
       e.stopPropagation();
@@ -271,7 +330,10 @@ export default {
     handleLeftMouseMove(e) {
       e.preventDefault();
 
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
       const offsetX = e.clientX - this.mouseStartX;
+
       this.mouseStartX = e.clientX;
       this.splitterLeft += offsetX;
       this.splitterWidth -= offsetX;
@@ -290,7 +352,11 @@ export default {
           this.splitterEndPercentage * this.$refs.clipList.offsetWidth
         );
       }
-      this.duration = this.calcDuration();
+      this.duration = endTime - startTime;
+
+      this.trimTimeline.seekTimeline(startTime);
+
+      this.resetVector();
     },
     handleLeftMouseUp() {
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
@@ -307,21 +373,29 @@ export default {
 
       const offsetX = e.clientX - this.mouseStartX;
       const { clipList } = this.$refs;
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
+
       this.mouseStartX = e.clientX;
       this.splitterWidth += offsetX;
+
       if (this.splitterWidth + this.splitterLeft > clipList.offsetWidth) {
+        // 往右拉动限制
         this.splitterWidth = clipList.offsetWidth - this.splitterLeft;
       }
       if (this.splitterWidth < 0) {
+        // 往左拉动限制
         this.splitterWidth = 0;
       }
-      this.duration = this.calcDuration();
+
+      this.duration = endTime - startTime;
     },
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
     },
     handleSplitterMouseDown(e) {
       e.stopPropagation();
+
       this.mouseStartX = e.clientX;
       document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
       document.body.addEventListener("mouseup", this.handleSplitterMouseUp);
@@ -331,19 +405,26 @@ export default {
 
       const offsetX = e.clientX - this.mouseStartX;
       const { clipList } = this.$refs;
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
 
       this.mouseStartX = e.clientX;
       this.splitterLeft += offsetX;
+
       if (this.splitterLeft < 0) {
+        // 往左拉动限制
         this.splitterLeft = 0;
       }
       if (this.splitterLeft + this.splitterWidth > clipList.offsetWidth) {
+        // 往右拉动限制
         this.splitterLeft = clipList.offsetWidth - this.splitterWidth;
       }
-      this.duration = this.calcDuration();
-    },
-    calcDuration() {
-      return this.getEndTime() - this.getStartTime();
+
+      this.duration = endTime - startTime;
+
+      this.trimTimeline.seekTimeline(startTime);
+
+      this.resetVector();
     },
     getStartTime() {
       const startPercentage =
@@ -382,6 +463,10 @@ export default {
         "onWebRequestWaitStatusChange",
         this.statusChangeEvent
       );
+      window.streamingContext.addEventListener(
+        "onPlaybackTimelinePosition",
+        this.handlePlaying
+      );
     },
     // 销毁时间线, 并解除事件绑定
     destroy() {
@@ -397,6 +482,10 @@ export default {
       window.streamingContext.removeEventListener(
         "onWebRequestWaitStatusChange",
         this.statusChangeEvent
+      );
+      window.streamingContext.removeEventListener(
+        "onPlaybackTimelinePosition",
+        this.handlePlaying
       );
     }
   },
@@ -426,6 +515,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     border-radius: 12px;
     overflow-y: auto;
     padding: 16px;
+    padding-bottom: 70px;
     box-sizing: border-box;
     padding-bottom: 68px;
     .draft-list-item {
@@ -533,8 +623,12 @@ $infoBgc: rgba(0, 0, 0, 0.5);
   .el-dialog {
     width: 600px;
     height: 560px;
+    .el-dialog__body {
+      padding-bottom: 10px;
+    }
   }
 }
+
 .ln-dialog {
   .live-window-wrapper {
     display: flex;
@@ -586,7 +680,13 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       flex: 10;
     }
   }
-
+  .duration-input {
+    .duration-modify-icon {
+      width: 40px;
+      height: 40px;
+      user-select: none;
+    }
+  }
   .play-icon {
     margin-right: 6px;
     height: 30px;
@@ -599,11 +699,19 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     height: 30px;
 
     .clip-list {
+      position: relative;
       display: inline-block;
       margin-left: 18px;
       width: 500px;
       height: 100%;
       border-radius: 6px;
+      .vector {
+        position: absolute;
+        height: 40px;
+        width: 0;
+        transform: translateY(-6px);
+        border: 1px solid #fff;
+      }
     }
   }
   .splitter-wrapper {
@@ -616,13 +724,6 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     border-left: 18px solid #fff;
     border-right: 18px solid #fff;
     border-radius: 6px;
-    .vector {
-      position: absolute;
-      height: 40px;
-      width: 0;
-      transform: translateY(-6px);
-      border: 1px solid #fff;
-    }
     .splitter-inner {
       width: 100%;
       height: 100%;
@@ -671,7 +772,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     "trimVideo":"Trim Video",
     "next": "Next",
     "cancel": "Cancel",
-    "split":"Split"
+    "split":"Split",
+    "totalVideoDuration":"Total video duration"
   }
 }
 </i18n>
