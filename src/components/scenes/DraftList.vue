@@ -89,6 +89,7 @@
         ></canvas>
 
         <div
+          @click="handleSplit"
           class="split-btn inline-block"
           :style="{ visibility: isImage ? 'hidden' : 'visible' }"
         >
@@ -144,9 +145,7 @@
       </div>
 
       <span slot="footer" class="dialog-footer flex">
-        <span
-          >{{ $t("totalVideoDuration") }} {{ totalDuration | msFormat }}</span
-        >
+        <span>{{ $t("totalVideoDuration") }} {{ format(totalDuration) }}</span>
         <el-button @click="dialogVisible = false">{{ $t("cancel") }}</el-button>
         <el-button type="primary" @click="handleNext">{{
           $t("next")
@@ -160,6 +159,7 @@
 import { us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
+import EventBusKeys from "@/utils/EventBusKeys";
 
 export default {
   components: {
@@ -203,6 +203,9 @@ export default {
   },
   mounted() {},
   methods: {
+    handleSplit() {
+      this.$bus.$emit(EventBusKeys.afreshVideoClip, this.activeClip);
+    },
     handleImageDurationPlus() {
       this.imageDuration += 1000;
     },
@@ -213,18 +216,24 @@ export default {
       }
     },
     handlePlaying(timeline, currentTime) {
-      this.vectorLeft = this.calcCurrentPercentage(currentTime) * 100 + "%";
+      this.vectorLeft =
+        Math.ceil(this.calcCurrentPercentage(currentTime) * 100) + "%";
       console.log(this.calcCurrentPercentage(currentTime));
       console.log(currentTime);
     },
     resetVector() {
       this.vectorLeft = this.splitterLeft + "px";
+      this.trimTimeline.seekTimeline(this.getStartTime());
     },
     handleResize() {},
     handleNext() {
-      this.activeClip.trimIn = this.getStartTime();
-      this.activeClip.trimOut = this.getEndTime();
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
+      this.activeClip.trimIn = startTime;
+      this.activeClip.trimOut = endTime;
+      this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
+      this.$bus.$emit(afreshVideoClip, this.activeClip);
     },
     // 视频裁剪
     cut(item) {
@@ -247,7 +256,7 @@ export default {
     },
     // 计算出当前播放位置占总体百分比
     calcCurrentPercentage(currentTime) {
-      const currentPercentage = currentTime / (this.activeClip.duration * 1000);
+      const currentPercentage = currentTime / this.activeClip.duration;
       return currentPercentage;
     },
     // 创建监视器时间线
@@ -389,6 +398,8 @@ export default {
       }
 
       this.duration = endTime - startTime;
+
+      this.resetVector();
     },
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
