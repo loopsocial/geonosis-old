@@ -61,7 +61,11 @@
     >
       <h1>{{ $t("trimVideo") }}</h1>
 
-      <div class="live-window-wrapper">
+      <div
+        class="live-window-wrapper"
+        v-loading="waiting"
+        element-loading-background="rgba(0, 0, 0, 0)"
+      >
         <div class="undo-btn inline-block">
           <svg-icon
             @click="handleRedo"
@@ -153,7 +157,8 @@ export default {
       item: null,
       background: "",
       duration: 0,
-      isPlaying: false
+      isPlaying: false,
+      waiting: false
     };
   },
   computed: {
@@ -365,10 +370,17 @@ export default {
         this.isPlaying = false;
       }
     },
+    statusChangeEvent(isVideo, waiting) {
+      this.waiting = waiting;
+    },
     setContextEvent() {
       window.streamingContext.addEventListener(
         "onPlaybackStopped",
         this.stopEvent
+      );
+      window.streamingContext.addEventListener(
+        "onWebRequestWaitStatusChange",
+        this.statusChangeEvent
       );
     },
     // 销毁时间线, 并解除事件绑定
@@ -381,6 +393,10 @@ export default {
       window.streamingContext.removeEventListener(
         "onPlaybackStopped",
         this.stopEvent
+      );
+      window.streamingContext.removeEventListener(
+        "onWebRequestWaitStatusChange",
+        this.statusChangeEvent
       );
     }
   },
