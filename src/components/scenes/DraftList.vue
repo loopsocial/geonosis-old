@@ -53,11 +53,10 @@
     <el-dialog
       custom-class="ln-dialog"
       :visible.sync="dialogVisible"
-      width="600"
       top="0"
       :modal-append-to-body="false"
       :close-on-click-modal="false"
-      :close="handleClose"
+      @close="handleClose"
       ref="dialog"
     >
       <h1>{{ $t("trimVideo") }}</h1>
@@ -121,7 +120,6 @@ export default {
       splitterWidth: 0, // 可计算用滑块宽度
       mouseStartX: 0, // 鼠标开始点
       splitterLeft: 0, // 滑块距离缩略图轨道左边距离
-      splitterStartPercentage: 0, // 滑块左边占整个缩略图轨道比例，只用于滑块左边箭头拉动前计算
       splitterEndPercentage: 0, // 滑块右边占整个缩略图轨道比例，只用于滑块左边箭头拉动前计算
       vectorLeft: 0,
       item: null,
@@ -196,8 +194,13 @@ export default {
         }
       }
       this.background = bg.substring(0, bg.length - 1);
+      this.changeSplitterSize(1);
     },
-
+    // 调整裁剪器大小
+    changeSplitterSize(percentage) {
+      this.splitterWidth = percentage * this.$refs.clipList.offsetWidth;
+      this.duration = this.calcDuration();
+    },
     handleLeftMouseDown(e) {
       e.stopPropagation();
 
@@ -439,7 +442,14 @@ $white: #fff;
     }
   }
 }
-.el-dialog {
+::v-deep.el-dialog__wrapper{
+  .el-dialog{
+  width: 600px;
+  height: 560px;
+  }
+}
+.ln-dialog {
+
   .live-window {
     height: 276px;
     height: 360px;
@@ -475,7 +485,7 @@ $white: #fff;
     .clip-list {
       display: inline-block;
       margin-left: 18px;
-      width: 506px;
+      width: 500px;
       height: 100%;
       border-radius: 6px;
     }
