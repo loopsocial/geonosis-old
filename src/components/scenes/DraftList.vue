@@ -99,7 +99,7 @@
         <span>Total video duration {{ videoDuration | msFormat }}</span>
         <el-button @click="dialogVisible = false">{{ $t("cancel") }}</el-button>
         <el-button type="primary" @click="dialogVisible = false">{{
-          $t("Next")
+          $t("next")
         }}</el-button>
       </span>
     </el-dialog>
@@ -542,7 +542,9 @@ $white: #fff;
 {
   "en": {
     "addMedia": "Add Media",
-    "trimVideo":"Trim Video"
+    "trimVideo":"Trim Video",
+    "next": "Next",
+    "cancel": "Cancel"
   }
 }
 </i18n>

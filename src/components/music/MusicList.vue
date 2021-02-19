@@ -143,7 +143,8 @@ export default {
 {
   "en": {
     "trim":"Trim",
-    "use":"Use"
+    "use":"Use",
+    "noMore": "No More"
   }
 }
 </i18n>

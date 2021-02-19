@@ -73,7 +73,7 @@ export default {
     },
 
     handleMouseup(e) {
-      this.changeDragVisible(false);
+      this.isDragging = false;
       if (this.inLiveWindowRangeOrNot(e.clientX, e.clientY)) {
         this.$bus.$emit(this.$keys.editClip, e, {
           type: CLIP_TYPES.STICKER,
