@@ -148,7 +148,6 @@ export default class TimelineClass {
       translationX,
       translationY
     } = caption;
-    console.log("添加字幕", caption);
     const captionRaw = this.timeline.addCaption(
       text,
       inPoint,
@@ -184,6 +183,7 @@ export default class TimelineClass {
       verticalFlip,
       z
     } = sticker;
+    console.log("添加贴纸", sticker);
     const stickerRaw = this.timeline.addAnimatedSticker(
       inPoint,
       duration,

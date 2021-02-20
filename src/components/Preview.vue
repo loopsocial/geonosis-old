@@ -64,20 +64,24 @@ export default {
     window.x = this.showWorkFlow;
   },
   methods: {
-    showWorkFlow() {
+    async showWorkFlow() {
+      await this.timelineClass.stopEngin();
       const caption = {
+        desc: "66C91FC4-C359-45C8-B6A9-DDF270C6A570",
         duration: 5000000,
         inPoint: 0,
-        styleDesc: "21DFF41E-87AB-4792-958C-5863884A0C8C",
-        text: "caption",
-        translationX: 77.4375,
-        translationY: 251.9076385498047
+        rotation: 0,
+        scale: 1,
+        text: "sticker",
+        translationX: -38.113616943359375,
+        translationY: 187.9076385498047,
+        type: "sticker"
       };
-      this.timelineClass.addCaption(caption);
+      this.timelineClass.addSticker(caption);
       this.timelineClass.seekTimeline();
       const flow = new WorkFlow({
         containerId: "work-flow",
-        clip: this.captions[0],
+        clip: this.stickers[0],
         timelineClass: this.timelineClass
       });
       flow.initStage();
@@ -286,7 +290,6 @@ export default {
       left: 0;
       width: 100%;
       height: 100%;
-      border: 1px solid red;
     }
   }
   .controls {

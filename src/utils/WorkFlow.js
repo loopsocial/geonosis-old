@@ -1,4 +1,5 @@
 import Konva from "konva";
+import { CLIP_TYPES } from "@/utils/Global";
 
 export default class WorkFlow {
   constructor(options) {
@@ -47,21 +48,23 @@ export default class WorkFlow {
         if (x === prevX && y === prevY) {
           return pos;
         }
-        // 将外部传入的函数的执行放在setTimeout中
         const canonicalPointF = this.aTob(new NvsPointF(x, y));
         const canonicalPrevPointF = this.aTob(new NvsPointF(prevX, prevY));
         const canonicalOffsetX = canonicalPointF.x - canonicalPrevPointF.x;
         const canonicalOffsetY = canonicalPointF.y - canonicalPrevPointF.y;
         const offsetPointF = new NvsPointF(canonicalOffsetX, canonicalOffsetY);
-        this.clip.raw.translateCaption(offsetPointF);
-        const targetPointF = this.clip.raw.getCaptionTranslation();
-        this.clip.translationX = targetPointF.x;
-        this.clip.translationY = targetPointF.y;
+        if (this.clip.type === CLIP_TYPES.CAPTION) {
+          this.captionDrag(offsetPointF);
+        } else if (this.clip.type === CLIP_TYPES.STICKER) {
+          this.stickerDrag(offsetPointF);
+        }
         this.timelineClass.seekTimeline();
         return pos;
       }
     });
     this.layer.add(this.node);
+    const rectCenter = { x: x + width / 2, y: y + height / 2 };
+
     const rectTransform = new Konva.Transformer({
       nodes: [this.node],
       rotateEnabled: true,
@@ -77,7 +80,12 @@ export default class WorkFlow {
       rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
-        console.log(oldBox, newBox, "old - new");
+        if (this.clip.type === CLIP_TYPES.CAPTION) {
+          this.captionTransformer(oldBox, newBox, rectCenter);
+        } else if (this.clip.type === CLIP_TYPES.STICKER) {
+          this.stickerTransformer(oldBox, newBox, rectCenter);
+        }
+        this.timelineClass.seekTimeline();
         return newBox;
       }
     });
@@ -86,7 +94,12 @@ export default class WorkFlow {
   }
   getCoordinateFromPoint() {
     const rotation = parseInt(this.clip.raw.getRotationZ());
-    const vertices = this.clip.raw.getCaptionBoundingVertices(2); // 2 表示字幕的实际边框, 0 表示字幕中的文字边框
+    let vertices;
+    if (this.clip.type === CLIP_TYPES.CAPTION) {
+      vertices = this.clip.raw.getCaptionBoundingVertices(2); // 2 表示字幕的实际边框, 0 表示字幕中的文字边框
+    } else if (this.clip.type === CLIP_TYPES.STICKER) {
+      vertices = this.clip.raw.getBoundingRectangleVertices();
+    }
     const { i1, i2, i3, i4 } = this.getVerticesPoint(vertices);
     // - 逆时针 i1, i2, i3, i4
     let x;
@@ -154,5 +167,55 @@ export default class WorkFlow {
     const liveWindow = this.timelineClass.liveWindow;
     if (!liveWindow) return;
     return liveWindow.mapViewToCanonical(coordinate);
+  }
+  captionDrag(offsetPointF) {
+    this.clip.raw.translateCaption(offsetPointF);
+    const targetPointF = this.clip.raw.getCaptionTranslation();
+    this.clip.translationX = targetPointF.x;
+    this.clip.translationY = targetPointF.y;
+  }
+  stickerDrag(offsetPointF) {
+    this.clip.raw.translateAnimatedSticker(offsetPointF);
+    const targetPointF = this.clip.raw.getTranslation();
+    this.clip.translationX = targetPointF.x;
+    this.clip.translationY = targetPointF.y;
+  }
+  captionTransformer(oldBox, newBox, rectCenter) {
+    const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
+    const scaleFactorX = newBox.width / oldBox.width;
+    // 缩放操作
+    this.clip.raw.scaleCaption(scaleFactorX, this.aTob(centerPointF));
+    this.clip.scaleX = this.clip.raw.getScaleX();
+    this.clip.scaleY = this.clip.raw.getScaleY();
+    // 旋转操作
+    const diffRotation = oldBox.rotation - newBox.rotation;
+    if (diffRotation) {
+      this.clip.raw.rotateCaption2((diffRotation / Math.PI) * 180);
+      this.clip.rotation = this.clip.raw.getRotationZ();
+    }
+    // 重新记录位置
+    const targetPointF = this.clip.raw.getCaptionTranslation();
+    this.clip.translationX = targetPointF.x;
+    this.clip.translationY = targetPointF.y;
+  }
+  stickerTransformer(oldBox, newBox, rectCenter) {
+    const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
+    const scaleFactorX = newBox.width / oldBox.width;
+    // 缩放操作
+    this.clip.raw.scaleAnimatedSticker(scaleFactorX, this.aTob(centerPointF));
+    this.clip.scale = this.clip.raw.getScale();
+    // 旋转操作
+    const diffRotation = oldBox.rotation - newBox.rotation;
+    if (diffRotation) {
+      this.clip.raw.rotateAnimatedSticker(
+        (diffRotation / Math.PI) * 180,
+        this.aTob(centerPointF)
+      );
+      this.clip.rotation = this.clip.raw.getRotationZ();
+    }
+    // 重新记录位置
+    const targetPointF = this.clip.raw.getTranslation();
+    this.clip.translationX = targetPointF.x;
+    this.clip.translationY = targetPointF.y;
   }
 }
