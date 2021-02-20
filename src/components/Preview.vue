@@ -14,6 +14,7 @@
         :height="height"
         :style="{ width: width + 'px' }"
       ></canvas>
+      <div id="work-flow"></div>
     </div>
     <div class="controls flex">
       <svg-icon
@@ -22,7 +23,6 @@
         @click="play"
       ></svg-icon>
     </div>
-    <div class="preview-mask"></div>
   </div>
 </template>
 
@@ -33,7 +33,7 @@ import { mapActions } from "vuex";
 import { CLIP_TYPES } from "@/utils/Global";
 import { CaptionClip, StickerClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
-
+import WorkFlow from "../utils/WorkFlow";
 export default {
   mixins: [dragMixin],
   props: {},
@@ -61,8 +61,28 @@ export default {
         message: this.$t("loadModulesFailed")
       });
     }
+    window.x = this.showWorkFlow;
   },
   methods: {
+    showWorkFlow() {
+      const caption = {
+        duration: 5000000,
+        inPoint: 0,
+        styleDesc: "21DFF41E-87AB-4792-958C-5863884A0C8C",
+        text: "caption",
+        translationX: 77.4375,
+        translationY: 251.9076385498047
+      };
+      this.timelineClass.addCaption(caption);
+      this.timelineClass.seekTimeline();
+      const flow = new WorkFlow({
+        containerId: "work-flow",
+        clip: this.captions[0],
+        timelineClass: this.timelineClass
+      });
+      flow.initStage();
+      console.log(flow);
+    },
     // eventBus事件绑定/解绑
     setEventBus() {
       this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
@@ -106,6 +126,7 @@ export default {
             translationX,
             translationY
           });
+          console.log(caption);
           result = this.timelineClass.addCaption(caption);
         }
         if (result) {
@@ -216,13 +237,9 @@ export default {
         this.timelineClass
           .getImgFromTimeline(t)
           .then(data => {
-            var array = new Uint8Array(data);
-            var reader = new FileReader();
-            reader.readAsDataURL(new Blob([array]));
-            reader.onload = () => {
-              resolve(reader.result);
-            };
-            reader.onerror = reject;
+            const array = new Uint8Array(data);
+            const str = String.fromCharCode(...array);
+            resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
           })
           .catch(reject);
       });
@@ -257,10 +274,19 @@ export default {
     .live-window {
       border-radius: 6px;
       border: 2px solid white;
+      box-sizing: border-box;
       position: absolute;
       top: 0;
       left: 0;
       height: 100%;
+    }
+    #work-flow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 1px solid red;
     }
   }
   .controls {

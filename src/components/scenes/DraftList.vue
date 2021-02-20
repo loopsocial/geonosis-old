@@ -159,7 +159,6 @@
 import { us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
-import EventBusKeys from "@/utils/EventBusKeys";
 
 export default {
   components: {
@@ -204,7 +203,7 @@ export default {
   mounted() {},
   methods: {
     handleSplit() {
-      this.$bus.$emit(EventBusKeys.afreshVideoClip, this.activeClip);
+      this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
     handleImageDurationPlus() {
       this.imageDuration += 1000;
@@ -218,8 +217,8 @@ export default {
     handlePlaying(timeline, currentTime) {
       this.vectorLeft =
         Math.ceil(this.calcCurrentPercentage(currentTime) * 100) + "%";
-      console.log(this.calcCurrentPercentage(currentTime));
-      console.log(currentTime);
+      // console.log(this.calcCurrentPercentage(currentTime));
+      // console.log(currentTime);
     },
     resetVector() {
       this.vectorLeft = this.splitterLeft + "px";
@@ -233,7 +232,7 @@ export default {
       this.activeClip.trimOut = endTime;
       this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
-      this.$bus.$emit(afreshVideoClip, this.activeClip);
+      this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
     // 视频裁剪
     cut(item) {
