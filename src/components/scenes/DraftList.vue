@@ -205,7 +205,7 @@ export default {
   mounted() {},
   methods: {
     handleSplit() {
-      this.$bus.$emit(EventBusKeys.afreshVideoClip, this.activeClip);
+      // this.$bus.$emit(this.$key.afreshVideoClip, this.activeClip);
     },
 
     handleImageDurationPlus() {
