@@ -2,7 +2,7 @@
   <div class="preview-box">
     <svg-icon
       class="preview-close"
-      icon-class="close"
+      icon-class="cut"
       @click="$emit('close')"
     ></svg-icon>
     <div class="preview-window">
@@ -163,7 +163,6 @@ export default {
     top: 22px;
     width: 44px;
     height: 44px;
-    cursor: pointer;
   }
   .preview-window {
     canvas {

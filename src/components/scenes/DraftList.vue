@@ -113,18 +113,16 @@
         ></svg-icon>
       </div>
       <!-- 缩略图 -->
-      <div class="clips-wrapper flex margin-top-20" v-else>
-        <div class="icon-wrapper">
-          <svg-icon
-            @click="handlePlay"
-            class="play-icon"
-            :icon-class="!isPlaying ? 'play' : 'pause'"
-          ></svg-icon>
-        </div>
+      <div class="clips-wrapper margin-top-20" v-else>
+        <svg-icon
+          @click="handlePlay"
+          class="play-icon"
+          :icon-class="!isPlaying ? 'play-button' : 'pause'"
+        ></svg-icon>
 
         <div class="clip-list-container">
           <div class="clip-list" ref="clipList" :style="{ background }">
-            <div class="vector" :style="{ left: vectorLeft + 'px' }"></div>
+            <div class="vector" :style="{ left: vectorLeft }"></div>
           </div>
           <div
             class="splitter-wrapper"
@@ -161,6 +159,7 @@
 import { us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
+import EventBusKeys from "@/utils/EventBusKeys";
 
 export default {
   components: {
@@ -205,34 +204,28 @@ export default {
   mounted() {},
   methods: {
     handleSplit() {
-      // this.$bus.$emit(this.$key.afreshVideoClip, this.activeClip);
+      this.$bus.$emit(EventBusKeys.afreshVideoClip, this.activeClip);
     },
-
     handleImageDurationPlus() {
       this.imageDuration += 1000;
     },
-
     handleImageDurationMinus() {
       this.imageDuration -= 1000;
       if (this.imageDuration < 0) {
         this.imageDuration = 0;
       }
     },
-
     handlePlaying(timeline, currentTime) {
-      console.log("currentTime", currentTime);
       this.vectorLeft =
-        this.calcCurrentPercentage(currentTime) * this.splitterWidth +
-        this.splitterLeft;
+        Math.ceil(this.calcCurrentPercentage(currentTime) * 100) + "%";
+      console.log(this.calcCurrentPercentage(currentTime));
+      console.log(currentTime);
     },
-
     resetVector() {
-      this.vectorLeft = this.splitterLeft;
+      this.vectorLeft = this.splitterLeft + "px";
       this.trimTimeline.seekTimeline(this.getStartTime());
     },
-
     handleResize() {},
-
     handleNext() {
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
@@ -240,9 +233,8 @@ export default {
       this.activeClip.trimOut = endTime;
       this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
-      this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
+      this.$bus.$emit(afreshVideoClip, this.activeClip);
     },
-
     // 视频裁剪
     cut(item) {
       this.dialogVisible = true;
@@ -253,7 +245,6 @@ export default {
           this.getClipListImages();
         });
     },
-
     del(index) {
       this.deleteClipToVuex({
         type: CLIP_TYPES.VIDEO,
@@ -263,13 +254,11 @@ export default {
       this.currentVideoUuid = this.videos[i].uuid;
       this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
     },
-
     // 计算出当前播放位置占总体百分比
     calcCurrentPercentage(currentTime) {
       const currentPercentage = currentTime / this.activeClip.duration;
       return currentPercentage;
     },
-
     // 创建监视器时间线
     async createTrimTimeline() {
       this.trimTimeline = new TimelineClass("trim-window", {
@@ -280,23 +269,18 @@ export default {
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
-
     selected(item) {
       this.currentVideoUuid = item.uuid;
     },
-
     format(ms) {
       return us2time(ms);
     },
-
     handleUndo() {
       //
     },
-
     handleRedo() {
       //
     },
-
     handlePlay() {
       if (!this.isPlaying) {
         this.trimTimeline.play();
@@ -305,13 +289,11 @@ export default {
       }
       this.isPlaying = !this.isPlaying;
     },
-
     handleClose() {
       document.body.removeEventListener("mouseup", this.handleLeftMouseUp);
       document.body.removeEventListener("mouseup", this.handleRightMouseUp);
       document.body.removeEventListener("mouseup", this.handleSplitterMouseUp);
     },
-
     // 拼出缩略图
     getClipListImages() {
       const videoInfo = streamingContext.streamingContext.getAVFileInfo(
@@ -321,54 +303,42 @@ export default {
       const { width, height } = videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
 
-      const containableItemNum = Math.ceil(
+      const containableItemNum = Math.floor(
         this.$refs.clipList.offsetWidth / clipItemWidth
       );
-      const step = Math.ceil(
-        this.activeClip.thumbnails.length / containableItemNum
-      );
-
+      const step = Math.floor(this.item.thumbnails.length / containableItemNum);
       let counter = 0;
       let bg = "";
-
-      for (let i = 0; i < this.activeClip.thumbnails.length; i++) {
+      for (let i = 0; i < this.item.thumbnails.length; i++) {
         if (i % step === 0) {
-          bg += `url("${this.activeClip.thumbnails[i].url}") ${counter *
+          bg += `url("${this.item.thumbnails[i].url}") ${counter *
             clipItemWidth}px 0/${clipItemWidth}px 100% no-repeat,`;
 
           counter++;
         }
       }
-      this.background = bg.substring(0, bg.length - 10) + "repeat";
-      this.changeSplitterSize(
-        this.activeClip.duration / this.activeClip.orgDuration
-      );
+      this.background = bg.substring(0, bg.length - 1);
+      this.changeSplitterSize(1);
+      this.splitterLeft = 0;
     },
-
     // 调整裁剪器大小
     changeSplitterSize(percentage) {
       this.splitterWidth = percentage * this.$refs.clipList.offsetWidth;
-      this.splitterLeft = this.vectorLeft =
-        (this.activeClip.trimIn / this.activeClip.orgDuration) *
-        this.$refs.clipList.offsetWidth;
-
-      this.duration = this.activeClip.duration;
+      this.duration = this.getEndTime() - this.getStartTime();
     },
-
     handleLeftMouseDown(e) {
       e.stopPropagation();
 
       this.mouseStartX = e.clientX;
+      document.body.addEventListener("mousemove", this.handleLeftMouseMove);
+      document.body.addEventListener("mouseup", this.handleLeftMouseUp);
       this.splitterEndPercentage =
         (this.splitterWidth + this.splitterLeft) /
         this.$refs.clipList.offsetWidth;
-
-      document.body.addEventListener("mousemove", this.handleLeftMouseMove);
-      document.body.addEventListener("mouseup", this.handleLeftMouseUp);
     },
-
     handleLeftMouseMove(e) {
       e.preventDefault();
+
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
       const offsetX = e.clientX - this.mouseStartX;
@@ -393,27 +363,20 @@ export default {
       }
       this.duration = endTime - startTime;
 
-      this.resetVector();
       this.trimTimeline.seekTimeline(startTime);
-    },
 
+      this.resetVector();
+    },
     handleLeftMouseUp() {
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
     },
-
     handleRightMouseDown(e) {
       e.stopPropagation();
 
       this.mouseStartX = e.clientX;
-
-      this.resetVector();
-
-      this.trimTimeline.seekTimeline(this.getEndTime());
-
       document.body.addEventListener("mousemove", this.handleRightMouseMove);
       document.body.addEventListener("mouseup", this.handleRightMouseUp);
     },
-
     handleRightMouseMove(e) {
       e.preventDefault();
 
@@ -436,23 +399,18 @@ export default {
 
       this.duration = endTime - startTime;
 
-      this.trimTimeline.seekTimeline(endTime);
+      this.resetVector();
     },
-
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
-      this.trimTimeline.seekTimeline(this.getStartTime());
     },
-
     handleSplitterMouseDown(e) {
       e.stopPropagation();
 
       this.mouseStartX = e.clientX;
-
       document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
       document.body.addEventListener("mouseup", this.handleSplitterMouseUp);
     },
-
     handleSplitterMouseMove(e) {
       e.preventDefault();
 
@@ -475,43 +433,38 @@ export default {
 
       this.duration = endTime - startTime;
 
-      this.resetVector();
       this.trimTimeline.seekTimeline(startTime);
-    },
 
+      this.resetVector();
+    },
     getStartTime() {
       const startPercentage =
         this.splitterLeft / this.$refs.clipList.offsetWidth;
-      const startTime = startPercentage * this.activeClip.orgDuration;
+      const startTime = startPercentage * this.activeClip.duration;
       return parseInt(startTime.toFixed());
     },
-
     getEndTime() {
       const endPercentage =
         (this.splitterLeft + this.splitterWidth) /
         this.$refs.clipList.offsetWidth;
-      const endTime = endPercentage * this.activeClip.orgDuration;
+      const endTime = endPercentage * this.activeClip.duration;
       return parseInt(endTime.toFixed());
     },
-
     handleSplitterMouseUp() {
       document.body.removeEventListener(
         "mousemove",
         this.handleSplitterMouseMove
       );
     },
-
     // 播放停止的事件
     stopEvent(timeline) {
       if (timeline === this.trimTimeline.timeline) {
         this.isPlaying = false;
       }
     },
-
     statusChangeEvent(isVideo, waiting) {
       this.waiting = waiting;
     },
-
     setContextEvent() {
       window.streamingContext.addEventListener(
         "onPlaybackStopped",
@@ -526,7 +479,6 @@ export default {
         this.handlePlaying
       );
     },
-
     // 销毁时间线, 并解除事件绑定
     destroy() {
       if (this.trimTimeline) {
@@ -746,20 +698,12 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       user-select: none;
     }
   }
-  .icon-wrapper {
-    background-color: rgba(0, 0, 0, 0.1);
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    transform: translateX(-10px);
-    .play-icon {
-      display: inline-block;
-      margin-right: 6px;
-      width: 40px;
-      margin-top: 10px;
-    }
+  .play-icon {
+    margin-right: 6px;
+    height: 30px;
+    width: 30px;
+    vertical-align: 0;
   }
-
   .clip-list-container {
     display: inline-block;
     position: relative;
@@ -769,7 +713,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       position: relative;
       display: inline-block;
       margin-left: 18px;
-      width: 480px;
+      width: 500px;
       height: 100%;
       border-radius: 6px;
       .vector {
