@@ -22,6 +22,7 @@
         @click="play"
       ></svg-icon>
     </div>
+    <div class="preview-mask"></div>
   </div>
 </template>
 
@@ -278,6 +279,18 @@ export default {
     &:hover {
       background-color: rgba(0, 0, 0, 0.3);
     }
+    .icon-pause {
+      width: 24px;
+      height: 24px;
+    }
+  }
+  .preview-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 999;
   }
 }
 </style>
