@@ -29,6 +29,7 @@ module.exports = {
     NvsTimeline: true,
     NvsPointF: true,
     NvsAssetPackageStatusEnum: true,
-    NvsSeekFlagEnum: true
+    NvsSeekFlagEnum: true,
+    NvsColor: true
   }
 };

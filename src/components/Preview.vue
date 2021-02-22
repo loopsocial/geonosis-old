@@ -68,6 +68,10 @@ export default {
   methods: {
     // 点击livewindow, 是否显示操作转换框
     clickLiveWindow(e) {
+      if (this.flow && this.flow.isInRect({ x: e.offsetX, y: e.offsetY })) {
+        // 点击的位置就是在编辑框内
+        return;
+      }
       const target = this.findClipAtNowPoint(e);
       if (target) {
         this.flow = new WorkFlow({
@@ -146,9 +150,9 @@ export default {
         // 修改原有的clip
       } else {
         const container = document.getElementById("live-window");
-        const { x, y, width, height } = container.getBoundingClientRect();
-        const translationX = e.clientX - x - width / 2;
-        const translationY = y + height / 2 - e.clientY;
+        const { x, y } = container.getBoundingClientRect();
+        const translationX = e.clientX - x;
+        const translationY = e.clientY - y;
         let result;
         if (type === CLIP_TYPES.STICKER) {
           const sticker = new StickerClip({
@@ -229,6 +233,10 @@ export default {
         this.timelineClass.play();
       }
       this.isPlaying = !this.isPlaying;
+      if (this.flow) {
+        this.flow.destroy();
+        this.flow = null;
+      }
     },
     playingEvent(timeline, position) {
       if (timeline === this.timelineClass.timeline) {
@@ -291,6 +299,10 @@ export default {
       this.timelineClass.stopEngin().then(() => {
         this.timelineClass.destroy();
       });
+    }
+    if (this.flow) {
+      this.flow.destroy();
+      this.flow = null;
     }
   }
 };

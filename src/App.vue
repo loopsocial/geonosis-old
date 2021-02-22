@@ -151,6 +151,7 @@ body {
     position: absolute;
     background-size: contain;
     background-position: center;
+    transform: translate(-50%, -50%);
   }
 }
 </style>

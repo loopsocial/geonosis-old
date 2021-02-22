@@ -165,8 +165,12 @@ export default class TimelineClass {
     scaleX !== undefined && captionRaw.setScaleX(scaleX);
     scaleY !== undefined && captionRaw.setScaleY(scaleY);
     rotation !== undefined && captionRaw.setRotationZ(rotation);
-    const offsetPointF = new NvsPointF(translationX - x, translationY - y);
-    captionRaw.setCaptionTranslation(offsetPointF);
+    const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
+    const offsetTranslation = new NvsPointF(
+      targetPoint.x - x,
+      targetPoint.y - y
+    );
+    captionRaw.setCaptionTranslation(offsetTranslation); // 复位,将caption置于(0,0)
     fontSize !== undefined && captionRaw.setFontSize(fontSize);
     return captionRaw;
   }
@@ -201,8 +205,8 @@ export default class TimelineClass {
     scale !== undefined && stickerRaw.setScale(scale);
     rotation !== undefined && stickerRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationX !== undefined) {
-      const offsetPointF = new NvsPointF(translationX, translationY);
-      stickerRaw.setTranslation(offsetPointF);
+      const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
+      stickerRaw.setTranslation(targetPoint);
     }
     horizontalFlip !== undefined &&
       stickerRaw.setHorizontalFlip(horizontalFlip);
@@ -281,8 +285,12 @@ export default class TimelineClass {
       );
     });
   }
+  aTob(coordinate) {
+    // 视口层 to 渲染层
+    return this.liveWindow.mapViewToCanonical(coordinate);
+  }
 }
-// 字幕放置到中心点
+// 字幕
 function getCenter(captionRaw) {
   const vertices = captionRaw.getBoundingRectangleVertices();
   const p1 = vertices.get(0);

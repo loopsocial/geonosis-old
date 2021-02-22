@@ -35,9 +35,9 @@ export function generateUUID() {
 }
 /**
  * 计算旋转后的位置
- * @param {object} vector 旋转中心 {x, y}
+ * @param {object} origin 旋转中心 {x, y}
  * @param {number} angle 旋转角 弧度
- * @param {object} origin 要旋转的店 {x, y}
+ * @param {object} vector 要旋转的点 {x, y}
  */
 export function vectorRotate(vector, angle, origin = { x: 0, y: 0 }) {
   let cosA = Math.cos(angle);

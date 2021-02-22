@@ -1,5 +1,6 @@
 import Konva from "konva";
 import { CLIP_TYPES } from "@/utils/Global";
+import { vectorRotate } from "@/utils/common";
 
 export default class WorkFlow {
   constructor(options) {
@@ -9,6 +10,7 @@ export default class WorkFlow {
     this.stage = null;
     this.layer = null;
     this.node = null;
+    this.rectTransform = null;
     this.timelineClass = options.timelineClass || null;
     this.initStage();
   }
@@ -76,7 +78,7 @@ export default class WorkFlow {
     this.layer.add(this.node);
     const rectCenter = { x: x + width / 2, y: y + height / 2 };
 
-    const rectTransform = new Konva.Transformer({
+    this.rectTransform = new Konva.Transformer({
       nodes: [this.node],
       rotateEnabled: true,
       borderStrokeWidth: 1,
@@ -100,8 +102,38 @@ export default class WorkFlow {
         return newBox;
       }
     });
-    this.layer.add(rectTransform);
+    this.layer.add(this.rectTransform);
     this.layer.draw();
+    if (this.clip.type === CLIP_TYPES.CAPTION) {
+      console.log("添加事件绑定", this.node);
+      this.node.on("dblclick", e => {
+        console.log("双击了  进入字幕编辑", e);
+        this.captionInput(this.clip);
+      });
+    }
+  }
+  isInRect(point) {
+    const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
+      this.clip,
+      this.timelineClass.liveWindow
+    );
+    const origin = {
+      x: x + width / 2,
+      y: y + height / 2
+    };
+    let { x: newX, y: newY } = vectorRotate(
+      point,
+      (this.clip.rotation / 180) * Math.PI,
+      origin
+    );
+    point.x = newX;
+    point.y = newY;
+    return (
+      point.x >= x &&
+      point.x <= x + width &&
+      point.y >= y &&
+      point.y <= y + height
+    );
   }
   static getCoordinateFromPoint(clip, liveWindow) {
     const rotation = parseInt(clip.raw.getRotationZ());
@@ -232,5 +264,101 @@ export default class WorkFlow {
     const targetPointF = this.clip.raw.getTranslation();
     this.clip.translationX = targetPointF.x;
     this.clip.translationY = targetPointF.y;
+  }
+  captionInput(captionClip) {
+    const captionClipRaw = captionClip.raw;
+    let text = captionClipRaw.getText();
+    // captionClipRaw.setText('')
+    const captionColor = captionClipRaw.getTextColor();
+    captionClipRaw.setTextColor(new NvsColor(0, 0, 0, 0));
+    this.timelineClass.seekTimeline();
+
+    let input = document.createElement("input");
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const container = document.getElementById(this.containerId);
+    const originHeight = this.rectTransform.height();
+    const originWidth = this.rectTransform.width();
+    const originX = this.rectTransform.x();
+    const originY = this.rectTransform.y();
+    input.style.position = "absolute";
+    input.style.width = originWidth + "px";
+    input.style.height = originHeight + "px";
+    input.style.lineHeight = originHeight + "px";
+    input.style.fontSize = originHeight - 8 + "px";
+    input.style.left = originX + "px";
+    input.style.top = originY + "px";
+    input.style.zIndex = 1000;
+    input.style.display = "block";
+    input.style.border = 0;
+    input.style.backgroundColor = "transparent";
+    input.style.color = "#FFF";
+    input.style.outline = 0;
+    input.value = text + "";
+
+    const rotation = this.rectTransform.rotation();
+    if (rotation) {
+      input.style.transform = `rotate(${rotation}deg)`;
+      input.style.transformOrigin = "top left";
+    }
+
+    const calculateTranslate = diffWidth => {
+      const cosValue = Math.cos((rotation / 180) * Math.PI);
+      let translateX = 0;
+      if (cosValue) translateX = diffWidth / cosValue;
+      let translateY = parseInt(
+        Math.sqrt(Math.pow(diffWidth, 2) - Math.pow(translateX, 2))
+      );
+
+      if (diffWidth < 0) translateY = -translateY;
+      return {
+        translateX,
+        translateY
+      };
+    };
+
+    const calculateRect = (preWidth, text) => {
+      ctx.font = `${parseInt(input.style.fontSize)}px sans-serif`;
+      const width = ctx.measureText(text).width;
+      // const diffTranslate = (width - preWidth) / 2;
+      // const { translateX, translateY } = calculateTranslate(diffTranslate);
+      // if (translateX) {
+      //   this.node.x(this.node.x() - translateX);
+      //   input.style.left = this.rectTransform.x() + "px";
+      // }
+      // if (translateY) {
+      //   this.rectTransform.y(this.rectTransform.y() - translateY);
+      //   input.style.top = this.rectTransform.y() + "px";
+      // }
+      this.node.width(width);
+      input.style.width = width + "px";
+    };
+
+    calculateRect(originWidth, text);
+    const onChange = () => {
+      captionClipRaw.setText(input.value + "");
+      captionClip.text = captionClipRaw.getText();
+      input.onfocus = null;
+      input.oninput = null;
+      input.onblur = null;
+      input.onchange = null;
+      input.remove();
+      setTimeout(() => {
+        captionClipRaw.setTextColor(captionColor);
+        this.initStage();
+        this.timelineClass.seekTimeline();
+      });
+    };
+    input.onblur = onChange;
+    input.onchange = onChange;
+    input.oninput = e => {
+      const preWidth = parseInt(input.style.width);
+      calculateRect(preWidth, e.target.value || "");
+    };
+    input.onclick = e => {
+      e.stopPropagation();
+    };
+    container.appendChild(input);
+    input.focus();
   }
 }
