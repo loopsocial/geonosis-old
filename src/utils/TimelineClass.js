@@ -216,6 +216,7 @@ export default class TimelineClass {
   }
   addVideoClip(clip, trackRaw) {
     const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
+    trackRaw = trackRaw || this.videoTrack.raw;
     return trackRaw.addClip2(
       m3u8Path,
       inPoint,
@@ -228,6 +229,7 @@ export default class TimelineClass {
   }
   addAudioClip(clip, trackRaw) {
     const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
+    trackRaw = trackRaw || this.audioTrack.raw;
     return trackRaw.addClip2(
       m3u8Path,
       inPoint,

@@ -87,7 +87,7 @@ export default class WorkFlow {
       anchorSize: 8,
       anchorStroke: "white",
       anchorCornerRadius: 4,
-      rotationSnaps: [0, 90, 180, 270],
+      rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
       centeredScaling: true,
       keepRatio: true,
       rotateAnchorOffset: 20,
@@ -105,9 +105,7 @@ export default class WorkFlow {
     this.layer.add(this.rectTransform);
     this.layer.draw();
     if (this.clip.type === CLIP_TYPES.CAPTION) {
-      console.log("添加事件绑定", this.node);
-      this.node.on("dblclick", e => {
-        console.log("双击了  进入字幕编辑", e);
+      this.node.on("dblclick", () => {
         this.captionInput(this.clip);
       });
     }
