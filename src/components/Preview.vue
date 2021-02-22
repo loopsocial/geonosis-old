@@ -14,7 +14,7 @@
         :height="height"
         :style="{ width: width + 'px' }"
       ></canvas>
-      <div id="work-flow"></div>
+      <div id="work-flow" @click="clickLiveWindow"></div>
     </div>
     <div class="controls flex">
       <svg-icon
@@ -27,13 +27,14 @@
 </template>
 
 <script>
-import initSDK from "../utils/NvBase";
-import TimelineClass from "../utils/TimelineClass";
+import initSDK from "@/utils/NvBase";
+import TimelineClass from "@/utils/TimelineClass";
 import { mapActions } from "vuex";
 import { CLIP_TYPES } from "@/utils/Global";
+import { vectorRotate } from "@/utils/common";
 import { CaptionClip, StickerClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
-import WorkFlow from "../utils/WorkFlow";
+import WorkFlow from "@/utils/WorkFlow";
 export default {
   mixins: [dragMixin],
   props: {},
@@ -43,7 +44,9 @@ export default {
       height: null,
       isPlaying: false,
       waiting: false,
-      timelineClass: null
+      timelineClass: null,
+      seekVal: 0,
+      flow: null
     };
   },
   async mounted() {
@@ -61,31 +64,64 @@ export default {
         message: this.$t("loadModulesFailed")
       });
     }
-    window.x = this.showWorkFlow;
   },
   methods: {
-    async showWorkFlow() {
-      await this.timelineClass.stopEngin();
-      const caption = {
-        desc: "66C91FC4-C359-45C8-B6A9-DDF270C6A570",
-        duration: 5000000,
-        inPoint: 0,
-        rotation: 0,
-        scale: 1,
-        text: "sticker",
-        translationX: -38.113616943359375,
-        translationY: 187.9076385498047,
-        type: "sticker"
-      };
-      this.timelineClass.addSticker(caption);
-      this.timelineClass.seekTimeline();
-      const flow = new WorkFlow({
-        containerId: "work-flow",
-        clip: this.stickers[0],
-        timelineClass: this.timelineClass
-      });
-      flow.initStage();
-      console.log(flow);
+    // 点击livewindow, 是否显示操作转换框
+    clickLiveWindow(e) {
+      const target = this.findClipAtNowPoint(e);
+      if (target) {
+        this.flow = new WorkFlow({
+          containerId: "work-flow",
+          clip: target,
+          timelineClass: this.timelineClass
+        });
+      } else {
+        if (this.flow) {
+          this.flow.destroy();
+          this.flow = null;
+        }
+      }
+    },
+    // 查找当前时刻点击位置是否有字幕/贴纸
+    findClipAtNowPoint(e) {
+      let { offsetX, offsetY } = e;
+      const captions = this.captions.filter(
+        ({ inPoint, duration }) =>
+          this.seekVal >= inPoint && this.seekVal <= inPoint + duration
+      );
+      const stickers = this.stickers.filter(
+        ({ inPoint, duration }) =>
+          this.seekVal >= inPoint && this.seekVal <= inPoint + duration
+      );
+      if (captions.length || stickers.length) {
+        return [...captions, ...stickers].find(item => {
+          const point = WorkFlow.getCoordinateFromPoint(
+            item,
+            this.timelineClass.liveWindow
+          );
+          const { x, y, height, width } = point;
+          if (item.rotation) {
+            const p = { x: offsetX, y: offsetY };
+            const origin = {
+              x: x + width / 2,
+              y: y + height / 2
+            };
+            let { x: newX, y: newY } = vectorRotate(
+              p,
+              (item.rotation / 180) * Math.PI,
+              origin
+            );
+            offsetX = newX;
+            offsetY = newY;
+          }
+          return (
+            offsetX >= x &&
+            offsetX <= x + width &&
+            offsetY >= y &&
+            offsetY <= y + height
+          );
+        });
+      }
     },
     // eventBus事件绑定/解绑
     setEventBus() {
@@ -196,7 +232,7 @@ export default {
     },
     playingEvent(timeline, position) {
       if (timeline === this.timelineClass.timeline) {
-        // console.log('2');
+        this.seekVal = position;
       }
     },
     stopEvent(timeline) {

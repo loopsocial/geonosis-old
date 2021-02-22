@@ -10,6 +10,7 @@ export default class WorkFlow {
     this.layer = null;
     this.node = null;
     this.timelineClass = options.timelineClass || null;
+    this.initStage();
   }
   initStage() {
     if (this.stage && this.stage instanceof Konva.Stage) {
@@ -33,7 +34,10 @@ export default class WorkFlow {
     this.initRect();
   }
   initRect() {
-    const { x, y, width, height } = this.getCoordinateFromPoint();
+    const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
+      this.clip,
+      this.timelineClass.liveWindow
+    );
     this.node = new Konva.Rect({
       x,
       y,
@@ -62,6 +66,13 @@ export default class WorkFlow {
         return pos;
       }
     });
+    if (this.clip.rotation !== 0) {
+      this.node.offsetX(this.node.width() / 2);
+      this.node.offsetY(this.node.height() / 2);
+      this.node.x(this.node.x() + this.node.width() / 2);
+      this.node.y(this.node.y() + this.node.height() / 2);
+      this.node.rotation(-this.clip.rotation);
+    }
     this.layer.add(this.node);
     const rectCenter = { x: x + width / 2, y: y + height / 2 };
 
@@ -92,15 +103,15 @@ export default class WorkFlow {
     this.layer.add(rectTransform);
     this.layer.draw();
   }
-  getCoordinateFromPoint() {
-    const rotation = parseInt(this.clip.raw.getRotationZ());
+  static getCoordinateFromPoint(clip, liveWindow) {
+    const rotation = parseInt(clip.raw.getRotationZ());
     let vertices;
-    if (this.clip.type === CLIP_TYPES.CAPTION) {
-      vertices = this.clip.raw.getCaptionBoundingVertices(2); // 2 表示字幕的实际边框, 0 表示字幕中的文字边框
-    } else if (this.clip.type === CLIP_TYPES.STICKER) {
-      vertices = this.clip.raw.getBoundingRectangleVertices();
+    if (clip.type === CLIP_TYPES.CAPTION) {
+      vertices = clip.raw.getCaptionBoundingVertices(2); // 2 表示字幕的实际边框, 0 表示字幕中的文字边框
+    } else if (clip.type === CLIP_TYPES.STICKER) {
+      vertices = clip.raw.getBoundingRectangleVertices();
     }
-    const { i1, i2, i3, i4 } = this.getVerticesPoint(vertices);
+    const { i1, i2, i3, i4 } = WorkFlow.getVerticesPoint(vertices, liveWindow);
     // - 逆时针 i1, i2, i3, i4
     let x;
     let y;
@@ -141,26 +152,30 @@ export default class WorkFlow {
       rotation
     };
   }
-  getVerticesPoint(vertices) {
+  static getVerticesPoint(vertices, liveWindow) {
     // - 逆时针
     // - ptr.get(0) 左上
     // - ptr.get(1) 左下
     // - ptr.get(2) 右下
     // - ptr.get(3) 右上
-    const i1 = this.bToa(vertices.get(0));
-    const i2 = this.bToa(vertices.get(1));
-    const i3 = this.bToa(vertices.get(2));
-    const i4 = this.bToa(vertices.get(3));
+    const i1 = WorkFlow.bToa(vertices.get(0), liveWindow);
+    const i2 = WorkFlow.bToa(vertices.get(1), liveWindow);
+    const i3 = WorkFlow.bToa(vertices.get(2), liveWindow);
+    const i4 = WorkFlow.bToa(vertices.get(3), liveWindow);
 
     return { i1, i2, i3, i4 };
   }
-  bToa(coordinate) {
+  static bToa(coordinate, liveWindow) {
     // 渲染层 to 视口层
-    const liveWindow = this.timelineClass.liveWindow;
     if (!liveWindow) {
       return;
     }
     return liveWindow.mapCanonicalToView(coordinate);
+  }
+  destroy() {
+    if (this.stage && this.stage instanceof Konva.Stage) {
+      this.stage.destroy();
+    }
   }
   aTob(coordinate) {
     // 视口层 to 渲染层

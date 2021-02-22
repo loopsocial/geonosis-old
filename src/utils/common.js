@@ -33,3 +33,19 @@ export function generateUUID() {
   var uuid = s.join("");
   return uuid;
 }
+/**
+ * 计算旋转后的位置
+ * @param {object} vector 旋转中心 {x, y}
+ * @param {number} angle 旋转角 弧度
+ * @param {object} origin 要旋转的店 {x, y}
+ */
+export function vectorRotate(vector, angle, origin = { x: 0, y: 0 }) {
+  let cosA = Math.cos(angle);
+  let sinA = Math.sin(angle);
+  var x1 = (vector.x - origin.x) * cosA - (vector.y - origin.y) * sinA;
+  var y1 = (vector.x - origin.x) * sinA + (vector.y - origin.y) * cosA;
+  return {
+    x: origin.x + x1,
+    y: origin.y + y1
+  };
+}
