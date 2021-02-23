@@ -25,6 +25,7 @@ export default {
     return {};
   },
   async created() {
+    await this.installFont();
     await this.installM3u8();
     this.$refs.preview.createTimeline();
   },
@@ -46,6 +47,17 @@ export default {
           clip: new VideoClip(clip)
         });
       }
+    },
+    async installFont() {
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 6,
+          page: 0,
+          pageSize: 20
+        }
+      });
+      const fonts = res.data.materialList;
+      await installAsset(fonts[0].packageUrl);
     }
   }
 };
