@@ -1,5 +1,5 @@
 <template>
-  <el-container id="app" v-loading="!isFinishNvs">
+  <el-container id="app" v-loading="isLoading">
     <el-header class="app-header flex">
       <TitleBar></TitleBar>
     </el-header>
@@ -73,6 +73,10 @@ export default {
     },
     dragDivVisible() {
       return this.$store.state.draggable.isDragging;
+    },
+    isLoading() {
+      if (this.$route.name === "Branding") return false;
+      return !this.isFinishNvs;
     }
   },
   methods: {}
