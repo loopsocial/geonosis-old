@@ -159,18 +159,20 @@ export default class TimelineClass {
       console.warn("caption add fail", caption);
       return;
     }
-    const { x, y } = getCenter(captionRaw);
     caption.raw = captionRaw;
     this.captions.push(caption); // 可能需要改成按照inPoint进行插入
     scaleX !== undefined && captionRaw.setScaleX(scaleX);
     scaleY !== undefined && captionRaw.setScaleY(scaleY);
     rotation !== undefined && captionRaw.setRotationZ(rotation);
-    const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
-    const offsetTranslation = new NvsPointF(
-      targetPoint.x - x,
-      targetPoint.y - y
-    );
-    captionRaw.setCaptionTranslation(offsetTranslation); // 复位,将caption置于(0,0)
+    if (translationX !== undefined && translationY !== undefined) {
+      const { x, y } = getCenter(captionRaw);
+      const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
+      const offsetTranslation = new NvsPointF(
+        targetPoint.x - x,
+        targetPoint.y - y
+      );
+      captionRaw.setCaptionTranslation(offsetTranslation);
+    }
     fontSize !== undefined && captionRaw.setFontSize(fontSize);
     return captionRaw;
   }
@@ -187,7 +189,6 @@ export default class TimelineClass {
       verticalFlip,
       z
     } = sticker;
-    console.log("添加贴纸", sticker);
     const stickerRaw = this.timeline.addAnimatedSticker(
       inPoint,
       duration,

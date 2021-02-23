@@ -12,9 +12,14 @@
         :key="sticker.uuid"
         class="list-item"
         v-loading="sticker.isInstalling"
-        @mousedown="handleMousedown($event, sticker)"
+        @click="addSticker(sticker)"
       >
-        <img :src="sticker.coverUrl" :alt="sticker.displayName || ''" />
+        <img
+          :src="sticker.coverUrl"
+          draggable="true"
+          @dragstart="drag($event, sticker)"
+          :alt="sticker.displayName || ''"
+        />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -49,6 +54,19 @@ export default {
     this.getStickers();
   },
   methods: {
+    addSticker(sticker) {
+      this.$bus.$emit(this.$keys.editClip, null, {
+        target: sticker,
+        type: CLIP_TYPES.STICKER
+      });
+    },
+    drag(e, sticker) {
+      const data = JSON.stringify({
+        type: CLIP_TYPES.STICKER,
+        target: sticker
+      });
+      e.dataTransfer.setData("Text", data);
+    },
     handleMousedown(e, sticker) {
       this.draggingStyle = {
         width: e.target.offsetWidth + "px",

@@ -1,18 +1,16 @@
 <template>
-  <div class="preview">
+  <div class="preview" @drop.prevent="drop" @dragover.prevent>
     <div
       class="live-window-container"
       v-loading="waiting"
-      :style="{ width: width + 'px' }"
       element-loading-background="rgba(0, 0, 0, 0.5)"
     >
       <canvas
         ref="liveWindow"
         class="live-window"
         id="live-window"
-        :width="width"
-        :height="height"
-        :style="{ width: width + 'px' }"
+        width="540"
+        height="960"
       ></canvas>
       <div id="work-flow" @click="clickLiveWindow"></div>
     </div>
@@ -50,9 +48,6 @@ export default {
     };
   },
   async mounted() {
-    console.log("mounted");
-    this.resize();
-    window.addEventListener("resize", this.resize);
     try {
       await initSDK();
       this.setNvsStatus(true); // 设置状态. 表示SDK已加载完成
@@ -142,6 +137,10 @@ export default {
         this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
       });
     },
+    drop(e) {
+      const data = JSON.parse(e.dataTransfer.getData("Text"));
+      this.editClip(e, data);
+    },
     async editClip(e, option) {
       const { type, target, raw } = option;
       if (!raw && !target) return;
@@ -151,8 +150,12 @@ export default {
       } else {
         const container = document.getElementById("live-window");
         const { x, y } = container.getBoundingClientRect();
-        const translationX = e.clientX - x;
-        const translationY = e.clientY - y;
+        let translationX;
+        let translationY;
+        if (e) {
+          translationX = e.clientX - x;
+          translationY = e.clientY - y;
+        }
         let result;
         if (type === CLIP_TYPES.STICKER) {
           const sticker = new StickerClip({
@@ -220,11 +223,6 @@ export default {
       await this.timelineClass.stopEngin();
       this.timelineClass.afreshVideoClip(clip);
       this.timelineClass.seekTimeline();
-    },
-    resize() {
-      const liveWindow = this.$refs.liveWindow;
-      this.height = liveWindow.offsetHeight;
-      this.width = parseInt((this.height / 16) * 9);
     },
     play() {
       if (this.isPlaying) {
@@ -294,7 +292,6 @@ export default {
     }
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resize);
     if (this.timelineClass) {
       this.timelineClass.stopEngin().then(() => {
         this.timelineClass.destroy();
@@ -304,6 +301,7 @@ export default {
       this.flow.destroy();
       this.flow = null;
     }
+    this.setNvsStatus(false);
   }
 };
 </script>
@@ -313,6 +311,7 @@ export default {
   margin-left: 32px;
   max-width: 100%;
   height: 100%;
+  aspect-ratio: 9/16;
   position: relative;
   &:hover {
     .controls {
@@ -323,13 +322,13 @@ export default {
   .live-window-container {
     height: 100%;
     position: relative;
+    width: auto;
+    aspect-ratio: 9/16;
     .live-window {
       border-radius: 6px;
       border: 2px solid white;
       box-sizing: border-box;
-      position: absolute;
-      top: 0;
-      left: 0;
+      width: 100%;
       height: 100%;
     }
     #work-flow {

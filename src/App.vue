@@ -1,5 +1,5 @@
 <template>
-  <el-container id="app">
+  <el-container id="app" v-loading="!isFinishNvs">
     <el-header class="app-header flex">
       <TitleBar></TitleBar>
     </el-header>
@@ -47,6 +47,8 @@
 <script>
 import TitleBar from "./components/TitleBar";
 import Create from "./views/Create";
+import { mapState } from "vuex";
+
 export default {
   name: "app",
   components: {
@@ -54,10 +56,12 @@ export default {
     Create
   },
   data() {
-    console.log(this.$store);
     return {};
   },
   computed: {
+    ...mapState({
+      isFinishNvs: state => state.isFinishNvs
+    }),
     isCreate() {
       return this.$route.name === "Create";
     },

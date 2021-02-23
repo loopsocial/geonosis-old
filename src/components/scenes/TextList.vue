@@ -13,9 +13,14 @@
         :key="caption.uuid"
         class="list-item"
         v-loading="caption.isInstalling"
-        @mousedown="handleMousedown($event, caption)"
+        @click="addCaption(caption)"
       >
-        <img :src="caption.coverUrl" :alt="caption.displayName || ''" />
+        <img
+          :src="caption.coverUrl"
+          :alt="caption.displayName || ''"
+          draggable="true"
+          @dragstart="drag($event, caption)"
+        />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -54,6 +59,20 @@ export default {
     this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
   },
   methods: {
+    addCaption(caption) {
+      this.$bus.$emit(this.$keys.editClip, null, {
+        target: caption,
+        type: CLIP_TYPES.CAPTION
+      });
+    },
+    drag(e, caption) {
+      const data = JSON.stringify({
+        type: CLIP_TYPES.CAPTION,
+        target: caption
+      });
+      e.dataTransfer.setData("Text", data);
+    },
+    // 使用mousedown/move/up事件做拖拽无法区分mousedown/click事件, 改用drag事件
     handleMousedown(e, caption) {
       this.draggingStyle = {
         width: e.target.offsetWidth + "px",

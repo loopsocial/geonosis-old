@@ -69,10 +69,11 @@ export default {
     gap: 15px;
     .list-item {
       position: relative;
-      padding-top: 178%;
-      position: relative;
       border: 2px solid #fff;
       border-radius: 6px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 9/16;
       .heart-icon {
         position: absolute;
         left: 10px;
@@ -80,9 +81,6 @@ export default {
         z-index: 10;
       }
       .cover {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
       }
