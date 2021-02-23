@@ -1,7 +1,8 @@
 import Konva from "konva";
 import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
-
+import delImg from "../assets/images/delete.png";
+import store from '../store/index'
 export default class WorkFlow {
   constructor(options) {
     const { containerId } = options;
@@ -11,6 +12,7 @@ export default class WorkFlow {
     this.layer = null;
     this.node = null;
     this.rectTransform = null;
+    this.deleteNode = null;
     this.timelineClass = options.timelineClass || null;
     this.initStage();
   }
@@ -35,7 +37,7 @@ export default class WorkFlow {
     this.stage.add(this.layer);
     this.initRect();
   }
-  initRect() {
+  async initRect() {
     const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
       this.clip,
       this.timelineClass.liveWindow
@@ -65,8 +67,18 @@ export default class WorkFlow {
           this.stickerDrag(offsetPointF);
         }
         this.timelineClass.seekTimeline();
+        this.deleteNode.x(pos.x + this.node.width() / 2 - 23);
+        this.deleteNode.y(pos.y + this.node.height());
         return pos;
       }
+    });
+    const image = await this.getImage();
+    this.deleteNode = new Konva.Image({
+      x: x + width / 2 - 23,
+      y: y + height,
+      image,
+      width: 46,
+      height: 46
     });
     if (this.clip.rotation !== 0) {
       this.node.offsetX(this.node.width() / 2);
@@ -74,10 +86,12 @@ export default class WorkFlow {
       this.node.x(this.node.x() + this.node.width() / 2);
       this.node.y(this.node.y() + this.node.height() / 2);
       this.node.rotation(-this.clip.rotation);
+      this.deleteNode.rotation(-this.clip.rotation);
+      this.deleteNode.x(x + width / 2)
     }
+    this.layer.add(this.deleteNode);
     this.layer.add(this.node);
-    const rectCenter = { x: x + width / 2, y: y + height / 2 };
-
+    window.node = this.deleteNode;
     this.rectTransform = new Konva.Transformer({
       nodes: [this.node],
       rotateEnabled: true,
@@ -93,22 +107,34 @@ export default class WorkFlow {
       rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
+        const { x, y, width, height } = oldBox;
+        const rectCenter = { x: x + width / 2, y: y + height / 2 }; // 旋转之后的缩放中心不对
         if (this.clip.type === CLIP_TYPES.CAPTION) {
           this.captionTransformer(oldBox, newBox, rectCenter);
         } else if (this.clip.type === CLIP_TYPES.STICKER) {
           this.stickerTransformer(oldBox, newBox, rectCenter);
         }
         this.timelineClass.seekTimeline();
+        // console.log('缩放旋转', newBox);
+        // this.deleteNode.x(newBox.x + newBox.width / 2 - 23);
+        // this.deleteNode.y(newBox.y + newBox.height);
+        this.deleteNode.rotation(-newBox.rotation);
         return newBox;
       }
     });
     this.layer.add(this.rectTransform);
     this.layer.draw();
-    if (this.clip.type === CLIP_TYPES.CAPTION) {
-      this.node.on("dblclick", () => {
-        this.captionInput(this.clip);
-      });
-    }
+    this.setEvent();
+  }
+  getImage() {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = delImg;
+      img.onload = () => {
+        resolve(img);
+      };
+      img.onerror = reject;
+    });
   }
   isInRect(point) {
     const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
@@ -358,5 +384,15 @@ export default class WorkFlow {
     };
     container.appendChild(input);
     input.focus();
+  }
+  setEvent() {
+    if (this.clip.type === CLIP_TYPES.CAPTION) {
+      this.node.on("dblclick", () => {
+        this.captionInput(this.clip);
+      });
+    }
+    this.rectTransform.on("mousedown", () => {
+      store.commit("setEditBoxStatus", true);
+    });
   }
 }

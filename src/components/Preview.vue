@@ -27,12 +27,12 @@
 <script>
 import initSDK from "@/utils/NvBase";
 import TimelineClass from "@/utils/TimelineClass";
-import { mapActions } from "vuex";
 import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
 import { CaptionClip, StickerClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
 import WorkFlow from "@/utils/WorkFlow";
+import { mapActions, mapState } from "vuex";
 export default {
   mixins: [dragMixin],
   props: {},
@@ -59,10 +59,22 @@ export default {
         message: this.$t("loadModulesFailed")
       });
     }
+    document.body.addEventListener("mouseup", this.statusEvent);
+  },
+  computed: {
+    ...mapState({
+      editBoxStatus: "editBoxStatus"
+    })
   },
   methods: {
+    statusEvent() {
+      setTimeout(() => {
+        this.setEditBoxstatus(false);
+      });
+    },
     // 点击livewindow, 是否显示操作转换框
     clickLiveWindow(e) {
+      if (this.editBoxStatus) return; // 调整框
       if (this.flow && this.flow.isInRect({ x: e.offsetX, y: e.offsetY })) {
         // 点击的位置就是在编辑框内
         return;
@@ -129,13 +141,6 @@ export default {
       this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
       this.$bus.$on(this.$keys.getTimeline, this.getTimeline); // 切换监视器
       this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
-      this.$once("hook:beforeDestroy", () => {
-        this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
-        this.$bus.$off(this.$keys.editClip, this.editClip);
-        this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
-        this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
-        this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
-      });
     },
     drop(e) {
       const data = JSON.parse(e.dataTransfer.getData("Text"));
@@ -191,7 +196,8 @@ export default {
       this.timelineClass.seekTimeline();
     },
     ...mapActions({
-      setNvsStatus: "setNvsStatus"
+      setNvsStatus: "setNvsStatus",
+      setEditBoxstatus: "setEditBoxStatus"
     }),
     async createTimeline() {
       this.timelineClass = new TimelineClass("live-window", {
@@ -263,20 +269,6 @@ export default {
         "onWebRequestWaitStatusChange",
         this.statusChangeEvent
       );
-      this.$once("hook:beforeDestroy", () => {
-        window.streamingContext.removeEventListener(
-          "onPlaybackStopped",
-          this.stopEvent
-        );
-        window.streamingContext.removeEventListener(
-          "onPlaybackTimelinePosition",
-          this.playingEvent
-        );
-        window.streamingContext.removeEventListener(
-          "onWebRequestWaitStatusChange",
-          this.statusChangeEvent
-        );
-      });
     },
     getImgFromTimeline(t) {
       return new Promise((resolve, reject) => {
@@ -302,6 +294,24 @@ export default {
       this.flow = null;
     }
     this.setNvsStatus(false);
+    document.body.removeEventListener("mouseup", this.statusEvent);
+    window.streamingContext.removeEventListener(
+      "onPlaybackStopped",
+      this.stopEvent
+    );
+    window.streamingContext.removeEventListener(
+      "onPlaybackTimelinePosition",
+      this.playingEvent
+    );
+    window.streamingContext.removeEventListener(
+      "onWebRequestWaitStatusChange",
+      this.statusChangeEvent
+    );
+    this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+    this.$bus.$off(this.$keys.editClip, this.editClip);
+    this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
+    this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
+    this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
   }
 };
 </script>
