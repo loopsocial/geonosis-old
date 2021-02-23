@@ -14,41 +14,11 @@
         {{ $t("addMedia") }}
       </el-button>
     </div>
-    <div class="pre-project">
-      <h2 class="title">{{ $t("previous") }}</h2>
-      <div class="item-container">
-        <div class="what-is-it">
-          <div class="cover"></div>
-          <span>Test Video</span>
-        </div>
-        <div class="what-is-it">
-          <div class="cover"></div>
-          <span>Test Video</span>
-        </div>
-        <div class="what-is-it">
-          <div class="cover"></div>
-          <span>Test Video</span>
-        </div>
-        <div class="what-is-it">
-          <div class="cover"></div>
-          <span>Test Video</span>
-        </div>
-        <div class="what-is-it">
-          <div class="cover"></div>
-          <span>Test Video</span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {};
-  },
-  components: {},
-  mounted() {},
   methods: {}
 };
 </script>
@@ -84,10 +54,6 @@ export default {
     }
     .wrapper {
       height: 100%;
-    }
-    .sticker-list {
-      border: 1px solid red;
-      margin: 20px 0;
     }
   }
   .message {
