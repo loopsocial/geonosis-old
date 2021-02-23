@@ -1,13 +1,7 @@
 <template>
   <div class="project flex">
-    <div class="pre-project">
-      <el-button round class="round-btn default" size="medium">{{
-        $t("previous")
-      }}</el-button>
-      <span class="message">{{ $t("Draft") }}</span>
-      <div class="what-is-it"></div>
-    </div>
-    <div class="content flex">
+    <div class="content flex" ref="content">
+      <h2 class="title">{{ $t("start") }}</h2>
       <svg-icon icon-class="project" class="project-icon"></svg-icon>
       <span class="message">{{ $t("msg") }}</span>
       <el-button
@@ -19,19 +13,43 @@
       >
         {{ $t("addMedia") }}
       </el-button>
-      <StickerList />
+    </div>
+    <div class="pre-project">
+      <h2 class="title">{{ $t("previous") }}</h2>
+      <div class="item-container">
+        <div class="what-is-it">
+          <div class="cover"></div>
+          <span>Test Video</span>
+        </div>
+        <div class="what-is-it">
+          <div class="cover"></div>
+          <span>Test Video</span>
+        </div>
+        <div class="what-is-it">
+          <div class="cover"></div>
+          <span>Test Video</span>
+        </div>
+        <div class="what-is-it">
+          <div class="cover"></div>
+          <span>Test Video</span>
+        </div>
+        <div class="what-is-it">
+          <div class="cover"></div>
+          <span>Test Video</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import StickerList from "./StickerList";
-
 export default {
-  methods: {},
-  components: {
-    StickerList
-  }
+  data() {
+    return {};
+  },
+  components: {},
+  mounted() {},
+  methods: {}
 };
 </script>
 
@@ -39,12 +57,28 @@ export default {
 .project {
   height: 100%;
   position: relative;
+  justify-content: space-around;
+  align-items: center;
+  .title {
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+  }
   .project-icon {
     width: 195px;
     height: 176px;
   }
   .content {
+    height: 74.2vh;
+    width: calc(74.2vh * 0.5625);
+    border: 1px dashed #9b9b9b;
+    border-radius: 6px;
+
     flex-direction: column;
+    .title {
+      position: absolute;
+      top: 1.5%;
+    }
     .lang {
       padding: 10px 52px;
     }
@@ -57,24 +91,56 @@ export default {
     }
   }
   .message {
+    padding: 0 40px;
+    text-align: center;
     letter-spacing: -0.434118px;
     color: white;
     margin: 30px 0;
   }
   .pre-project {
-    position: absolute;
+    height: 100%;
+    width: 50%;
     display: flex;
     flex-direction: column;
-    left: 0;
-    top: 0;
-    padding-top: 57px;
+
     .message {
       margin: 32px 18px;
     }
-    > div {
-      width: 121px;
-      height: 179px;
-      background-color: #c4c4c4;
+    .what-is-it {
+      margin-right: 16px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+      color: #fff;
+      .cover {
+        background-color: pink;
+        border-radius: 6px;
+        padding-top: 161.4%;
+      }
+      span {
+        display: inline-block;
+        margin-top: 10px;
+      }
+    }
+    .item-container {
+      display: grid;
+      height: calc(100% - 90px);
+      overflow: auto;
+    }
+  }
+
+  @media screen and (max-width: 1600px) {
+    .item-container {
+      grid-template-columns: repeat(5, 1fr) !important;
+    }
+  }
+  @media screen and (max-width: 1300px) {
+    .item-container {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+  @media screen and (max-width: 1000px) {
+    .item-container {
+      grid-template-columns: repeat(3, 1fr) !important;
     }
   }
 }
@@ -83,6 +149,7 @@ export default {
 <i18n>
 {
   "en": {
+    "start":"Start from scratch",
     "msg": "Add & arrange video clips and images to build your video",
     "addMedia": "Add Media",
     "previous": "Previous Project",

@@ -28,6 +28,12 @@ module.exports = {
     videojs: true,
     NvsXmlStreamWriter: true,
     NvsTimeline: true,
-    NvsPointF: true
+    NvsPointF: true,
+    NvsXmlStreamWriter: true,
+    NvsTimeline: true,
+    NvsPointF: true,
+    NvsAssetPackageStatusEnum: true,
+    NvsSeekFlagEnum: true,
+    NvsColor: true
   }
 };

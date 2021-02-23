@@ -1,44 +1,42 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ name: 'Create' }" :class="getClasses(0)">
-        {{ $t("create") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'Template' }" :class="getClasses(1)">
-        {{ $t("template") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'SceneEditing' }" :class="getClasses(2)">
-        {{ $t("sceneEditing") }}
-      </el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ name: 'Post' }" :class="getClasses(3)">
-        {{ $t("post") }}
-      </el-breadcrumb-item>
-    </el-breadcrumb>
     <div class="btn">
-      <el-button round class="round-btn" size="medium">{{
-        $t("next")
-      }}</el-button>
+      <el-button type="text" size="medium" @click="preview">
+        {{ $t("preview") }}
+      </el-button>
+      <el-button round class="round-btn" size="medium">
+        {{ $t("publish") }}
+      </el-button>
     </div>
+    <transition name="el-fade-in">
+      <FullPreview
+        v-if="showPreview"
+        class="preview-box"
+        @close="close"
+      ></FullPreview>
+    </transition>
   </div>
 </template>
 
 <script>
+import FullPreview from "./FullPreview";
 export default {
   data() {
     return {
-      pathList: ["create", "template", "sceneediting", "post"] // 这个顺序不可改
+      showPreview: false
     };
+  },
+  components: {
+    FullPreview
   },
   computed: {},
   methods: {
-    getClasses(i) {
-      let { fullPath } = this.$route;
-      fullPath = fullPath.toLocaleLowerCase();
-      const index = this.pathList.findIndex(path => fullPath.includes(path));
-      if (index < i) return "";
-      if (index === i) return "current-path";
-      return "finish-path";
+    preview() {
+      this.showPreview = true;
+    },
+    close() {
+      this.showPreview = false;
     }
   }
 };
@@ -51,6 +49,9 @@ export default {
   .logo {
     width: 105px;
     height: 24px;
+  }
+  .round-btn {
+    margin-left: 33px;
   }
   .el-breadcrumb__item {
     height: 15px;
@@ -77,6 +78,8 @@ export default {
 <i18n>
 {
   "en": {
+    "preview":"Preivew",
+    "publish":"Publish",
     "create": "Create",
     "template": "Template",
     "sceneEditing": "Scene Editing",

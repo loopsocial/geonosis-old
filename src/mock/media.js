@@ -1,4 +1,4 @@
-import api from "../api/apiHost";
+import api from "../api/apiPath";
 
 export default {
   [`get|${api.uploadList}`]: {

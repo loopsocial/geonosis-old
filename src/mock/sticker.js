@@ -1,4 +1,4 @@
-import api from "../api/apiHost";
+import api from "../api/apiPath";
 
 export default {
   [`get|${api.materialList}`]: {
@@ -10,7 +10,9 @@ export default {
         "type|1": ["video", "image"],
         coverUrl: "@image('140x270', @hex, upload)",
         "duration|1000-100000": 1, //毫秒
-        packageUrl: "@image('140x270', @hex, upload)"
+        packageUrl: "@image('140x270', @hex, upload)",
+        textSticker: "@integer(1,4).png",
+        m3u8Url: ""
       }
     ]
   }
