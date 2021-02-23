@@ -1,8 +1,8 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Template from "../views/Template.vue";
-import SceneEditing from "../views/SceneEditing.vue";
-import Post from "../views/Post.vue";
+// import Template from "../views/Template.vue";
+// import SceneEditing from "../views/SceneEditing.vue";
+// import Post from "../views/Post.vue";
 
 const Create = () =>
   import(/* webpackChunkName: "Create" */ "../views/Create.vue");
@@ -19,7 +19,7 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    redirect: "/Create"
+    redirect: "/Scenes"
   },
   {
     path: "/Create",
@@ -45,26 +45,6 @@ const routes = [
     path: "/Branding",
     name: "Branding",
     component: Branding
-  },
-  {
-    path: "/Template",
-    name: "Template",
-    component: Template
-  },
-  {
-    path: "/SceneEditing",
-    name: "SceneEditing",
-    component: SceneEditing
-  },
-  {
-    path: "/Post",
-    name: "Post",
-    component: Post
-  },
-  {
-    path: "/test",
-    name: "Test",
-    component: () => import("../components/Window")
   }
 ];
 
