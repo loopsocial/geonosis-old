@@ -119,27 +119,65 @@
           class="play-icon"
           :icon-class="!isPlaying ? 'play-button' : 'pause'"
         ></svg-icon>
-
         <div class="clip-list-container">
-          <div class="clip-list" ref="clipList" :style="{ background }">
-            <div class="vector" :style="{ left: vectorLeft }"></div>
-          </div>
-          <div
-            class="splitter-wrapper"
-            :style="{ width: splitterWidth + 'px', left: splitterLeft + 'px' }"
-          >
-            <div class="splitter-inner" @mousedown="handleSplitterMouseDown">
-              <div class="slice-duration">{{ format(duration) }}</div>
-              <div class="left-controller" @mousedown="handleLeftMouseDown">
-                <svg-icon class="arrow-icon" icon-class="left-arrow"></svg-icon>
-              </div>
-              <div class="right-controller" @mousedown="handleRightMouseDown">
-                <svg-icon
-                  class="arrow-icon"
-                  icon-class="right-arrow"
-                ></svg-icon>
+          <div class="clip-list-full" ref="clipList">
+            <div
+              class="clip-list"
+              :style="{
+                background: backgroundCover
+                  ? 'linear-gradient(to right, ' +
+                    backgroundCover +
+                    '),' +
+                    background
+                  : background
+              }"
+            >
+              <!-- <div class="vector" :style="{ left: vectorLeft + 'px' }"></div> -->
+            </div>
+            <div class="clip-item-container" @click="handleClipClick">
+              <div
+                class="clip-item"
+                v-for="(clip, idx) of clipList"
+                :style="{ width: clip.width * 100 + '%' }"
+                :data-index="idx"
+                :key="clip.id"
+              ></div>
+            </div>
+
+            <div
+              class="capture-wrapper"
+              :style="{
+                width: captureWidth + 'px',
+                left: captureLeft + 'px'
+              }"
+              v-if="activeIndex != -1"
+              ref="capture"
+            >
+              <div class="capture-inner" @mousedown="handleCaptureMouseDown">
+                <div class="slice-duration">{{ format(duration) }}</div>
+                <div class="left-controller" @mousedown="handleLeftMouseDown">
+                  <svg-icon
+                    class="arrow-icon"
+                    icon-class="left-arrow"
+                  ></svg-icon>
+                </div>
+                <div class="right-controller" @mousedown="handleRightMouseDown">
+                  <svg-icon
+                    class="arrow-icon"
+                    icon-class="right-arrow"
+                  ></svg-icon>
+                </div>
+                <!-- <div class="background" :style="{ backgroundPosition }">
+                  <div class="background-inner" :style="{ background }"></div>
+                </div> -->
               </div>
             </div>
+
+            <div
+              class="splitter"
+              :style="{ left: splittreLeft + 'px' }"
+              @mousedown="handleSplitterMouseDown"
+            ></div>
           </div>
         </div>
       </div>
@@ -167,19 +205,35 @@ export default {
   props: {},
   data() {
     return {
+      clipList: [
+        {
+          id:(Math.random*10).toFixed(),
+          width: 1,
+          trimIn: 0,
+          trimOut: 15000000,
+          captureIn: 0,
+          captureOut: 15000000
+        }
+      ],
       height: 0,
       dialogVisible: false,
-      splitterWidth: 0, // 可计算用滑块宽度
+      captureWidth: 0, // 可计算用滑块宽度
       mouseStartX: 0, // 鼠标开始点
-      splitterLeft: 0, // 滑块距离缩略图轨道左边距离
-      splitterEndPercentage: 0, // 滑块右边占整个缩略图轨道比例，只用于滑块左边箭头拉动前计算
+      captureLeft: 0, // 滑块距离缩略图轨道左边距离
+      captureEndPercentage: 0, // 滑块右边占整个缩略图轨道比例，只用于滑块左边箭头拉动前计算
       vectorLeft: 0,
+      splittreLeft: 0,
       item: null,
       background: "",
       duration: 0,
       isPlaying: false,
       waiting: false,
-      imageDuration: 0
+      imageDuration: 0,
+      mousePos: 0,
+      backgroundPosition: 0,
+      activeIndex: -1, // 当前被选中的被分割的片段
+      backgroundCover: ""
+      // "rgba(100,100,100,.7) 100px, transparent 0, transparent 88%, rgba(100,100,100,.7) 0"
     };
   },
   computed: {
@@ -188,6 +242,7 @@ export default {
       if (!this.currentVideoUuid) return;
       return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
+
     isImage() {
       return this.activeClip && this.activeClip.videoType === CLIP_TYPES.IMAGE;
     },
@@ -200,11 +255,103 @@ export default {
       return this.videos.reduce((prev, cur) => prev + cur.duration, 0);
     }
   },
-  mounted() {},
+  mounted() {
+    document.body.addEventListener("click", this.handleDocumentClick);
+  },
   methods: {
-    handleSplit() {
-      this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
+    refreshBackgroundCover() {
+      this.backgroundCover = "";
+      this.clipList.forEach(item => {
+        const captureStartPoint = item.captureIn / this.activeClip.orgDuration;
+        const captureEndPoint = item.captureOut / this.activeClip.orgDuration;
+        const trimOutPoint = item.trimOut / this.activeClip.orgDuration;
+        console.log(
+          "endPoint",
+          captureEndPoint,
+          item.captureOut,
+          this.activeClip.orgDuration
+        );
+        this.backgroundCover +=
+          "rgba(100,100,100,.7) " +
+          captureStartPoint * 100 +
+          "% , transparent " +
+          captureStartPoint * 100 +
+          "% , transparent " +
+          captureEndPoint * 100 +
+          "%, rgba(100,100,100,.7) " +
+          captureEndPoint * 100 +
+          "%, rgba(100,100,100,.7) " +
+          trimOutPoint * 100 +
+          "%,";
+      });
+      this.backgroundCover = this.backgroundCover.substring(
+        0,
+        this.backgroundCover.length - 1
+      );
     },
+    handleDocumentClick(e) {
+      e.stopPropagation();
+      const isOnClipList = e.path.find(item => item === this.$refs.clipList);
+      if (isOnClipList) return;
+      this.activeIndex = -1;
+    },
+    handleSplitterMouseDown() {
+      addEventListener("mousemove", this.handleSplitterMouseMove);
+    },
+    handleSplitterMouseMove(e) {
+      this.splittreLeft =
+        e.clientX - this.$refs.clipList.getBoundingClientRect().left;
+
+      if (this.splittreLeft < 0) {
+        this.splittreLeft = 0;
+      }
+      const currentSeekTime =
+        (this.splittreLeft / this.$refs.clipList.offsetWidth) *
+        this.activeClip.orgDuration;
+      this.trimTimeline.seekTimeline(currentSeekTime);
+
+      addEventListener("mouseup", this.handleSplitterMouseUp);
+    },
+    handleSplitterMouseUp(e) {
+      e.stopPropagation();
+
+      removeEventListener("mousemove", this.handleSplitterMouseMove);
+    },
+
+    handleSplit() {
+      const splitterPercentage =
+        this.splittreLeft / this.$refs.clipList.offsetWidth;
+      const trimTime = splitterPercentage * this.activeClip.orgDuration;
+      let splitedArr = [];
+      this.clipList.reduce((prev, cur, curIdx, arr) => {
+        if (
+          splitterPercentage < cur.width + prev &&
+          splitterPercentage > prev
+        ) {
+          // 一分为二
+          splitedArr = [
+            {
+              width: splitterPercentage - prev,
+              trimIn: cur.trimIn,
+              trimOut: trimTime,
+              captureIn: cur.trimIn,
+              captureOut: trimTime
+            },
+            {
+              width: cur.width + prev - splitterPercentage,
+              trimIn: trimTime,
+              trimOut: cur.trimOut,
+              captureIn: trimTime,
+              captureOut: cur.trimOut
+            }
+          ];
+          arr.splice(curIdx, 1, ...splitedArr);
+        }
+        return prev + cur.width;
+      }, 0);
+      this.refreshBackgroundCover();
+    },
+
     handleImageDurationPlus() {
       this.imageDuration += 1000;
     },
@@ -216,12 +363,10 @@ export default {
     },
     handlePlaying(timeline, currentTime) {
       this.vectorLeft =
-        Math.ceil(this.calcCurrentPercentage(currentTime) * 100) + "%";
-      // console.log(this.calcCurrentPercentage(currentTime));
-      // console.log(currentTime);
+        this.calcCurrentPercentage(currentTime) * this.captureWidth;
     },
     resetVector() {
-      this.vectorLeft = this.splitterLeft + "px";
+      this.vectorLeft = this.captureLeft;
       this.trimTimeline.seekTimeline(this.getStartTime());
     },
     handleResize() {},
@@ -317,60 +462,96 @@ export default {
         }
       }
       this.background = bg.substring(0, bg.length - 1);
-      this.changeSplitterSize(1);
-      this.splitterLeft = 0;
     },
     // 调整裁剪器大小
-    changeSplitterSize(percentage) {
-      this.splitterWidth = percentage * this.$refs.clipList.offsetWidth;
+    changeCaptureSize(percentage) {
+      this.captureWidth = percentage * this.$refs.clipList.offsetWidth;
       this.duration = this.getEndTime() - this.getStartTime();
+    },
+    // 处理选中切片
+    handleClipClick(e) {
+      if (!e.target.dataset.index) return;
+
+      this.activeIndex = parseInt(e.target.dataset.index);
+      const clip = this.clipList[this.activeIndex];
+
+      this.duration = clip.captureOut - clip.captureIn;
+
+      this.captureLeft =
+        (clip.captureIn / this.activeClip.orgDuration) *
+        this.$refs.clipList.offsetWidth;
+      this.captureWidth =
+        (this.duration / this.activeClip.orgDuration) *
+        this.$refs.clipList.offsetWidth;
     },
     handleLeftMouseDown(e) {
       e.stopPropagation();
 
-      this.mouseStartX = e.clientX;
-      document.body.addEventListener("mousemove", this.handleLeftMouseMove);
-      document.body.addEventListener("mouseup", this.handleLeftMouseUp);
-      this.splitterEndPercentage =
-        (this.splitterWidth + this.splitterLeft) /
+      this.mousePos =
+        this.$refs.clipList.getBoundingClientRect().left +
+        this.captureLeft -
+        e.clientX;
+
+      this.captureEndPercentage =
+        (this.captureWidth + this.captureLeft) /
         this.$refs.clipList.offsetWidth;
     },
     handleLeftMouseMove(e) {
       e.preventDefault();
 
+      const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      const offsetX = e.clientX - this.mouseStartX;
+      const active = this.clipList[this.activeIndex];
 
-      this.mouseStartX = e.clientX;
-      this.splitterLeft += offsetX;
-      this.splitterWidth -= offsetX;
+      this.captureLeft =
+        e.clientX - clipList.getBoundingClientRect().left + this.mousePos;
 
-      if (this.splitterWidth < 0) {
+      this.captureWidth =
+        this.captureEndPercentage * clipList.offsetWidth - this.captureLeft;
+
+      if (this.captureWidth < 0) {
         // 往右拉动限制
-        this.splitterWidth = 0;
-        this.splitterLeft =
-          this.splitterEndPercentage * this.$refs.clipList.offsetWidth;
+        this.captureWidth = 0;
+        this.captureLeft = this.captureEndPercentage * clipList.offsetWidth;
       }
 
-      if (this.splitterLeft < 0) {
+      if (
+        this.captureLeft <
+        (active.trimIn / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth
+      ) {
         // 往左拉动限制
-        this.splitterLeft = 0;
-        this.splitterWidth = Math.floor(
-          this.splitterEndPercentage * this.$refs.clipList.offsetWidth
-        );
+        this.captureLeft =
+          (active.trimIn / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth;
+        this.captureWidth =
+          this.captureEndPercentage * clipList.offsetWidth - this.captureLeft;
       }
+
+      active.captureIn =
+        (this.captureLeft / this.$refs.clipList.offsetWidth) *
+        this.activeClip.orgDuration;
+      active.captureOut = endTime;
+
       this.duration = endTime - startTime;
 
+      this.refreshBackgroundCover();
       this.trimTimeline.seekTimeline(startTime);
 
       this.resetVector();
     },
-    handleLeftMouseUp() {
+    handleLeftMouseUp(e) {
+      e.stopPropagation();
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
     },
     handleRightMouseDown(e) {
       e.stopPropagation();
+      this.mousePos =
+        e.clientX -
+        (this.$refs.clipList.getBoundingClientRect().left +
+          this.captureLeft +
+          this.captureWidth);
 
       this.mouseStartX = e.clientX;
       document.body.addEventListener("mousemove", this.handleRightMouseMove);
@@ -379,80 +560,113 @@ export default {
     handleRightMouseMove(e) {
       e.preventDefault();
 
-      const offsetX = e.clientX - this.mouseStartX;
       const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
+      const active = this.clipList[this.activeIndex];
+      this.captureWidth =
+        e.clientX -
+        clipList.getBoundingClientRect().left -
+        this.captureLeft -
+        this.mousePos;
 
-      this.mouseStartX = e.clientX;
-      this.splitterWidth += offsetX;
-
-      if (this.splitterWidth + this.splitterLeft > clipList.offsetWidth) {
+      if (
+        this.captureWidth + this.captureLeft >
+        (active.trimOut / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth
+      ) {
         // 往右拉动限制
-        this.splitterWidth = clipList.offsetWidth - this.splitterLeft;
+        this.captureWidth =
+          (active.trimOut / this.activeClip.orgDuration) *
+            this.$refs.clipList.offsetWidth -
+          this.captureLeft;
       }
-      if (this.splitterWidth < 0) {
+      if (this.captureWidth < 0) {
         // 往左拉动限制
-        this.splitterWidth = 0;
+        this.captureWidth = 0;
       }
 
       this.duration = endTime - startTime;
-
+      active.captureIn = startTime;
+      active.captureOut = endTime;
       this.resetVector();
+      this.refreshBackgroundCover();
     },
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
     },
-    handleSplitterMouseDown(e) {
+    handleCaptureMouseDown(e) {
       e.stopPropagation();
 
-      this.mouseStartX = e.clientX;
-      document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
-      document.body.addEventListener("mouseup", this.handleSplitterMouseUp);
+      console.log(
+        "this.$refs.captureWrapper[this.activeIndex]",
+        this.$refs.captureWrapper
+      );
+      this.mousePos =
+        e.clientX - this.$refs.capture.getBoundingClientRect().left - 18;
+
+      document.body.addEventListener("mousemove", this.handleCaptureMouseMove);
+      document.body.addEventListener("mouseup", this.handleCaptureMouseUp, {
+        once: true
+      });
     },
-    handleSplitterMouseMove(e) {
+    handleCaptureMouseMove(e) {
       e.preventDefault();
 
-      const offsetX = e.clientX - this.mouseStartX;
       const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
+      const active = this.clipList[this.activeIndex];
+      this.captureLeft =
+        e.clientX - this.mousePos - clipList.getBoundingClientRect().left;
 
-      this.mouseStartX = e.clientX;
-      this.splitterLeft += offsetX;
-
-      if (this.splitterLeft < 0) {
+      if (
+        this.captureLeft <
+        (active.trimIn / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth
+      ) {
         // 往左拉动限制
-        this.splitterLeft = 0;
+        this.captureLeft =
+          (active.trimIn / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth;
       }
-      if (this.splitterLeft + this.splitterWidth > clipList.offsetWidth) {
+      if (
+        this.captureLeft + this.captureWidth >
+        (active.trimOut / this.activeClip.orgDuration) *
+          this.$refs.clipList.offsetWidth
+      ) {
         // 往右拉动限制
-        this.splitterLeft = clipList.offsetWidth - this.splitterWidth;
+        this.captureLeft =
+          (active.trimOut / this.activeClip.orgDuration) *
+            this.$refs.clipList.offsetWidth -
+          this.captureWidth;
       }
 
       this.duration = endTime - startTime;
-
+      active.captureIn = startTime;
+      active.captureOut = endTime;
       this.trimTimeline.seekTimeline(startTime);
 
       this.resetVector();
+      this.refreshBackgroundCover();
     },
     getStartTime() {
       const startPercentage =
-        this.splitterLeft / this.$refs.clipList.offsetWidth;
+        this.captureLeft / this.$refs.clipList.offsetWidth;
       const startTime = startPercentage * this.activeClip.duration;
       return parseInt(startTime.toFixed());
     },
     getEndTime() {
       const endPercentage =
-        (this.splitterLeft + this.splitterWidth) /
+        (this.captureLeft + this.captureWidth) /
         this.$refs.clipList.offsetWidth;
       const endTime = endPercentage * this.activeClip.duration;
       return parseInt(endTime.toFixed());
     },
-    handleSplitterMouseUp() {
+    handleCaptureMouseUp() {
       document.body.removeEventListener(
         "mousemove",
-        this.handleSplitterMouseMove
+        this.handleCaptureMouseMove
       );
     },
     // 播放停止的事件
@@ -703,28 +917,60 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     width: 30px;
     vertical-align: 0;
   }
-  .clip-list-container {
-    display: inline-block;
-    position: relative;
-    height: 30px;
+  .clips-wrapper {
+    .splitter {
+      top: -8px;
+      position: absolute;
+      height: 45px;
+      border: 1px solid #fff;
+      width: 0;
+      transform: translateX(-1px);
+    }
 
-    .clip-list {
-      position: relative;
+    .clip-list-container {
       display: inline-block;
-      margin-left: 18px;
-      width: 500px;
-      height: 100%;
-      border-radius: 6px;
-      .vector {
+      position: relative;
+      height: 30px;
+      .clip-item-container {
         position: absolute;
-        height: 40px;
-        width: 0;
-        transform: translateY(-6px);
-        border: 1px solid #fff;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+        .clip-item {
+          float: left;
+          height: 100%;
+          box-sizing: border-box;
+          border: 1px solid #fff;
+          border-radius: 6px;
+        }
+      }
+      .clip-list-full {
+        position: relative;
+        margin-left: 18px;
+        height: 100%;
+        width: 500px;
+      }
+      .clip-list {
+        position: relative;
+        display: inline-block;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        .vector {
+          position: absolute;
+          top: 0;
+          height: 40px;
+          width: 0;
+          transform: translateY(-6px);
+          border: 1px solid #fff;
+        }
       }
     }
   }
-  .splitter-wrapper {
+
+  .capture-wrapper {
     left: 0;
     top: -5px;
     position: absolute;
@@ -734,7 +980,9 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     border-left: 18px solid #fff;
     border-right: 18px solid #fff;
     border-radius: 6px;
-    .splitter-inner {
+    transform: translateX(-18px);
+    z-index: 999;
+    .capture-inner {
       width: 100%;
       height: 100%;
       border-radius: 12px;
@@ -743,7 +991,15 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       left: -5px;
       top: -5px;
       border: 5px solid #fff;
-
+      // .background {
+      //   width: 100%;
+      //   height: 100%;
+      //   border-radius: 6px;
+      //   pointer-events: none;
+      //   .background-inner {
+      //     height: 100%;
+      //   }
+      // }
       .slice-duration {
         position: absolute;
         left: 50%;
