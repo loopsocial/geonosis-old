@@ -1,4 +1,4 @@
-import { FX_TYPES, PARAMS_TYPES } from "./Global";
+import { FX_TYPES, PARAMS_TYPES, CLIP_TYPES } from "./Global";
 export default class TimelineClass {
   constructor(canvasId, options) {
     this.streamingContext = nvsGetStreamingContextInstance();
@@ -118,6 +118,9 @@ export default class TimelineClass {
       this.videoTrack.clips.map(clip => {
         clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
         this.addVideoFx(clip);
+        if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {
+          clip.raw.setImageMotionAnimationEnabled(false);
+        }
       });
     }
   }

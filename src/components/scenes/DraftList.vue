@@ -189,8 +189,7 @@ export default {
       return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
     isImage() {
-      return false;
-      // return this.activeClip && this.activeClip.videoType === 3;
+      return this.activeClip && this.activeClip.videoType === CLIP_TYPES.IMAGE;
     },
     videoDuration() {
       if (!this.activeClip) return NaN;

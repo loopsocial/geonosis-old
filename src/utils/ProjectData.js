@@ -43,17 +43,26 @@ export class VideoClip extends Clip {
     this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
-    this.videoType = option.mediaType || 1;
+    this.videoType = CLIP_TYPES[getType(option.mediaType)];
     this.trimIn = option.trimIn || 0;
     this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.duration;
     this.videoFxs = [];
+    this.motion = option.motion === undefined ? true : !!option.motion;
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
     this.uuid = generateUUID();
     this.leftChannelUrl = option.leftChannelUrl || "";
     this.rightChannelUrl = option.rightChannelUrl || "";
   }
+}
+function getType(num) {
+  const temp = {
+    1: "VIDEO",
+    2: "AUDIO",
+    3: "IMAGE"
+  };
+  return temp[num] || "VIDEO";
 }
 export class AudioClip extends Clip {
   constructor(option) {
