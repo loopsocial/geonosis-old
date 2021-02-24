@@ -97,7 +97,7 @@ export class CaptionClip extends Clip {
     this.scaleX = option.scaleX || 1;
     this.scaleY = option.scaleY || 1;
     this.rotation = option.rotation || 0;
-
+    this.uuid = generateUUID();
     // 相对于监视器中心点的位置
     this.translationX = option.translationX;
     this.translationY = option.translationY;
@@ -118,5 +118,6 @@ export class StickerClip extends Clip {
     this.translationX = option.translationX;
     this.translationY = option.translationY;
     this.z = option.z;
+    this.uuid = generateUUID();
   }
 }
