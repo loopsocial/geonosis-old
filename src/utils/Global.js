@@ -49,3 +49,5 @@ export const TRACK_TYPES = {
   CAPTION: "captionTrack",
   STICKER: "stickerTrack"
 };
+
+export const AUDIO_MIN_DURTAION = 1000 * 1000; // 音乐最小裁剪限制，单位微秒

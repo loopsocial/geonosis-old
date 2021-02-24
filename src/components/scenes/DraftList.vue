@@ -56,7 +56,6 @@
       top="0"
       :modal-append-to-body="false"
       :close-on-click-modal="false"
-      @close="handleClose"
       ref="dialog"
     >
       <template #title>
@@ -400,13 +399,22 @@ export default {
     },
     // 计算出当前播放位置占总体百分比
     calcCurrentPercentage(currentTime) {
-      const currentPercentage = currentTime / this.activeClip.duration;
+      const currentPercentage = currentTime / this.duration;
       return currentPercentage;
     },
     // 创建监视器时间线
     async createTrimTimeline() {
       this.trimTimeline = new TimelineClass("trim-window", {
-        videoTrack: { clips: [this.activeClip] }
+        videoTrack: {
+          clips: [
+            {
+              ...this.activeClip,
+              inPoint: 0,
+              trimIn: 0,
+              trimOut: this.activeClip.orgDuration
+            }
+          ]
+        }
       });
       await this.trimTimeline.stopEngin();
       await this.trimTimeline.buildTimeline();
@@ -432,11 +440,6 @@ export default {
         this.trimTimeline.stop();
       }
       this.isPlaying = !this.isPlaying;
-    },
-    handleClose() {
-      document.body.removeEventListener("mouseup", this.handleLeftMouseUp);
-      document.body.removeEventListener("mouseup", this.handleRightMouseUp);
-      document.body.removeEventListener("mouseup", this.handleSplitterMouseUp);
     },
     // 拼出缩略图
     getClipListImages() {
@@ -718,9 +721,7 @@ export default {
       );
     }
   },
-  beforeDestroy() {
-    this.handleClose();
-  }
+  beforeDestroy() {}
 };
 </script>
 

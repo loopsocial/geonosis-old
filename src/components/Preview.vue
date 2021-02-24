@@ -14,11 +14,10 @@
       ></canvas>
       <div id="work-flow" @click="clickLiveWindow"></div>
     </div>
-    <div class="controls flex">
+    <div class="controls flex" @click="play">
       <svg-icon
         :class="[!isPlaying ? 'icon-play' : 'icon-pause', 'preview-icon']"
         :icon-class="!isPlaying ? 'play' : 'pause'"
-        @click="play"
       ></svg-icon>
     </div>
   </div>
@@ -29,7 +28,7 @@ import initSDK from "@/utils/NvBase";
 import TimelineClass from "@/utils/TimelineClass";
 import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
-import { CaptionClip, StickerClip } from "@/utils/ProjectData";
+import { CaptionClip, StickerClip, AudioClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
 import WorkFlow from "@/utils/WorkFlow";
 import { mapActions, mapState } from "vuex";
@@ -141,10 +140,54 @@ export default {
       this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
       this.$bus.$on(this.$keys.getTimeline, this.getTimeline); // 切换监视器
       this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
+      this.$bus.$on(this.$keys.addAudioClip, this.addAudioClip); // music页，添加audio
+      this.$bus.$on(this.$keys.clearAudioTrack, this.clearAudioTrack); // music页，清空音频
+
+      this.$once("hook:beforeDestroy", () => {
+        this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+        this.$bus.$off(this.$keys.editClip, this.editClip);
+        this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
+        this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
+        this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
+        this.$bus.$off(this.$keys.addAudioClip, this.addAudioClip);
+        this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
+      });
     },
     drop(e) {
       const data = JSON.parse(e.dataTransfer.getData("Text"));
       this.editClip(e, data);
+    },
+    async clearAudioTrack() {
+      await this.timelineClass.stopEngin();
+      this.timelineClass.clearAudioTrack();
+      this.timelineClass.seekTimeline(0);
+    },
+    async addAudioClip(clip) {
+      let durationCumulate = 0;
+      const clipOptions = { ...clip };
+      const duration = clipOptions.trimOut - clipOptions.trimIn;
+      const count = Math.ceil(
+        this.timelineClass.timeline.getDuration() / duration
+      );
+
+      for (let index = 0; index < count; index++) {
+        durationCumulate += duration;
+        clipOptions.inPoint = index * duration;
+        if (durationCumulate > this.timelineClass.timeline.getDuration()) {
+          clipOptions.trimOut =
+            duration -
+            (durationCumulate - this.timelineClass.timeline.getDuration());
+        }
+
+        this.addClipToVuex({
+          type: CLIP_TYPES.AUDIO,
+          clip: new AudioClip(clipOptions)
+        });
+      }
+
+      await this.timelineClass.stopEngin();
+      this.timelineClass.buildAudioTrack();
+      this.timelineClass.seekTimeline();
     },
     async editClip(e, option) {
       const { type, target, raw } = option;
