@@ -30,22 +30,28 @@ export default {
     this.$refs.preview.createTimeline();
   },
   methods: {
+    // todo 以下是测试代码
     async installM3u8() {
       let pos = 0;
+      const defaultDuration = 5000000;
       for (let i = 0; i < resource.resourceList.length; i++) {
         const clip = resource.resourceList[i];
-        clip.m3u8Path = await installAsset(clip.m3u8Url);
-        // todo 以下是测试代码
-        clip.inPoint = pos;
-        clip.trimIn = 0;
-        clip.trimOut = clip.duration * 1000;
-        clip.orgDuration = clip.duration * 1000;
-        clip.duration = clip.duration * 1000;
-        pos += clip.duration;
+        if (!clip.m3u8Path) {
+          clip.m3u8Path = await installAsset(clip.m3u8Url);
+        }
+        const videoClip = new VideoClip({
+          ...clip,
+          inPoint: pos,
+          trimIn: 0,
+          trimOut: clip.duration * 1000 || defaultDuration,
+          orgDuration: clip.duration * 1000 || defaultDuration,
+          duration: clip.duration * 1000 || defaultDuration
+        });
         this.addClipToVuex({
           type: CLIP_TYPES.VIDEO,
-          clip: new VideoClip(clip)
+          clip: videoClip
         });
+        pos += clip.duration * 1000 || defaultDuration;
       }
     },
     async installFont() {

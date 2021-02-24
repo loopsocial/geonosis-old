@@ -14,7 +14,6 @@ export default new Vuex.Store({
       state.isFinishNvs = isFinish;
     },
     setEditBoxStatus(state, status) {
-      console.log('修改状态', status);
       state.editBoxStatus = status;
     }
   },

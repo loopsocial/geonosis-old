@@ -1,3 +1,4 @@
+import { FX_TYPES, PARAMS_TYPES } from "./Global";
 export default class TimelineClass {
   constructor(canvasId, options) {
     this.streamingContext = nvsGetStreamingContextInstance();
@@ -116,14 +117,48 @@ export default class TimelineClass {
     if (Array.isArray(this.videoTrack.clips)) {
       this.videoTrack.clips.map(clip => {
         clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
+        this.addVideoFx(clip);
       });
     }
   }
-  // 重新添加一次clip
+  // 重新添加一次clip, 用于修改trim
   afreshVideoClip(clip) {
     const index = clip.raw.getIndex();
     this.videoTrack.raw.removeClip(index, false);
     this.addVideoClip(clip, this.videoTrack.raw);
+  }
+  // clip添加特效, 用户修剪视频
+  addVideoFx(clip) {
+    clip.videoFxs.map(fx => {
+      if (!fx.raw) {
+        if (fx.type === FX_TYPES.BUILTIN) {
+          fx.raw = clip.raw.appendBuiltinFx(fx.desc);
+        } else if (fx.type === FX_TYPES.PACKAGE) {
+          fx.raw = clip.raw.appendPackagedFx(fx.desc);
+        }
+      }
+      fx.params.map(({ type, key, value }) => {
+        switch (type) {
+          case PARAMS_TYPES.STRING:
+            fx.raw.setStringVal(key, value);
+            break;
+          case PARAMS_TYPES.FLOAT:
+            fx.raw.setFloatVal(key, value);
+            break;
+          case PARAMS_TYPES.BOOL:
+            fx.raw.setBooleanVal(key, value);
+            break;
+          case PARAMS_TYPES.INT:
+            fx.raw.setIntVal(key, value);
+            break;
+          case PARAMS_TYPES.COLOR:
+            fx.raw.setColorVal(key, value);
+            break;
+          default:
+            break;
+        }
+      });
+    });
   }
   buildAudioTrack() {
     if (!this.audioTrack.raw) {
@@ -216,14 +251,9 @@ export default class TimelineClass {
     return true;
   }
   addVideoClip(clip, trackRaw) {
-    const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
+    const { m3u8Path, inPoint, trimIn, trimOut } = clip;
     trackRaw = trackRaw || this.videoTrack.raw;
-    return trackRaw.addClip2(
-      m3u8Path,
-      inPoint,
-      trimIn || 0,
-      trimOut || orgDuration
-    );
+    return trackRaw.addClip2(m3u8Path, inPoint, trimIn, trimOut);
   }
   deleteClipByIndex(type, index) {
     this[`${type}Track`].raw.removeClip(index, false);

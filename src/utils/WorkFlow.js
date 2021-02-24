@@ -2,7 +2,7 @@ import Konva from "konva";
 import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
 import delImg from "../assets/images/delete.png";
-import store from '../store/index'
+import store from "../store/index";
 export default class WorkFlow {
   constructor(options) {
     const { containerId } = options;
@@ -87,7 +87,7 @@ export default class WorkFlow {
       this.node.y(this.node.y() + this.node.height() / 2);
       this.node.rotation(-this.clip.rotation);
       this.deleteNode.rotation(-this.clip.rotation);
-      this.deleteNode.x(x + width / 2)
+      this.deleteNode.x(x + width / 2);
     }
     this.layer.add(this.deleteNode);
     this.layer.add(this.node);
@@ -316,7 +316,8 @@ export default class WorkFlow {
     input.style.display = "block";
     input.style.border = 0;
     input.style.backgroundColor = "transparent";
-    input.style.color = "#FFF";
+    const { r, g, b, a } = captionColor;
+    input.style.color = `rgba(${r * 255}, ${g * 255}, ${b * 255}, ${a})`;
     input.style.outline = 0;
     input.value = text + "";
 

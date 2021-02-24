@@ -190,6 +190,7 @@ export default {
     },
     isImage() {
       return false;
+      // return this.activeClip && this.activeClip.videoType === 3;
     },
     videoDuration() {
       if (!this.activeClip) return NaN;

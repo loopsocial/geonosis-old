@@ -25,6 +25,23 @@ export const CLIP_TYPES = {
   CAPTION: "caption",
   STICKER: "sticker"
 };
+// 特效desc
+export const FX_DESC = {
+  TRANSFORM2D: "Transform 2D"
+};
+// 特效类型
+export const FX_TYPES = {
+  BUILTIN: "builtin",
+  PACKAGE: "package"
+};
+// 特效参数的类型
+export const PARAMS_TYPES = {
+  STRING: "string",
+  FLOAT: "float",
+  BOOL: "bool",
+  INT: "int",
+  COLOR: "color"
+};
 // track 类型
 export const TRACK_TYPES = {
   VIDEO: "videoTrack",

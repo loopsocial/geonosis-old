@@ -17,6 +17,21 @@ class Clip extends Raw {
     this.duration = duration;
   }
 }
+export class VideoFx extends Raw {
+  constructor(desc, type = "builtin") {
+    super(null);
+    this.desc = desc;
+    this.type = type; // 'builtin' or 'package'
+    this.params = [];
+  }
+}
+export class FxParam {
+  constructor(type, key, value) {
+    this.type = type;
+    this.key = key;
+    this.value = value;
+  }
+}
 export class VideoClip extends Clip {
   constructor(option) {
     super({ ...option, type: CLIP_TYPES.VIDEO });
@@ -24,7 +39,7 @@ export class VideoClip extends Clip {
     this.m3u8Path = option.m3u8Path;
     this.alphaM3u8Path = option.alphaM3u8Path;
     this.coverUrl = option.coverUrl;
-    this.path = option.path;
+    this.url = option.url;
     this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
@@ -47,7 +62,7 @@ export class AudioClip extends Clip {
     this.m3u8Path = option.m3u8Path;
     this.alphaM3u8Path = option.alphaM3u8Path;
     this.coverUrl = option.coverUrl;
-    this.path = option.path;
+    this.url = option.url;
     this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
