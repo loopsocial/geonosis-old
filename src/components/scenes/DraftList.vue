@@ -146,8 +146,8 @@
             <div
               class="capture-wrapper"
               :style="{
-                width: captureWidth + 'px',
-                left: captureLeft + 'px'
+                width: captureWidth * 100 + '%',
+                left: captureLeft * 100 + '%'
               }"
               v-if="activeIndex != -1"
               ref="capture"
@@ -174,7 +174,7 @@
 
             <div
               class="splitter"
-              :style="{ left: splittreLeft + 'px' }"
+              :style="{ left: splittreLeft * 100 + '%' }"
               @mousedown="handleSplitterMouseDown"
             ></div>
           </div>
@@ -183,8 +183,13 @@
 
       <span slot="footer" class="dialog-footer flex">
         <span>{{ $t("totalVideoDuration") }} {{ format(totalDuration) }}</span>
-        <el-button @click="dialogVisible = false">{{ $t("cancel") }}</el-button>
-        <el-button type="primary" @click="handleNext">{{
+        <el-button
+          class="round-btn white-btn"
+          :style="{ background: '#2B2B2B' }"
+          @click="dialogVisible = false"
+          >{{ $t("cancel") }}</el-button
+        >
+        <el-button class="round-btn" type="primary" @click="handleNext">{{
           $t("next")
         }}</el-button>
       </span>
@@ -206,7 +211,7 @@ export default {
     return {
       clipList: [
         {
-          id: (Math.random * 10).toFixed(),
+          id: (Math.random() * 100).toFixed(),
           width: 1,
           trimIn: 0,
           trimOut: 15000000,
@@ -298,15 +303,23 @@ export default {
       addEventListener("mousemove", this.handleSplitterMouseMove);
     },
     handleSplitterMouseMove(e) {
+      const { clipList } = this.$refs;
+
+      e.preventDefault();
       this.splittreLeft =
-        e.clientX - this.$refs.clipList.getBoundingClientRect().left;
+        (e.clientX - clipList.getBoundingClientRect().left) /
+        clipList.offsetWidth;
 
       if (this.splittreLeft < 0) {
+        // 处理左拖拽限制
         this.splittreLeft = 0;
       }
-      const currentSeekTime =
-        (this.splittreLeft / this.$refs.clipList.offsetWidth) *
-        this.activeClip.orgDuration;
+      if (this.splittreLeft > 1) {
+        // 处理右侧拖拽限制
+        this.splittreLeft = 1;
+      }
+
+      const currentSeekTime = this.splittreLeft * this.activeClip.orgDuration;
       this.trimTimeline.seekTimeline(currentSeekTime);
 
       addEventListener("mouseup", this.handleSplitterMouseUp);
@@ -318,8 +331,7 @@ export default {
     },
 
     handleSplit() {
-      const splitterPercentage =
-        this.splittreLeft / this.$refs.clipList.offsetWidth;
+      const splitterPercentage = this.splittreLeft;
       const trimTime = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
       this.clipList.reduce((prev, cur, curIdx, arr) => {
@@ -466,12 +478,7 @@ export default {
       }
       this.background = bg.substring(0, bg.length - 1);
     },
-    // 调整裁剪器大小
-    changeCaptureSize(percentage) {
-      this.captureWidth = percentage * this.$refs.clipList.offsetWidth;
-      this.duration = this.getEndTime() - this.getStartTime();
-    },
-    // 处理选中切片
+    // 处理切片的选中
     handleClipClick(e) {
       if (!e.target.dataset.index) return;
 
@@ -480,23 +487,18 @@ export default {
 
       this.duration = clip.captureOut - clip.captureIn;
 
-      this.captureLeft =
-        (clip.captureIn / this.activeClip.orgDuration) *
-        this.$refs.clipList.offsetWidth;
-      this.captureWidth =
-        (this.duration / this.activeClip.orgDuration) *
-        this.$refs.clipList.offsetWidth;
+      this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
+      this.captureWidth = this.duration / this.activeClip.orgDuration;
     },
     handleLeftMouseDown(e) {
+      const { clipList } = this.$refs;
       e.stopPropagation();
       this.mousePos =
-        this.$refs.clipList.getBoundingClientRect().left +
-        this.captureLeft -
+        clipList.getBoundingClientRect().left +
+        this.captureLeft * clipList.offsetWidth -
         e.clientX;
 
-      this.captureEndPercentage =
-        (this.captureWidth + this.captureLeft) /
-        this.$refs.clipList.offsetWidth;
+      this.captureEndPercentage = this.captureWidth + this.captureLeft;
 
       document.body.addEventListener("mousemove", this.handleLeftMouseMove);
       document.body.addEventListener("mouseup", this.handleLeftMouseUp, {
@@ -512,33 +514,24 @@ export default {
       const active = this.clipList[this.activeIndex];
 
       this.captureLeft =
-        e.clientX - clipList.getBoundingClientRect().left + this.mousePos;
+        (e.clientX - clipList.getBoundingClientRect().left + this.mousePos) /
+        clipList.offsetWidth;
 
-      this.captureWidth =
-        this.captureEndPercentage * clipList.offsetWidth - this.captureLeft;
+      this.captureWidth = this.captureEndPercentage - this.captureLeft;
 
       if (this.captureWidth < 0) {
         // 往右拉动限制
         this.captureWidth = 0;
-        this.captureLeft = this.captureEndPercentage * clipList.offsetWidth;
+        this.captureLeft = this.captureEndPercentage;
       }
 
-      if (
-        this.captureLeft <
-        (active.trimIn / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth
-      ) {
+      if (this.captureLeft < active.trimIn / this.activeClip.orgDuration) {
         // 往左拉动限制
-        this.captureLeft =
-          (active.trimIn / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth;
-        this.captureWidth =
-          this.captureEndPercentage * clipList.offsetWidth - this.captureLeft;
+        this.captureLeft = active.trimIn / this.activeClip.orgDuration;
+        this.captureWidth = this.captureEndPercentage - this.captureLeft;
       }
 
-      active.captureIn =
-        (this.captureLeft / this.$refs.clipList.offsetWidth) *
-        this.activeClip.orgDuration;
+      active.captureIn = this.captureLeft * this.activeClip.orgDuration;
       active.captureOut = endTime;
 
       this.duration = endTime - startTime;
@@ -552,14 +545,15 @@ export default {
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
     },
     handleRightMouseDown(e) {
+      const { clipList } = this.$refs;
       e.stopPropagation();
+
       this.mousePos =
         e.clientX -
-        (this.$refs.clipList.getBoundingClientRect().left +
-          this.captureLeft +
-          this.captureWidth);
+        (clipList.getBoundingClientRect().left +
+          this.captureLeft * clipList.offsetWidth +
+          this.captureWidth * clipList.offsetWidth);
 
-      this.mouseStartX = e.clientX;
       document.body.addEventListener("mousemove", this.handleRightMouseMove);
       document.body.addEventListener("mouseup", this.handleRightMouseUp, {
         once: true
@@ -573,21 +567,19 @@ export default {
       const endTime = this.getEndTime();
       const active = this.clipList[this.activeIndex];
       this.captureWidth =
-        e.clientX -
-        clipList.getBoundingClientRect().left -
-        this.captureLeft -
-        this.mousePos;
+        (e.clientX -
+          clipList.getBoundingClientRect().left -
+          this.captureLeft * clipList.offsetWidth -
+          this.mousePos) /
+        clipList.offsetWidth;
 
       if (
         this.captureWidth + this.captureLeft >
-        (active.trimOut / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth
+        active.trimOut / this.activeClip.orgDuration
       ) {
         // 往右拉动限制
         this.captureWidth =
-          (active.trimOut / this.activeClip.orgDuration) *
-            this.$refs.clipList.offsetWidth -
-          this.captureLeft;
+          active.trimOut / this.activeClip.orgDuration - this.captureLeft;
       }
       if (this.captureWidth < 0) {
         // 往左拉动限制
@@ -606,10 +598,6 @@ export default {
     handleCaptureMouseDown(e) {
       e.stopPropagation();
 
-      console.log(
-        "this.$refs.captureWrapper[this.activeIndex]",
-        this.$refs.captureWrapper
-      );
       this.mousePos =
         e.clientX - this.$refs.capture.getBoundingClientRect().left - 18;
 
@@ -626,28 +614,20 @@ export default {
       const endTime = this.getEndTime();
       const active = this.clipList[this.activeIndex];
       this.captureLeft =
-        e.clientX - this.mousePos - clipList.getBoundingClientRect().left;
+        (e.clientX - this.mousePos - clipList.getBoundingClientRect().left) /
+        clipList.offsetWidth;
 
-      if (
-        this.captureLeft <
-        (active.trimIn / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth
-      ) {
+      if (this.captureLeft < active.trimIn / this.activeClip.orgDuration) {
         // 往左拉动限制
-        this.captureLeft =
-          (active.trimIn / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth;
+        this.captureLeft = active.trimIn / this.activeClip.orgDuration;
       }
       if (
         this.captureLeft + this.captureWidth >
-        (active.trimOut / this.activeClip.orgDuration) *
-          this.$refs.clipList.offsetWidth
+        active.trimOut / this.activeClip.orgDuration
       ) {
         // 往右拉动限制
         this.captureLeft =
-          (active.trimOut / this.activeClip.orgDuration) *
-            this.$refs.clipList.offsetWidth -
-          this.captureWidth;
+          active.trimOut / this.activeClip.orgDuration - this.captureWidth;
       }
 
       this.duration = endTime - startTime;
@@ -659,16 +639,12 @@ export default {
       this.refreshBackgroundCover();
     },
     getStartTime() {
-      const startPercentage =
-        this.captureLeft / this.$refs.clipList.offsetWidth;
-      const startTime = startPercentage * this.activeClip.duration;
+      const startTime = this.captureLeft * this.activeClip.duration;
       return parseInt(startTime.toFixed());
     },
     getEndTime() {
-      const endPercentage =
-        (this.captureLeft + this.captureWidth) /
-        this.$refs.clipList.offsetWidth;
-      const endTime = endPercentage * this.activeClip.duration;
+      const endTime =
+        (this.captureLeft + this.captureWidth) * this.activeClip.duration;
       return parseInt(endTime.toFixed());
     },
     handleCaptureMouseUp() {
@@ -931,6 +907,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       border: 1px solid #fff;
       width: 0;
       transform: translateX(-1px);
+      z-index: 999;
     }
 
     .clip-list-container {
@@ -964,6 +941,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         height: 100%;
         width: 100%;
         box-sizing: border-box;
+        border-radius: 6px;
         .vector {
           position: absolute;
           top: 0;
