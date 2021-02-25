@@ -49,7 +49,7 @@ function ensureAssetIndexDBObject(ret, name) {
  */
 function getStoreName(key) {
   let storeName;
-  if (key.toLowerCase().search(/ttc|ttf$/) > -1) {
+  if (key.toLowerCase().search(/ttc|ttf|otf$/) > -1) {
     storeName = "font";
   } else {
     storeName = objectStores.find(item => key.toLowerCase().includes(item));

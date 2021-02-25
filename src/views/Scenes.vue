@@ -63,7 +63,8 @@ export default {
         }
       });
       const fonts = res.data.materialList;
-      await installAsset(fonts[0].packageUrl);
+      const font = fonts.find(item => item.id === "NotoSansCJK-Regular");
+      await installAsset(font.packageUrl);
     }
   }
 };
