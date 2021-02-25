@@ -490,7 +490,9 @@ export default {
       this.duration = clip.captureOut - clip.captureIn;
 
       this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
-      this.captureWidth = this.duration / this.activeClip.orgDuration;
+      console.log("clip.captureIn", clip.captureIn);
+      this.captureWidth =
+        (clip.captureOut - clip.captureIn) / this.activeClip.orgDuration;
     },
     handleLeftMouseDown(e) {
       const { clipList } = this.$refs;
@@ -511,8 +513,6 @@ export default {
       e.preventDefault();
 
       const { clipList } = this.$refs;
-      const startTime = this.getStartTime();
-      const endTime = this.getEndTime();
       const active = this.activeClip.splitList[this.activeIndex];
 
       this.captureLeft =
@@ -533,7 +533,10 @@ export default {
         this.captureWidth = this.captureEndPercentage - this.captureLeft;
       }
 
-      active.captureIn = this.captureLeft * this.activeClip.orgDuration;
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
+
+      active.captureIn = startTime;
       active.captureOut = endTime;
 
       this.duration = endTime - startTime;
@@ -565,8 +568,7 @@ export default {
       e.preventDefault();
 
       const { clipList } = this.$refs;
-      const startTime = this.getStartTime();
-      const endTime = this.getEndTime();
+
       const active = this.activeClip.splitList[this.activeIndex];
       this.captureWidth =
         (e.clientX -
@@ -588,6 +590,8 @@ export default {
         this.captureWidth = 0;
       }
 
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
       this.duration = endTime - startTime;
       active.captureIn = startTime;
       active.captureOut = endTime;
@@ -612,8 +616,7 @@ export default {
       e.preventDefault();
 
       const { clipList } = this.$refs;
-      const startTime = this.getStartTime();
-      const endTime = this.getEndTime();
+
       const active = this.activeClip.splitList[this.activeIndex];
       this.captureLeft =
         (e.clientX - this.mousePos - clipList.getBoundingClientRect().left) /
@@ -631,7 +634,8 @@ export default {
         this.captureLeft =
           active.trimOut / this.activeClip.orgDuration - this.captureWidth;
       }
-
+      const startTime = this.getStartTime();
+      const endTime = this.getEndTime();
       this.duration = endTime - startTime;
       active.captureIn = startTime;
       active.captureOut = endTime;
@@ -642,12 +646,12 @@ export default {
     },
     getStartTime() {
       const startTime = this.captureLeft * this.activeClip.duration;
-      return parseInt(startTime.toFixed());
+      return startTime;
     },
     getEndTime() {
       const endTime =
         (this.captureLeft + this.captureWidth) * this.activeClip.duration;
-      return parseInt(endTime.toFixed());
+      return endTime;
     },
     handleCaptureMouseUp() {
       document.body.removeEventListener(
