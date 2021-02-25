@@ -7,7 +7,11 @@ export default class TimelineClass {
     const { videoTrack, audioTrack, width, height, captions, stickers } =
       options || {};
     this.videoTrack = videoTrack || {};
-    this.audioTrack = audioTrack || {};
+    console.log("videoTrack", videoTrack);
+    this.audioTrack = audioTrack || {
+      raw: options.trakcRaw,
+      clips: []
+    };
     this.width = width || 540;
     this.height = height || 960;
     this.captions = captions || [];
@@ -169,7 +173,7 @@ export default class TimelineClass {
     }
     if (Array.isArray(this.audioTrack.clips)) {
       this.audioTrack.clips.map(clip => {
-        clip.raw = this.addAudioClip(clip, this.videoTrack.raw);
+        clip.raw = this.addAudioClip(clip, this.audioTrack.raw);
       });
     }
   }

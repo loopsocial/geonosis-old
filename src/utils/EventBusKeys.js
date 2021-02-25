@@ -3,5 +3,7 @@ export default {
   editClip: "editClip",
   changeMonitor: "changeMonitor",
   getTimeline: "getTimeline",
-  afreshVideoClip: "afreshVideoClip"
+  afreshVideoClip: "afreshVideoClip",
+  addAudioClip: "addAudioClip",
+  clearAudioTrack: "clearAudioTrack"
 };

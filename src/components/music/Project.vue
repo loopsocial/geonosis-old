@@ -12,7 +12,7 @@
           ></svg-icon>
         </el-tab-pane>
       </el-tabs>
-      <div class="none">
+      <div class="none" @click="handleNone">
         <svg-icon slot="label" icon-class="none"></svg-icon>
         {{ $t("none") }}
       </div>
@@ -33,6 +33,11 @@ export default {
   },
   async mounted() {
     await this.$refs.preview.createTimeline();
+  },
+  methods: {
+    handleNone() {
+      this.$bus.$emit(this.$keys.clearAudioTrack);
+    }
   }
 };
 </script>
@@ -47,6 +52,8 @@ export default {
     top: 30px;
     right: 0;
     color: white;
+    z-index: 999;
+    cursor: pointer;
   }
   .material {
     display: flex;
@@ -58,10 +65,6 @@ export default {
   .preview {
     margin: 20px 9% 20px 7%;
     height: auto;
-    ::v-deep .live-window-container {
-      border-radius: 6px;
-      overflow: hidden;
-    }
   }
   ::v-deep {
     .el-tab-pane {
