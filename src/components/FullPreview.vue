@@ -1,10 +1,5 @@
 <template>
   <div class="preview-box">
-    <svg-icon
-      class="preview-close"
-      icon-class="cut"
-      @click="$emit('close')"
-    ></svg-icon>
     <div class="preview-window">
       <canvas
         class="preview-window"
@@ -144,36 +139,20 @@ export default {
 
 <style lang="scss">
 .preview-box {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 3000;
-  background-color: rgba($color: #000000, $alpha: 0.7);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  padding: 40px 0;
-  box-sizing: border-box;
-  .preview-close {
-    position: absolute;
-    right: 22px;
-    top: 22px;
-    width: 44px;
-    height: 44px;
-  }
+  height: 100%;
   .preview-window {
+    height: calc(100% - 40px);
     canvas {
-      height: 90vh;
-      width: 90vh / 16 * 9;
+      height: 100%;
+      width: auto;
+      aspect-ratio: 9/16;
       background-color: rosybrown;
       border-radius: 6px;
     }
   }
   .footer {
-    width: 90vh / 16 * 9;
+    margin-top: 16px;
+    padding-right: 8px;
     .play-track {
       flex: 1;
       position: relative;

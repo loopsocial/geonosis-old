@@ -16,58 +16,64 @@
     </div>
 
     <transition name="el-fade-in">
-      <FullPreview
-        v-if="showPreview"
-        class="preview-box"
-        @close="close"
-      ></FullPreview>
+      <div class="full-preview" v-if="showPreview">
+        <FullPreview class="preview-box"></FullPreview>
+        <svg-icon
+          class="preview-close"
+          icon-class="cut"
+          @click="close"
+        ></svg-icon>
+      </div>
     </transition>
 
-    <el-dialog
-      top="0"
-      custom-class="ln-dialog"
-      width="70%"
-      center
-      :visible.sync="dialogVisible"
-    >
-      <div class="live-window"></div>
-      <el-form :model="infoForm" class="ln-form">
-        <el-form-item :label="$t('caption')" prop="caption">
-          <el-input v-model="infoForm.caption" class="ln-input"></el-input>
-        </el-form-item>
-        <el-form-item :label="$t('hashtags')" prop="hashtags">
-          <el-input
-            v-model="infoForm.hashtags"
-            class="ln-input"
-            @blur="handleBlur"
-          ></el-input>
-          <span>{{ $t("hashtagHint") }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('posters')" prop="posters">
-          <div class="posters"></div>
-        </el-form-item>
-        <el-form-item :label="$t('postTo')" prop="postTo">
-          <el-radio-group v-model="infoForm.postTo" class="ln-radio-group">
-            <el-radio class="ln-radio" label="global">{{
-              $t("global")
-            }}</el-radio>
-            <el-radio class="ln-radio" label="private">{{
-              $t("private")
-            }}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item class="publish-form-item">
-          <el-button
-            round
-            class="round-btn"
-            size="medium"
-            @click="handlePublish"
-          >
-            {{ $t("publish") }}
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
+    <transition name="el-fade-in" v-if="dialogVisible">
+      <div class="publish-dialog">
+        <div class="publish-content">
+          <FullPreview class="preview-box"></FullPreview>
+          <el-form :model="infoForm" class="ln-form">
+            <el-form-item :label="$t('caption')" prop="caption">
+              <el-input v-model="infoForm.caption" class="ln-input"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('hashtags')" prop="hashtags">
+              <el-input
+                v-model="infoForm.hashtags"
+                class="ln-input"
+                @blur="handleBlur"
+              ></el-input>
+              <span class="minor">{{ $t("hashtagHint") }}</span>
+            </el-form-item>
+            <el-form-item :label="$t('posters')" prop="posters">
+              <div class="posters"></div>
+            </el-form-item>
+            <el-form-item :label="$t('postTo')" prop="postTo">
+              <el-radio-group v-model="infoForm.postTo" class="ln-radio-group">
+                <el-radio class="ln-radio" label="global">{{
+                  $t("global")
+                }}</el-radio>
+                <el-radio class="ln-radio" label="private">{{
+                  $t("private")
+                }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item class="publish-form-item">
+              <el-button
+                round
+                class="round-btn"
+                size="medium"
+                @click="handlePublish"
+              >
+                {{ $t("publish") }}
+              </el-button>
+            </el-form-item>
+          </el-form>
+          <svg-icon
+            class="preview-close"
+            icon-class="cut"
+            @click="dialogVisible = false"
+          ></svg-icon>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -142,16 +148,48 @@ export default {
     }
   }
 
-  .ln-dialog {
-    height: 653px;
-
+  .publish-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 3000;
+    background-color: rgba($color: #000000, $alpha: 0.7);
+    backdrop-filter: blur(10px);
+    .publish-content {
+      margin: 0 auto;
+      margin-top: 20px;
+      display: flex;
+      background-color: $dialog-bgc;
+      border-radius: 6px;
+      align-items: center;
+      height: 80%;
+      width: 80%;
+      position: relative;
+      padding: 24px;
+      .preview-close {
+        position: absolute;
+        right: -44px;
+        cursor: pointer;
+        top: 0;
+        width: 44px;
+        height: 44px;
+      }
+      .ln-form {
+        height: 100%;
+      }
+      span.minor {
+        color: $msg-font-color;
+      }
+    }
     .el-dialog__body {
       display: flex;
     }
-    .live-window {
+    .preview-box {
       height: 100%;
-      width: 300px;
       flex-grow: 0;
+      margin-right: 30px;
     }
     .el-form {
       flex: 1;
@@ -160,6 +198,29 @@ export default {
       position: absolute;
       right: 18px;
       bottom: 0;
+    }
+  }
+  .full-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 3000;
+    background-color: rgba($color: #000000, $alpha: 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px 0;
+    box-sizing: border-box;
+    .preview-close {
+      position: absolute;
+      right: 22px;
+      cursor: pointer;
+      top: 22px;
+      width: 44px;
+      height: 44px;
     }
   }
 }

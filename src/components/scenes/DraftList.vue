@@ -1061,8 +1061,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     "cancel": "Cancel",
     "split":"Split",
     "totalVideoDuration":"Total video duration",
-    "motionOn": "Motion On",
-    "motionOf": "Motion Off"
+    "motionOn": "Motion On ",
+    "motionOff": "Motion Off"
   }
 }
 </i18n>
