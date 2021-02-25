@@ -227,6 +227,7 @@ export default {
     },
 
     handleSliderMouseMove(e) {
+      e.preventDefault();
       this.sliderLeft =
         e.clientX -
         this.mousePos -
