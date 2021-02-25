@@ -61,7 +61,7 @@ export class VideoClip extends Clip {
     this.motion = option.motion === undefined ? true : !!option.motion;
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
-    this.uuid = generateUUID();
+    this.uuid = option.uuid || generateUUID();
     this.leftChannelUrl = option.leftChannelUrl || "";
     this.rightChannelUrl = option.rightChannelUrl || "";
   }

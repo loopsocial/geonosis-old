@@ -140,20 +140,21 @@ export default class TimelineClass {
   // 重新添加一次clip, 用于修改trim
   afreshVideoClip(clip) {
     // 删除这个clip下所有的切片
+    clip = this.videoTrack.clips.find(c => c.uuid === clip.uuid);
+    const index = clip.splitList[0].raw.getIndex();
     clip.splitList.map(({ raw }) => {
       if (raw) {
         const index = raw.getIndex();
-        console.log("要删除的clip", raw.getInPoint(), index);
         this.videoTrack.raw.removeClip(index, false);
       }
     });
     // 修改后的clip切片重新插入一次
-    clip.splitList.reduce((res, item) => {
+    clip.splitList.reduce((res, item, i) => {
       item.raw = this.videoTrack.raw.insertClip2(
         clip.m3u8Path,
         item.captureIn,
         item.captureOut,
-        res
+        index + i
       );
       this.addVideoFx(item);
       if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {

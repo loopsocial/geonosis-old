@@ -204,7 +204,7 @@
 import { us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
-
+import { VideoClip } from "@/utils/ProjectData";
 export default {
   components: {
     // DraftListItem
@@ -422,16 +422,10 @@ export default {
     },
     // 创建监视器时间线
     async createTrimTimeline() {
+      const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
       this.trimTimeline = new TimelineClass("trim-window", {
         videoTrack: {
-          clips: [
-            {
-              ...this.activeClip,
-              inPoint: 0,
-              trimIn: 0,
-              trimOut: this.activeClip.orgDuration
-            }
-          ]
+          clips: [videoClip]
         }
       });
       await this.trimTimeline.stopEngin();
