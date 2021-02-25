@@ -3,6 +3,9 @@ import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
 import delImg from "../assets/images/delete.png";
 import store from "../store/index";
+import Keys from '../utils/EventBusKeys';
+import Bus from '../EventBus';
+
 export default class WorkFlow {
   constructor(options) {
     const { containerId } = options;
@@ -396,8 +399,7 @@ export default class WorkFlow {
       store.commit("setEditBoxStatus", true);
     });
     this.deleteNode.on("click", () => {
-      this.deleteClip();
-      this.destroy();
+      Bus.$emit(Keys.delCaptionSticker, this.clip);
     });
     this.deleteNode.on("mouseenter", e => {
       e.evt.target.style.cursor = "pointer";
@@ -405,22 +407,5 @@ export default class WorkFlow {
     this.deleteNode.on("mouseleave", e => {
       e.evt.target.style.cursor = "default";
     });
-  }
-  async deleteClip() {
-    await this.timelineClass.stopEngin();
-    let index = -1;
-    if (this.clip.type === CLIP_TYPES.CAPTION) {
-      this.timelineClass.timeline.removeCaption(this.clip.raw);
-      index = store.state.clip.captions.findIndex(
-        i => i.uuid === this.clip.uuid
-      );
-    } else if (this.clip.type === CLIP_TYPES.STICKER) {
-      this.timelineClass.timeline.removeAnimatedSticker(this.clip.raw);
-      index = store.state.clip.captions.findIndex(
-        i => i.uuid === this.clip.uuid
-      );
-    }
-    this.timelineClass.seekTimeline();
-    store.commit("clip/deleteClipToVuex", { type: this.clip.type, index });
   }
 }

@@ -142,16 +142,20 @@ export default {
       this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
       this.$bus.$on(this.$keys.addAudioClip, this.addAudioClip); // music页，添加audio
       this.$bus.$on(this.$keys.clearAudioTrack, this.clearAudioTrack); // music页，清空音频
-
-      this.$once("hook:beforeDestroy", () => {
-        this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
-        this.$bus.$off(this.$keys.editClip, this.editClip);
-        this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
-        this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
-        this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
-        this.$bus.$off(this.$keys.addAudioClip, this.addAudioClip);
-        this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
-      });
+      this.$bus.$on(this.$keys.delCaptionSticker, this.delCaptionSticker); // music页，清空音频
+    },
+    async delCaptionSticker(clip) {
+      await this.timelineClass.stopEngin();
+      let index = -1;
+      if (clip.type === CLIP_TYPES.CAPTION) {
+        this.timelineClass.timeline.removeCaption(clip.raw);
+        index = this.captions.findIndex(i => i.uuid === clip.uuid);
+      } else if (clip.type === CLIP_TYPES.STICKER) {
+        this.timelineClass.timeline.removeAnimatedSticker(clip.raw);
+        index = this.stickers.findIndex(i => i.uuid === clip.uuid);
+      }
+      this.timelineClass.seekTimeline();
+      this.deleteClipToVuex({ type: clip.type, index });
     },
     drop(e) {
       const data = JSON.parse(e.dataTransfer.getData("Text"));
@@ -350,11 +354,14 @@ export default {
       "onWebRequestWaitStatusChange",
       this.statusChangeEvent
     );
-    this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
     this.$bus.$off(this.$keys.editClip, this.editClip);
     this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
     this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
     this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
+    this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+    this.$bus.$off(this.$keys.addAudioClip, this.addAudioClip);
+    this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
+    this.$bus.$off(this.$keys.delCaptionSticker, this.delCaptionSticker);
   }
 };
 </script>

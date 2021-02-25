@@ -278,7 +278,6 @@ export default {
         const captureStartPoint = item.captureIn / this.activeClip.orgDuration;
         const captureEndPoint = item.captureOut / this.activeClip.orgDuration;
         const trimOutPoint = item.trimOut / this.activeClip.orgDuration;
-
         this.backgroundCover +=
           "rgba(100,100,100,.7) " +
           captureStartPoint * 100 +
@@ -388,6 +387,7 @@ export default {
       this.activeClip.trimOut = endTime;
       this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
+      console.log("sss", this.clipList);
       this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
     // 视频裁剪
