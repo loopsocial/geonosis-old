@@ -207,7 +207,7 @@ export default {
     return {
       clipList: [
         {
-          id:(Math.random*10).toFixed(),
+          id: (Math.random * 10).toFixed(),
           width: 1,
           trimIn: 0,
           trimOut: 15000000,
@@ -256,7 +256,7 @@ export default {
     }
   },
   mounted() {
-    document.body.addEventListener("click", this.handleDocumentClick);
+    document.body.addEventListener("mousedown", this.handleDocumentClick);
   },
   methods: {
     refreshBackgroundCover() {
@@ -486,7 +486,6 @@ export default {
     },
     handleLeftMouseDown(e) {
       e.stopPropagation();
-
       this.mousePos =
         this.$refs.clipList.getBoundingClientRect().left +
         this.captureLeft -
@@ -495,6 +494,11 @@ export default {
       this.captureEndPercentage =
         (this.captureWidth + this.captureLeft) /
         this.$refs.clipList.offsetWidth;
+
+      document.body.addEventListener("mousemove", this.handleLeftMouseMove);
+      document.body.addEventListener("mouseup", this.handleLeftMouseUp, {
+        once: true
+      });
     },
     handleLeftMouseMove(e) {
       e.preventDefault();
@@ -538,7 +542,6 @@ export default {
 
       this.refreshBackgroundCover();
       this.trimTimeline.seekTimeline(startTime);
-
       this.resetVector();
     },
     handleLeftMouseUp(e) {
@@ -555,7 +558,9 @@ export default {
 
       this.mouseStartX = e.clientX;
       document.body.addEventListener("mousemove", this.handleRightMouseMove);
-      document.body.addEventListener("mouseup", this.handleRightMouseUp);
+      document.body.addEventListener("mouseup", this.handleRightMouseUp, {
+        once: true
+      });
     },
     handleRightMouseMove(e) {
       e.preventDefault();
