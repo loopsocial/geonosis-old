@@ -136,8 +136,11 @@
             <div class="clip-item-container" @click="handleClipClick">
               <div
                 class="clip-item"
-                v-for="(clip, idx) of clipList"
-                :style="{ width: clip.width * 100 + '%' }"
+                v-for="(clip, idx) of activeClip.splitList"
+                :style="{
+                  width:
+                    calcSplittedItemWidth(clip.trimIn, clip.trimOut) * 100 + '%'
+                }"
                 :data-index="idx"
                 :key="clip.id"
               ></div>
@@ -209,16 +212,16 @@ export default {
   props: {},
   data() {
     return {
-      clipList: [
-        {
-          id: (Math.random() * 100).toFixed(),
-          width: 1,
-          trimIn: 0,
-          trimOut: 15000000,
-          captureIn: 0,
-          captureOut: 15000000
-        }
-      ],
+      // clipList: [
+      //   {
+      //     id: (Math.random() * 100).toFixed(),
+      //     width: 1,
+      //     trimIn: 0,
+      //     trimOut: 15000000,
+      //     captureIn: 0,
+      //     captureOut: 15000000
+      //   }
+      // ],
       height: 0,
       dialogVisible: false,
       captureWidth: 0, // 可计算用滑块宽度
@@ -243,7 +246,7 @@ export default {
   computed: {
     // 当前选中被编辑的视频
     activeClip() {
-      if (!this.currentVideoUuid) return;
+      if (!this.currentVideoUuid) return [];
       return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
 
@@ -263,18 +266,19 @@ export default {
     document.body.addEventListener("mousedown", this.handleDocumentClick);
   },
   methods: {
+    calcSplittedItemWidth(startTime, endTime) {
+      const { activeClip } = this;
+      return (
+        endTime / activeClip.orgDuration - startTime / activeClip.orgDuration
+      );
+    },
     refreshBackgroundCover() {
       this.backgroundCover = "";
-      this.clipList.forEach(item => {
+      this.activeClip.splitList.forEach(item => {
         const captureStartPoint = item.captureIn / this.activeClip.orgDuration;
         const captureEndPoint = item.captureOut / this.activeClip.orgDuration;
         const trimOutPoint = item.trimOut / this.activeClip.orgDuration;
-        console.log(
-          "endPoint",
-          captureEndPoint,
-          item.captureOut,
-          this.activeClip.orgDuration
-        );
+
         this.backgroundCover +=
           "rgba(100,100,100,.7) " +
           captureStartPoint * 100 +
@@ -334,22 +338,18 @@ export default {
       const splitterPercentage = this.splittreLeft;
       const trimTime = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
-      this.clipList.reduce((prev, cur, curIdx, arr) => {
-        if (
-          splitterPercentage < cur.width + prev &&
-          splitterPercentage > prev
-        ) {
+      this.activeClip.splitList.reduce((prev, cur, curIdx, arr) => {
+        const curWidth = this.calcSplittedItemWidth(cur.trimIn, cur.trimOut);
+        if (splitterPercentage < curWidth + prev && splitterPercentage > prev) {
           // 一分为二
           splitedArr = [
             {
-              width: splitterPercentage - prev,
               trimIn: cur.trimIn,
               trimOut: trimTime,
               captureIn: cur.trimIn,
               captureOut: trimTime
             },
             {
-              width: cur.width + prev - splitterPercentage,
               trimIn: trimTime,
               trimOut: cur.trimOut,
               captureIn: trimTime,
@@ -358,7 +358,7 @@ export default {
           ];
           arr.splice(curIdx, 1, ...splitedArr);
         }
-        return prev + cur.width;
+        return prev + curWidth;
       }, 0);
       this.refreshBackgroundCover();
     },
@@ -477,13 +477,15 @@ export default {
         }
       }
       this.background = bg.substring(0, bg.length - 1);
+      this.refreshBackgroundCover();
+      this.splittreLeft = 0;
     },
     // 处理切片的选中
     handleClipClick(e) {
       if (!e.target.dataset.index) return;
 
       this.activeIndex = parseInt(e.target.dataset.index);
-      const clip = this.clipList[this.activeIndex];
+      const clip = this.activeClip.splitList[this.activeIndex];
 
       this.duration = clip.captureOut - clip.captureIn;
 
@@ -511,7 +513,7 @@ export default {
       const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      const active = this.clipList[this.activeIndex];
+      const active = this.activeClip.splitList[this.activeIndex];
 
       this.captureLeft =
         (e.clientX - clipList.getBoundingClientRect().left + this.mousePos) /
@@ -565,7 +567,7 @@ export default {
       const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      const active = this.clipList[this.activeIndex];
+      const active = this.activeClip.splitList[this.activeIndex];
       this.captureWidth =
         (e.clientX -
           clipList.getBoundingClientRect().left -
@@ -612,7 +614,7 @@ export default {
       const { clipList } = this.$refs;
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      const active = this.clipList[this.activeIndex];
+      const active = this.activeClip.splitList[this.activeIndex];
       this.captureLeft =
         (e.clientX - this.mousePos - clipList.getBoundingClientRect().left) /
         clipList.offsetWidth;
@@ -907,7 +909,14 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       border: 1px solid #fff;
       width: 0;
       transform: translateX(-1px);
-      z-index: 999;
+      z-index: 1000;
+      &::before {
+        content: "";
+        display: block;
+        width: 5px;
+        height: 100%;
+        transform: translateX(-2px);
+      }
     }
 
     .clip-list-container {

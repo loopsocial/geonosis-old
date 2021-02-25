@@ -47,6 +47,14 @@ export class VideoClip extends Clip {
     this.trimIn = option.trimIn || 0;
     this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.duration;
+    this.splitList = [
+      {
+        trimIn: 0,
+        trimOut: option.trimOut || option.duration,
+        captureIn: 0,
+        captureOut: option.trimOut || option.duration
+      }
+    ];
     this.videoFxs = [];
     this.motion = option.motion === undefined ? true : !!option.motion;
     this.thumbnails = option.thumbnails || [];
