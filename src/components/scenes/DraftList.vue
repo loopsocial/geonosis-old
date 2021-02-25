@@ -87,13 +87,13 @@
           id="trim-window"
         ></canvas>
 
-        <div
-          @click="handleSplit"
-          class="split-btn inline-block"
-          :style="{ visibility: isImage ? 'hidden' : 'visible' }"
-        >
-          <svg-icon class="split-icon" icon-class="split"></svg-icon>
-          <span>{{ $t("split") }}</span>
+        <div @click="handleSplit" class="split-btn inline-block">
+          <svg-icon
+            class="split-icon"
+            icon-class="split"
+            v-if="!isImage"
+          ></svg-icon>
+          <span>{{ btnText }}</span>
         </div>
       </div>
 
@@ -236,6 +236,7 @@ export default {
       isPlaying: false,
       waiting: false,
       imageDuration: 0,
+      motion: true,
       mousePos: 0,
       backgroundPosition: 0,
       activeIndex: -1, // 当前被选中的被分割的片段
@@ -260,6 +261,12 @@ export default {
     totalDuration() {
       if (!this.videos.length) return NaN;
       return this.videos.reduce((prev, cur) => prev + cur.duration, 0);
+    },
+    btnText() {
+      if (this.isImage) {
+        return this.motion ? this.$t("motionOn") : this.$t("motionOff");
+      }
+      return this.$t("split");
     }
   },
   mounted() {
@@ -334,6 +341,10 @@ export default {
     },
 
     handleSplit() {
+      if (this.isImage) {
+        this.motion = !this.motion;
+        return;
+      }
       const splitterPercentage = this.splittreLeft;
       const trimTime = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
@@ -366,10 +377,10 @@ export default {
     },
 
     handleImageDurationPlus() {
-      this.imageDuration += 1000;
+      this.imageDuration += 1000000;
     },
     handleImageDurationMinus() {
-      this.imageDuration -= 1000;
+      this.imageDuration -= 1000000;
       if (this.imageDuration < 0) {
         this.imageDuration = 0;
       }
@@ -392,7 +403,14 @@ export default {
       this.dialogVisible = false;
       // 添加特效参数
       this.activeClip.splitList.map(item => (item.videoFxs = []));
-      console.log("sss", this.activeClip);
+      if (this.isImage) {
+        // 图片处理
+        this.activeClip.splitList[0].trimOut = this.imageDuration;
+        this.activeClip.splitList[0].captureOut = this.imageDuration;
+        this.activeClip.motion = this.motion;
+      } else {
+        // 视频处理
+      }
       // 底层执行操作
       this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
@@ -400,11 +418,17 @@ export default {
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      this.isImage ||
-        this.$nextTick(() => {
-          this.createTrimTimeline();
+      // this.isImage ||
+      this.$nextTick(() => {
+        this.createTrimTimeline();
+        if (this.isImage) {
+          const { captureIn, captureOut } = this.activeClip.splitList[0];
+          this.imageDuration = captureOut - captureIn;
+          this.motion = this.activeClip.motion;
+        } else {
           this.getClipListImages();
-        });
+        }
+      });
     },
     del(index) {
       this.deleteClipToVuex({
@@ -1036,7 +1060,9 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     "next": "Next",
     "cancel": "Cancel",
     "split":"Split",
-    "totalVideoDuration":"Total video duration"
+    "totalVideoDuration":"Total video duration",
+    "motionOn": "Motion On",
+    "motionOf": "Motion Off"
   }
 }
 </i18n>
