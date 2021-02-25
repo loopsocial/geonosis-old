@@ -343,12 +343,15 @@ export default {
           // 一分为二
           splitedArr = [
             {
+              raw: cur.raw,
+              videoFxs: cur.videoFxs || [],
               trimIn: cur.trimIn,
               trimOut: trimTime,
               captureIn: cur.trimIn,
               captureOut: trimTime
             },
             {
+              videoFxs: cur.videoFxs || [],
               trimIn: trimTime,
               trimOut: cur.trimOut,
               captureIn: trimTime,
@@ -387,7 +390,10 @@ export default {
       this.activeClip.trimOut = endTime;
       this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
-      console.log("sss", this.clipList);
+      // 添加特效参数
+      this.activeClip.splitList.map(item => (item.videoFxs = []));
+      console.log("sss", this.activeClip);
+      // 底层执行操作
       this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
     // 视频裁剪

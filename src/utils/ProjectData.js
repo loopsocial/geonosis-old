@@ -52,7 +52,9 @@ export class VideoClip extends Clip {
         trimIn: 0,
         trimOut: option.trimOut || option.duration,
         captureIn: 0,
-        captureOut: option.trimOut || option.duration
+        captureOut: option.trimOut || option.duration,
+        raw: null,
+        videoFxs: []
       }
     ];
     this.videoFxs = [];

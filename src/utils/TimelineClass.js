@@ -120,19 +120,47 @@ export default class TimelineClass {
     }
     if (Array.isArray(this.videoTrack.clips)) {
       this.videoTrack.clips.map(clip => {
-        clip.raw = this.addVideoClip(clip, this.videoTrack.raw);
-        this.addVideoFx(clip);
-        if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {
-          clip.raw.setImageMotionAnimationEnabled(false);
-        }
+        clip.splitList.reduce((res, item) => {
+          const clipInfo = {
+            ...clip,
+            inPoint: res,
+            trimIn: item.captureIn,
+            trimOut: item.captureOut
+          };
+          item.raw = this.addVideoClip(clipInfo, this.videoTrack.raw);
+          this.addVideoFx(item);
+          if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {
+            item.raw.setImageMotionAnimationEnabled(false);
+          }
+          return res + item.captureOut - item.captureIn;
+        }, clip.inPoint);
       });
     }
   }
   // 重新添加一次clip, 用于修改trim
   afreshVideoClip(clip) {
-    const index = clip.raw.getIndex();
-    this.videoTrack.raw.removeClip(index, false);
-    this.addVideoClip(clip, this.videoTrack.raw);
+    // 删除这个clip下所有的切片
+    clip.splitList.map(({ raw }) => {
+      if (raw) {
+        const index = raw.getIndex();
+        console.log("要删除的clip", raw.getInPoint(), index);
+        this.videoTrack.raw.removeClip(index, false);
+      }
+    });
+    // 修改后的clip切片重新插入一次
+    clip.splitList.reduce((res, item) => {
+      item.raw = this.videoTrack.raw.insertClip2(
+        clip.m3u8Path,
+        item.captureIn,
+        item.captureOut,
+        res
+      );
+      this.addVideoFx(item);
+      if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {
+        item.raw.setImageMotionAnimationEnabled(false);
+      }
+      return res + item.captureOut - item.captureIn;
+    }, clip.inPoint);
   }
   // clip添加特效, 用户修剪视频
   addVideoFx(clip) {
