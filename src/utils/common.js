@@ -49,3 +49,24 @@ export function vectorRotate(vector, angle, origin = { x: 0, y: 0 }) {
     y: origin.y + y1
   };
 }
+
+export function RGBAToNvsColor(rgbaValue) {
+  if (!rgbaValue) {
+    return new NvsColor(1, 1, 1, 0);
+  }
+  var rgba = rgbaValue.match(/(\d(\.\d+)?)+/g);
+  return new NvsColor(
+    parseInt(rgba[0]) / 255.0,
+    parseInt(rgba[1]) / 255.0,
+    parseInt(rgba[2]) / 255.0,
+    parseInt(rgba[3]) / 1.0
+  );
+}
+export function NvsColorToRGBA(color) {
+  let r = Math.round(color.r * 255);
+  let g = Math.round(color.g * 255);
+  let b = Math.round(color.b * 255);
+  let a = color.a;
+  // console.log('NvsColorToRGBA', 'rgb(' + r + ',' + g + ',' + b + ',' + a + ')')
+  return `rgb(${r}, ${g}, ${b}, ${a})`;
+}

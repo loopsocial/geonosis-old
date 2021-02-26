@@ -7,9 +7,8 @@ export default class TimelineClass {
     const { videoTrack, audioTrack, width, height, captions, stickers } =
       options || {};
     this.videoTrack = videoTrack || {};
-    console.log("videoTrack", videoTrack);
     this.audioTrack = audioTrack || {
-      raw: options.trakcRaw,
+      raw: options.trackRaw,
       clips: []
     };
     this.width = width || 540;
@@ -213,8 +212,7 @@ export default class TimelineClass {
       duration,
       styleDesc,
       fontSize,
-      scaleX,
-      scaleY,
+      scale,
       rotation,
       translationX,
       translationY
@@ -232,8 +230,10 @@ export default class TimelineClass {
     }
     caption.raw = captionRaw;
     this.captions.push(caption); // 可能需要改成按照inPoint进行插入
-    scaleX !== undefined && captionRaw.setScaleX(scaleX);
-    scaleY !== undefined && captionRaw.setScaleY(scaleY);
+    if (scale !== undefined) {
+      captionRaw.setScaleX(scale);
+      captionRaw.setScaleY(scale);
+    }
     rotation !== undefined && captionRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationY !== undefined) {
       const { x, y } = getCenter(captionRaw);

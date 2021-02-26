@@ -1,6 +1,7 @@
 <template>
   <div class="font-panel">
-    <el-row :gutter="7">
+    <i class="el-icon-arrow-left back-icon" @click="$emit('close')"></i>
+    <el-row :gutter="7" class="scale">
       <el-col :span="12" class="animation-wrapper">
         <div class="animation box">
           <div class="title">
@@ -12,34 +13,59 @@
         <div class="scale box">
           <div class="title">
             {{ $t("scale") }}
-            <div class="scale-value flex">{{ scale }}%</div>
+            <div class="scale-value flex">{{ clip.scale | toPercentage }}</div>
           </div>
           <el-slider
-            v-model="scale"
+            v-model="clip.scale"
             :show-tooltip="false"
-            class="flex"
+            @change="changeScale"
+            :max="3"
+            :min="0"
+            :step="0.01"
+            class="flex ln-slider"
           ></el-slider>
         </div>
       </el-col>
     </el-row>
-    <el-row>
+    <el-row class="font" v-if="clip && clip.type === 'caption'">
       <el-col class="font-wrapper" :gutter="7">
         <div class="font box">
           <div class="title">{{ $t("font") }}</div>
           <div class="content">
-            <el-select class="ln-select" v-model="value"></el-select>
+            <el-select
+              class="ln-select font-select"
+              v-model="clip.font"
+              @change="changeFont"
+              popper-class="ln-select-popper"
+              placeholder=""
+            >
+              <el-option
+                v-for="item in fonts"
+                :key="item.id"
+                :label="item.label"
+                :disabled="item.installing"
+                :value="item.stringValue"
+              >
+                <span style="float: left">{{ item.label }}</span>
+                <i class="el-icon-loading" v-if="item.installing"></i>
+              </el-option>
+            </el-select>
 
-            <el-radio-group v-model="alignType" class="ln-radio-group">
+            <el-radio-group
+              v-model="clip.align"
+              class="ln-radio-group"
+              @change="changeAlign"
+            >
               <el-radio-button label="left">
                 <svg-icon
-                  class="align-icon"
+                  class="align-icon icon-border"
                   icon-class="align-left"
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
               <el-radio-button label="center">
                 <svg-icon
-                  class="align-icon"
+                  class="align-icon icon-border"
                   icon-class="align-center"
                   ref="align"
                 ></svg-icon>
@@ -57,20 +83,48 @@
               <div class="text-color">
                 {{ $t("textColor") }}
                 <el-color-picker
-                  v-model="textColor"
+                  v-model="clip.fontColor"
                   show-alpha
+                  :predefine="predefineColors"
                   class="ln-color-picker"
+                  @change="changeColor"
                 ></el-color-picker>
               </div>
               <div class="bg-color">
                 {{ $t("backgroundColor") }}
                 <el-color-picker
-                  v-model="backgroundColor"
+                  v-model="clip.backgroundColor"
                   show-alpha
                   class="ln-color-picker"
+                  :predefine="predefineColors"
+                  @change="changeBackground"
                 ></el-color-picker>
               </div>
             </div>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
+    <el-row :gutter="7" class="duration">
+      <el-col :span="12" class="wrapper">
+        <div class="box">
+          <div class="title">
+            <span>{{ $t("duration") }}</span>
+          </div>
+          <div class="duration-bar flex">
+            <svg-icon
+              @click="changeDuration(1)"
+              class="duration-modify-icon"
+              icon-class="plus"
+            ></svg-icon>
+            <span class="duration-text white">{{
+              (clip.duration / 1000) | msFormat
+            }}</span>
+            <svg-icon
+              @click="changeDuration(-1)"
+              class="duration-modify-icon"
+              icon-class="minus"
+            ></svg-icon>
           </div>
         </div>
       </el-col>
@@ -79,18 +133,96 @@
 </template>
 
 <script>
+import { installAsset } from "@/utils/AssetsUtils";
+import { DEFAULT_FONT, TEXT_ALIGN, CLIP_TYPES } from "@/utils/Global";
+import { RGBAToNvsColor } from "@/utils/common";
 export default {
+  props: {
+    clip: Object
+  },
   data() {
     return {
-      scale: 0,
-      alignType: "",
-      value: "",
-      textColor: "",
-      backgroundColor: ""
+      fonts: [],
+      predefineColors: [
+        "#ff0100",
+        "#ff5050",
+        "#02b050",
+        "#50e3de",
+        "#a400c5",
+        "#5b20f3",
+        "#000000",
+        "#4a4a4a",
+        "#9b9b9b",
+        "#ffffff"
+      ]
     };
   },
+  filters: {
+    toPercentage(v) {
+      return (v * 100).toFixed() + "%";
+    }
+  },
+  computed: {},
   mounted() {
-    console.log(this.$refs.align);
+    console.log(this.clip);
+    this.installFont();
+  },
+  methods: {
+    changeDuration(v) {
+      this.clip.duration += v * 1000000;
+      const outPoint = this.clip.inPoint + this.clip.duration;
+      this.clip.raw.changeOutPoint(outPoint);
+      this.$bus.$emit(this.$keys.seek);
+    },
+    async installFont() {
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 6,
+          page: 0,
+          pageSize: 20
+        }
+      });
+      this.fonts = res.data.materialList.map(item => {
+        if (item.stringValue === DEFAULT_FONT) {
+          item.installing = false;
+        } else {
+          item.installing = true;
+          installAsset(item.packageUrl).then(() => {
+            item.installing = false;
+          });
+        }
+        item.label = item.displayName;
+        return item;
+      });
+    },
+    changeFont() {
+      this.clip.raw.setFontFamily(this.clip.font);
+      this.$bus.$emit(this.$keys.seek);
+    },
+    changeColor(color) {
+      color = RGBAToNvsColor(color);
+      this.clip.raw.setTextColor(color);
+      this.$bus.$emit(this.$keys.seek);
+    },
+    changeBackground(color) {
+      color = RGBAToNvsColor(color);
+      this.clip.raw.setBackgroundColor(color);
+      this.$bus.$emit(this.$keys.seek);
+    },
+    changeAlign(e) {
+      this.clip.raw.setTextAlignment(TEXT_ALIGN[e]);
+      this.$bus.$emit(this.$keys.seek);
+    },
+    changeScale(scale) {
+      if (this.clip.type === CLIP_TYPES.STICKER) {
+        this.clip.raw.setScale(scale);
+      } else if (this.clip.type === CLIP_TYPES.CAPTION) {
+        this.clip.raw.setScaleX(scale);
+        this.clip.raw.setScaleY(scale);
+      }
+      this.$bus.$emit(this.$keys.seek);
+      this.$bus.$emit(this.$keys.drawBox);
+    }
   }
 };
 </script>
@@ -98,10 +230,17 @@ export default {
 <style lang="scss" scoped>
 .font-panel {
   margin-right: 65px;
+  .back-icon {
+    font-size: 20px;
+    color: white;
+    margin: 20px 0 20px 8px;
+    font-weight: bolder;
+    cursor: pointer;
+  }
   .el-row {
     width: 100%;
   }
-  .el-row:nth-child(1) {
+  .el-row.scale {
     .el-col > div {
       height: 9.2vw;
     }
@@ -122,7 +261,7 @@ export default {
       height: calc(100% - 29px);
     }
   }
-  .el-row:nth-child(2) {
+  .el-row.font {
     padding-right: 7px;
     margin-top: 7px;
     .el-col > div {
@@ -155,7 +294,19 @@ export default {
       }
     }
   }
-
+  .duration {
+    margin-top: 7px;
+    .duration-bar {
+      padding: 16px 0;
+    }
+    .duration-modify-icon {
+      width: 24px;
+      height: 24px;
+    }
+    .duration-text {
+      margin: 0 12px;
+    }
+  }
   .box {
     padding: 7px 10px;
     background: rgba(255, 255, 255, 0.1);
@@ -170,3 +321,16 @@ export default {
   }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "duration": "Duration",
+    "font": "Font",
+    "animation": "Animation",
+    "scale": "Scale",
+    "textColor": "Text Color",
+    "backgroundColor": "Background Color"
+  }
+}
+</i18n>

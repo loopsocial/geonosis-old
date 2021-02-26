@@ -13,7 +13,7 @@ import Preview from "../components/Preview";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
-import { CLIP_TYPES } from "@/utils/Global";
+import { CLIP_TYPES, DEFAULT_FONT } from "@/utils/Global";
 
 export default {
   components: {
@@ -63,7 +63,7 @@ export default {
         }
       });
       const fonts = res.data.materialList;
-      const font = fonts.find(item => item.id === "NotoSansCJK-Regular");
+      const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
       await installAsset(font.packageUrl);
     }
   }

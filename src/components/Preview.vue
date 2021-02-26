@@ -91,6 +91,7 @@ export default {
           this.flow = null;
         }
       }
+      this.$bus.$emit(this.$keys.setPanel, target);
     },
     // 查找当前时刻点击位置是否有字幕/贴纸
     findClipAtNowPoint(e) {
@@ -143,6 +144,30 @@ export default {
       this.$bus.$on(this.$keys.addAudioClip, this.addAudioClip); // music页，添加audio
       this.$bus.$on(this.$keys.clearAudioTrack, this.clearAudioTrack); // music页，清空音频
       this.$bus.$on(this.$keys.delCaptionSticker, this.delCaptionSticker); // music页，清空音频
+      this.$bus.$on(this.$keys.seek, this.seekTimeline);
+      this.$bus.$on(this.$keys.closePanel, this.closePanel);
+      this.$bus.$on(this.$keys.drawBox, this.drawBox);
+    },
+    drawBox(clip) {
+      if (this.flow) {
+        this.flow.initStage();
+      } else {
+        this.flow = new WorkFlow({
+          containerId: "work-flow",
+          clip: clip,
+          timelineClass: this.timelineClass
+        });
+      }
+    },
+    closePanel() {
+      this.$bus.$emit(this.$keys.setPanel, null);
+      if (this.flow) {
+        this.flow.destroy();
+        this.flow = null;
+      }
+    },
+    seekTimeline(t) {
+      this.timelineClass.seekTimeline(t);
     },
     async delCaptionSticker(clip) {
       await this.timelineClass.stopEngin();
@@ -265,6 +290,7 @@ export default {
       this.timelineClass.connectLiveWindow(canvasId);
       this.$nextTick(() => {
         this.timelineClass.seekTimeline(0);
+        this.seekVal = 0;
       });
     },
     getTimeline(callback) {
@@ -362,6 +388,7 @@ export default {
     this.$bus.$off(this.$keys.addAudioClip, this.addAudioClip);
     this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
     this.$bus.$off(this.$keys.delCaptionSticker, this.delCaptionSticker);
+    this.$bus.$off(this.$keys.seek, this.seekTimeline);
   }
 };
 </script>

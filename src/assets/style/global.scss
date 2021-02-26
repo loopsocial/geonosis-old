@@ -106,6 +106,36 @@ body .ln-select {
     background: rgb(65, 65, 65);
     border: none;
   }
+  .el-input__inner {
+    color: #999;
+  }
+}
+body .ln-select-popper {
+  border-color: $main-bgc;
+  .el-select-dropdown__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #999;
+    &:hover {
+      background-color: $select-hover;
+    }
+    &.is-disabled {
+      background-color: $select-bgc;
+    }
+    &.hover {
+      background-color: $select-hover;
+    }
+  }
+  .el-select-dropdown__wrap {
+    background-color: $select-bgc;
+  }
+  .popper__arrow::after {
+    border-bottom-color: $select-bgc !important;
+  }
+  .popper__arrow {
+    border-bottom-color: $main-bgc !important;
+  }
 }
 
 // 颜色选择器
@@ -119,10 +149,16 @@ body .ln-color-picker {
       overflow: hidden;
     }
   }
+  .el-color-picker__icon {
+    display: none;
+  }
 }
 
 // 单选组：
 body .ln-radio-group {
+  background-color: $select-hover;
+  border-radius: 6px;
+  margin-top: 8px;
   .el-radio-button__inner {
     background: transparent;
     border: none !important;
@@ -135,6 +171,14 @@ body .ln-radio-group {
   .el-radio-button__orig-radio:checked + .el-radio-button__inner {
     background-color: transparent;
     box-shadow: none;
+  }
+  .align-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .icon-border {
+    border-right: 1px solid $border-color;
+    padding-right: 10px;
   }
 }
 
@@ -212,5 +256,17 @@ body .el-loading-mask {
   }
 }
 .white {
-  color: white;
+  color: $white;
+}
+
+body .ln-slider {
+  .el-slider__runway {
+    background-color: $border-color;
+  }
+  .el-slider__bar {
+    background-color: $white;
+  }
+  .el-slider__button {
+    border-color: $white;
+  }
 }

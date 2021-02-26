@@ -7,4 +7,8 @@ export default {
   afreshVideoClip: "afreshVideoClip",
   addAudioClip: "addAudioClip",
   clearAudioTrack: "clearAudioTrack",
+  setPanel: "setPanel",
+  seek: "seek",
+  closePanel: "closePanel",
+  drawBox: "drawBox"
 };

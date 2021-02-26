@@ -49,5 +49,12 @@ export const TRACK_TYPES = {
   CAPTION: "captionTrack",
   STICKER: "stickerTrack"
 };
-
+export const DEFAULT_FONT = "Noto Sans CJK JP";
 export const AUDIO_MIN_DURTAION = 1000 * 1000; // 音乐最小裁剪限制，单位微秒
+
+// 字幕对齐方式
+export const TEXT_ALIGN = {
+  left: 0,
+  center: 1,
+  right: 2
+};

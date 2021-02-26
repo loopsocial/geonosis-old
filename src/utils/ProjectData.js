@@ -104,10 +104,13 @@ export class CaptionClip extends Clip {
     this.styleDesc = option.desc || option.id;
     this.text = option.text || CLIP_TYPES.CAPTION;
     this.fontSize = option.fontSize;
-    this.scaleX = option.scaleX || 1;
-    this.scaleY = option.scaleY || 1;
+    this.scale = option.scale || 1;
     this.rotation = option.rotation || 0;
     this.uuid = generateUUID();
+    this.align = "center"; // string, left/center/right
+    this.color = ""; // RGBA
+    this.backgroundColor = "";
+    this.font = ""; // stringValue
     // 相对于监视器中心点的位置
     this.translationX = option.translationX;
     this.translationY = option.translationY;

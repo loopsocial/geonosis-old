@@ -1,13 +1,12 @@
 <template>
   <div class="materials">
-    <el-tabs v-model="activeName" class="ln-tabs-body">
+    <el-tabs v-model="activeName" class="ln-tabs-body" v-show="!showPanel">
       <el-tab-pane label="text" name="text" lazy>
         <template #label>
           <svg-icon class="text-icon" icon-class="text"></svg-icon>
           {{ $t("text") }}
         </template>
         <TextList />
-        <FontPanel />
       </el-tab-pane>
       <el-tab-pane label="sticker" name="sticker" lazy>
         <template #label>
@@ -17,6 +16,12 @@
         <StickerList />
       </el-tab-pane>
     </el-tabs>
+    <FontPanel
+      class="ln-tabs-body"
+      v-if="showPanel"
+      :clip="editClip"
+      @close="close"
+    />
   </div>
 </template>
 
@@ -32,10 +37,26 @@ export default {
   },
   data() {
     return {
-      activeName: "text"
+      activeName: "text",
+      showPanel: false,
+      editClip: null
     };
   },
-  methods: {}
+  created() {
+    this.$bus.$on(this.$keys.setPanel, this.setPanel);
+  },
+  methods: {
+    setPanel(clip) {
+      this.showPanel = !!clip;
+      this.editClip = clip;
+    },
+    close() {
+      this.$bus.$emit(this.$keys.closePanel);
+    }
+  },
+  beforeDestroy() {
+    this.$bus.$off(this.$keys.setPanel, this.setPanel);
+  }
 };
 </script>
 
