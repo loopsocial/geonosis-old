@@ -4,10 +4,10 @@
       <div
         :class="[
           'draft-list-item',
-          currentVideoUuid === item.uuid ? 'onfocus' : ''
+          currentSplittedUuid === item.splittedUuid ? 'onfocus' : ''
         ]"
-        v-for="(item, index) in videos"
-        :key="item.uuid"
+        v-for="(item, index) in allSplitted"
+        :key="item.splittedUuid"
         @click="selected(item)"
         :style="{
           background: `linear-gradient(
@@ -19,11 +19,18 @@
         }"
       >
         <div class="order-number">{{ index + 1 }}</div>
-        <div class="duration">{{ format(item.duration) }}</div>
+        <div class="duration">
+          {{
+            format(
+              item.splitList[0].captureOut - item.splitList[0].captureIn,
+              true
+            )
+          }}
+        </div>
         <transition name="el-fade-in-linear">
           <div
             class="operate-btns"
-            v-if="currentVideoUuid === item.uuid"
+            v-if="currentSplittedUuid === item.splittedUuid"
             @click.stop
           >
             <div class="icon flex">
@@ -104,7 +111,7 @@
           class="duration-modify-icon"
           icon-class="plus"
         ></svg-icon>
-        <span class="white">{{ format(imageDuration) }}</span>
+        <span class="white">{{ format(imageDuration, true) }}</span>
         <svg-icon
           @click="handleImageDurationMinus"
           class="duration-modify-icon"
@@ -112,12 +119,11 @@
         ></svg-icon>
       </div>
       <!-- 缩略图 -->
-      <div class="clips-wrapper margin-top-20" v-else>
-        <svg-icon
-          @click="handlePlay"
-          class="play-icon"
-          :icon-class="!isPlaying ? 'play-button' : 'pause'"
-        ></svg-icon>
+      <div class="clips-wrapper margin-top-20" ref="clipWrapper" v-else>
+        <div class="play-icon flex" @click="handlePlay">
+          <svg-icon :icon-class="!isPlaying ? 'play' : 'pause'"></svg-icon>
+        </div>
+
         <div class="clip-list-container">
           <div class="clip-list-full" ref="clipList">
             <div
@@ -136,7 +142,7 @@
             <div class="clip-item-container" @click="handleClipClick">
               <div
                 class="clip-item"
-                v-for="(clip, idx) of activeClip.splitList"
+                v-for="(clip, idx) of splitList"
                 :style="{
                   width:
                     calcSplittedItemWidth(clip.trimIn, clip.trimOut) * 100 + '%'
@@ -156,7 +162,7 @@
               ref="capture"
             >
               <div class="capture-inner" @mousedown="handleCaptureMouseDown">
-                <div class="slice-duration">{{ format(duration) }}</div>
+                <div class="slice-duration">{{ format(duration, true) }}</div>
                 <div class="left-controller" @mousedown="handleLeftMouseDown">
                   <svg-icon
                     class="arrow-icon"
@@ -185,7 +191,10 @@
       </div>
 
       <span slot="footer" class="dialog-footer flex">
-        <span>{{ $t("totalVideoDuration") }} {{ format(totalDuration) }}</span>
+        <span
+          >{{ $t("totalVideoDuration") }}
+          {{ format(totalDuration, true) }}</span
+        >
         <el-button
           class="round-btn white-btn"
           :style="{ background: '#2B2B2B' }"
@@ -201,7 +210,7 @@
 </template>
 
 <script>
-import { us2time } from "../../utils/common";
+import { us2hm, us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip } from "@/utils/ProjectData";
@@ -212,16 +221,7 @@ export default {
   props: {},
   data() {
     return {
-      // clipList: [
-      //   {
-      //     id: (Math.random() * 100).toFixed(),
-      //     width: 1,
-      //     trimIn: 0,
-      //     trimOut: 15000000,
-      //     captureIn: 0,
-      //     captureOut: 15000000
-      //   }
-      // ],
+      currentSplitList: [],
       height: 0,
       dialogVisible: false,
       captureWidth: 0, // 可计算用滑块宽度
@@ -240,27 +240,39 @@ export default {
       mousePos: 0,
       backgroundPosition: 0,
       activeIndex: -1, // 当前被选中的被分割的片段
-      backgroundCover: ""
-      // "rgba(100,100,100,.7) 100px, transparent 0, transparent 88%, rgba(100,100,100,.7) 0"
+      backgroundCover: "",
+      splitList: [],
+      totalDuration: 0,
+      currentSplittedUuid: ""
     };
   },
   computed: {
+    allSplitted() {
+      const arr = [];
+      for (let i = 0; i < this.videos.length; i++) {
+        const video = this.videos[i];
+        for (let j = 0; j < video.splitList.length; j++) {
+          const splittedItem = video.splitList[j];
+          arr.push({
+            ...video,
+            splitList: [splittedItem],
+            splittedUuid: video.uuid + "-" + j
+          });
+        }
+      }
+      return arr;
+    },
     // 当前选中被编辑的视频
     activeClip() {
-      if (!this.currentVideoUuid) return [];
+      if (!this.currentVideoUuid) return {};
       return this.videos.find(item => this.currentVideoUuid === item.uuid);
     },
-
     isImage() {
       return this.activeClip && this.activeClip.videoType === CLIP_TYPES.IMAGE;
     },
     videoDuration() {
       if (!this.activeClip) return NaN;
       return this.activeClip.duration;
-    },
-    totalDuration() {
-      if (!this.videos.length) return NaN;
-      return this.videos.reduce((prev, cur) => prev + cur.duration, 0);
     },
     btnText() {
       if (this.isImage) {
@@ -281,7 +293,7 @@ export default {
     },
     refreshBackgroundCover() {
       this.backgroundCover = "";
-      this.activeClip.splitList.forEach(item => {
+      this.splitList.forEach(item => {
         const captureStartPoint = item.captureIn / this.activeClip.orgDuration;
         const captureEndPoint = item.captureOut / this.activeClip.orgDuration;
         const trimOutPoint = item.trimOut / this.activeClip.orgDuration;
@@ -305,7 +317,9 @@ export default {
     },
     handleDocumentClick(e) {
       e.stopPropagation();
-      const isOnClipList = e.path.find(item => item === this.$refs.clipList);
+      const isOnClipList = e.path.find(
+        item => item === this.$refs.clipList || item === this.$refs.clipWrapper
+      );
       if (isOnClipList) return;
       this.activeIndex = -1;
     },
@@ -346,9 +360,9 @@ export default {
         return;
       }
       const splitterPercentage = this.splittreLeft;
-      const trimTime = splitterPercentage * this.activeClip.orgDuration;
+      const splitPoint = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
-      this.activeClip.splitList.reduce((prev, cur, curIdx, arr) => {
+      this.splitList.reduce((prev, cur, curIdx, arr) => {
         const curWidth = this.calcSplittedItemWidth(cur.trimIn, cur.trimOut);
         if (splitterPercentage < curWidth + prev && splitterPercentage > prev) {
           // 一分为二
@@ -357,15 +371,15 @@ export default {
               raw: cur.raw,
               videoFxs: cur.videoFxs || [],
               trimIn: cur.trimIn,
-              trimOut: trimTime,
+              trimOut: splitPoint,
               captureIn: cur.trimIn,
-              captureOut: trimTime
+              captureOut: splitPoint
             },
             {
               videoFxs: cur.videoFxs || [],
-              trimIn: trimTime,
+              trimIn: splitPoint,
               trimOut: cur.trimOut,
-              captureIn: trimTime,
+              captureIn: splitPoint,
               captureOut: cur.trimOut
             }
           ];
@@ -374,6 +388,7 @@ export default {
         return prev + curWidth;
       }, 0);
       this.refreshBackgroundCover();
+      this.calcDuration();
     },
 
     handleImageDurationPlus() {
@@ -386,8 +401,8 @@ export default {
       }
     },
     handlePlaying(timeline, currentTime) {
-      this.vectorLeft =
-        this.calcCurrentPercentage(currentTime) * this.captureWidth;
+      console.log("currentTime", currentTime);
+      this.splittreLeft = this.calcCurrentPercentage(currentTime);
     },
     resetVector() {
       this.vectorLeft = this.captureLeft;
@@ -395,11 +410,12 @@ export default {
     },
     handleResize() {},
     handleNext() {
-      const startTime = this.getStartTime();
-      const endTime = this.getEndTime();
-      this.activeClip.trimIn = startTime;
-      this.activeClip.trimOut = endTime;
-      this.activeClip.duration = endTime - startTime;
+      this.activeClip.splitList = this.splitList;
+      // const startTime = this.getStartTime();
+      // const endTime = this.getEndTime();
+      // this.activeClip.trimIn = startTime;
+      // this.activeClip.trimOut = endTime;
+      // this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
       // 添加特效参数
       this.activeClip.splitList.map(item => (item.videoFxs = []));
@@ -414,6 +430,9 @@ export default {
       // 底层执行操作
       this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
     },
+    initSplit() {
+      this.splitList = this.activeClip.splitList.map(item => ({ ...item }));
+    },
     // 视频裁剪
     cut(item) {
       this.dialogVisible = true;
@@ -426,6 +445,7 @@ export default {
           this.imageDuration = captureOut - captureIn;
           this.motion = this.activeClip.motion;
         } else {
+          this.initSplit();
           this.getClipListImages();
         }
       });
@@ -441,7 +461,7 @@ export default {
     },
     // 计算出当前播放位置占总体百分比
     calcCurrentPercentage(currentTime) {
-      const currentPercentage = currentTime / this.duration;
+      const currentPercentage = currentTime / this.activeClip.orgDuration;
       return currentPercentage;
     },
     // 创建监视器时间线
@@ -458,10 +478,11 @@ export default {
       this.trimTimeline.seekTimeline();
     },
     selected(item) {
+      this.currentSplittedUuid = item.splittedUuid;
       this.currentVideoUuid = item.uuid;
     },
-    format(ms) {
-      return us2time(ms);
+    format(ms, hm = false) {
+      return hm ? us2hm(ms) : us2time(ms);
     },
     handleUndo() {
       //
@@ -469,9 +490,24 @@ export default {
     handleRedo() {
       //
     },
-    handlePlay() {
+
+    handlePlay(e) {
+      e.stopPropagation();
+
       if (!this.isPlaying) {
-        this.trimTimeline.play();
+        if (this.activeIndex === -1) {
+          // 片段未选中
+          this.trimTimeline.play(0);
+        } else {
+          // 片段已选中
+          this.trimTimeline.seekTimeline(
+            this.captureLeft * this.activeClip.orgDuration
+          );
+          this.trimTimeline.play(
+            undefined,
+            this.splitList[this.activeIndex].captureOut
+          );
+        }
       } else {
         this.trimTimeline.stop();
       }
@@ -500,8 +536,9 @@ export default {
           counter++;
         }
       }
-      this.background = bg.substring(0, bg.length - 1);
+      this.background = bg.substring(0, bg.length - 10) + "repeat";
       this.refreshBackgroundCover();
+      this.calcDuration();
       this.splittreLeft = 0;
     },
     // 处理切片的选中
@@ -509,9 +546,9 @@ export default {
       if (!e.target.dataset.index) return;
 
       this.activeIndex = parseInt(e.target.dataset.index);
-      const clip = this.activeClip.splitList[this.activeIndex];
+      const clip = this.splitList[this.activeIndex];
 
-      this.duration = clip.captureOut - clip.captureIn;
+      this.calcDuration(clip.captureIn, clip.captureOut);
 
       this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
       console.log("clip.captureIn", clip.captureIn);
@@ -537,7 +574,7 @@ export default {
       e.preventDefault();
 
       const { clipList } = this.$refs;
-      const active = this.activeClip.splitList[this.activeIndex];
+      const active = this.splitList[this.activeIndex];
 
       this.captureLeft =
         (e.clientX - clipList.getBoundingClientRect().left + this.mousePos) /
@@ -563,8 +600,7 @@ export default {
       active.captureIn = startTime;
       active.captureOut = endTime;
 
-      this.duration = endTime - startTime;
-
+      this.calcDuration(startTime, endTime);
       this.refreshBackgroundCover();
       this.trimTimeline.seekTimeline(startTime);
       this.resetVector();
@@ -593,7 +629,7 @@ export default {
 
       const { clipList } = this.$refs;
 
-      const active = this.activeClip.splitList[this.activeIndex];
+      const active = this.splitList[this.activeIndex];
       this.captureWidth =
         (e.clientX -
           clipList.getBoundingClientRect().left -
@@ -616,11 +652,33 @@ export default {
 
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      this.duration = endTime - startTime;
       active.captureIn = startTime;
       active.captureOut = endTime;
+      this.calcDuration(startTime, endTime);
       this.resetVector();
       this.refreshBackgroundCover();
+    },
+    calcDuration(startTime, endTime) {
+      if (startTime !== undefined && endTime !== undefined) {
+        this.duration = endTime - startTime;
+      }
+      this.totalDuration =
+        this.videos.reduce((prev, cur) => {
+          if (Object.is(cur, this.activeClip)) {
+            return prev;
+          }
+          const captureDuration = cur.splitList.reduce(
+            (prevSplit, curSplit) => {
+              return prevSplit + (curSplit.captureOut - curSplit.captureIn);
+            },
+            0
+          );
+          return prev + captureDuration;
+        }, 0) +
+        this.splitList.reduce(
+          (prev, cur) => prev + cur.captureOut - cur.captureIn,
+          0
+        );
     },
     handleRightMouseUp() {
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
@@ -641,7 +699,7 @@ export default {
 
       const { clipList } = this.$refs;
 
-      const active = this.activeClip.splitList[this.activeIndex];
+      const active = this.splitList[this.activeIndex];
       this.captureLeft =
         (e.clientX - this.mousePos - clipList.getBoundingClientRect().left) /
         clipList.offsetWidth;
@@ -660,7 +718,6 @@ export default {
       }
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
-      this.duration = endTime - startTime;
       active.captureIn = startTime;
       active.captureOut = endTime;
       this.trimTimeline.seekTimeline(startTime);
@@ -923,13 +980,18 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       user-select: none;
     }
   }
+
   .play-icon {
-    margin-right: 6px;
-    height: 30px;
-    width: 30px;
-    vertical-align: 0;
+    width: 38px;
+    height: 38px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
   }
+
   .clips-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
     .splitter {
       top: -8px;
       position: absolute;
@@ -941,9 +1003,9 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       &::before {
         content: "";
         display: block;
-        width: 5px;
+        width: 14px;
         height: 100%;
-        transform: translateX(-2px);
+        transform: translateX(-7px);
       }
     }
 

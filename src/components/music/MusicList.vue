@@ -31,28 +31,32 @@
             }}</el-button>
           </div>
         </div>
-
-        <div class="timeline-wrapper" v-if="music.timelineVisible">
-          <div
-            class="slider-wrapper"
-            :style="{
-              left: sliderLeft + 'px',
-              width: sliderWidth + 'px'
-            }"
-            @mousedown="handleSliderMouseDown"
-            ref="slider"
-          >
+        <transition name="el-fade-in">
+          <div class="timeline-wrapper" v-if="music.timelineVisible">
             <div
-              class="slider"
-              :style="{ backgroundPosition: sliderBgPos + 'px' }"
+              class="slider-wrapper"
+              :style="{
+                left: sliderLeft + 'px',
+                width: sliderWidth + 'px'
+              }"
+              @mousedown="handleSliderMouseDown"
+              ref="slider"
             >
-              <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
-              <div class="arrow right" @mousedown="handleRightMouseDown"></div>
+              <div
+                class="slider"
+                :style="{ backgroundPosition: sliderBgPos + 'px' }"
+              >
+                <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
+                <div
+                  class="arrow right"
+                  @mousedown="handleRightMouseDown"
+                ></div>
+              </div>
             </div>
-          </div>
 
-          <div class="timeline" ref="timeline"></div>
-        </div>
+            <div class="timeline" ref="timeline"></div>
+          </div>
+        </transition>
         <!-- <img :src="style.coverUrl" alt="" /> -->
       </li>
     </ul>
@@ -208,7 +212,6 @@ export default {
       if (this.sliderWidth > this.$refs.timeline[0].offsetWidth) {
         this.sliderWidth = this.$refs.timeline[0].offsetWidth;
       }
-
     },
     handleRightMouseUp() {
       removeEventListener("mousemove", this.handleRightMouseMove);
