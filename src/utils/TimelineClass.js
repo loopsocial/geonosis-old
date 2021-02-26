@@ -68,12 +68,12 @@ export default class TimelineClass {
     this.captions.map(c => this.addCaption(c));
     this.stickers.map(s => this.addSticker(s));
   }
-  async play(t) {
-    t = t === undefined ? this.getCurrentPosition() : t;
+  async play(startTime, endTime) {
+    startTime = startTime === undefined ? this.getCurrentPosition() : startTime;
     this.streamingContext.playbackTimeline(
       this.timeline,
-      t,
-      -1,
+      startTime,
+      endTime || -1,
       NvsVideoPreviewSizeModeEnum.LiveWindowSize,
       true,
       0
