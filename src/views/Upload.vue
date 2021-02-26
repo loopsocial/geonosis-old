@@ -1,6 +1,6 @@
 <template>
   <div>
-    post
+    upload
   </div>
 </template>
 

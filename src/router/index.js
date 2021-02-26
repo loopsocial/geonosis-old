@@ -1,8 +1,5 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-// import Template from "../views/Template.vue";
-// import SceneEditing from "../views/SceneEditing.vue";
-// import Post from "../views/Post.vue";
 
 const Create = () =>
   import(/* webpackChunkName: "Create" */ "../views/Create.vue");
@@ -10,10 +7,11 @@ const Scenes = () =>
   import(/* webpackChunkName: "Scenes" */ "../views/Scenes.vue");
 const Styles = () =>
   import(/* webpackChunkName: "Styles" */ "../views/Styles.vue");
-const Music = () => import(/* webpackChunkName: "Music" */ "../views/Music.vue");
+const Music = () =>
+  import(/* webpackChunkName: "Music" */ "../views/Music.vue");
 const Branding = () =>
   import(/* webpackChunkName: "Branding" */ "../views/Branding.vue");
-
+const Upload = () => import("../views/Upload.vue");
 Vue.use(VueRouter);
 
 const routes = [
@@ -25,6 +23,11 @@ const routes = [
     path: "/Create",
     name: "Create",
     component: Create
+  },
+  {
+    path: "/Upload",
+    name: "Upload",
+    component: Upload
   },
   {
     path: "/Scenes",
