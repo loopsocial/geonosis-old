@@ -125,7 +125,6 @@ export class StickerClip extends Clip {
       duration: option.duration || 5 * 1000000
     });
     this.desc = option.desc || option.id;
-    this.text = option.text || CLIP_TYPES.STICKER;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0;
     this.translationX = option.translationX;

@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import draggable from "./modules/draggable";
 import clip from "./modules/clip";
+import undoRedoPlugin from "../plugins/undoRedoPlugin";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -28,5 +29,6 @@ export default new Vuex.Store({
   modules: {
     draggable,
     clip
-  }
+  },
+  plugins: [undoRedoPlugin]
 });

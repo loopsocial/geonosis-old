@@ -1,20 +1,19 @@
 import { FX_TYPES, PARAMS_TYPES, CLIP_TYPES } from "./Global";
+import store from "../store";
+
+// 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
 export default class TimelineClass {
   constructor(canvasId, options) {
     this.streamingContext = nvsGetStreamingContextInstance();
     this.timeline = null;
     this.canvasId = canvasId;
-    const { videoTrack, audioTrack, width, height, captions, stickers } =
-      options || {};
-    this.videoTrack = videoTrack || {};
-    this.audioTrack = audioTrack || {
-      raw: options.trackRaw,
-      clips: []
-    };
+    const { width, height } = options || {};
     this.width = width || 540;
     this.height = height || 960;
-    this.captions = captions || [];
-    this.stickers = stickers || [];
+    this.videoTrack = { raw: null, clips: [] };
+    this.audioTrack = { raw: null, clips: [] };
+    this.captions = [];
+    this.stickers = [];
     this.init();
   }
   // 初始化
@@ -55,8 +54,17 @@ export default class TimelineClass {
     );
     console.log("连接liveWindow完成");
   }
+  initData() {
+    const { videos, audios, captions, stickers } = store.state.clip;
+    this.videoTrack = { clips: videos, raw: null };
+    this.audioTrack.clips = { clips: audios, raw: null };
+    this.captions = captions;
+    this.stickers = stickers;
+  }
   // 构建时间线
   async buildTimeline() {
+    this.initData();
+    console.log("重新构建", this);
     await this.streamingContext.streamingEngineReadyForTimelineModification();
     this.clearVideoTrack();
     this.clearAudioTrack();
@@ -229,7 +237,6 @@ export default class TimelineClass {
       return;
     }
     caption.raw = captionRaw;
-    this.captions.push(caption); // 可能需要改成按照inPoint进行插入
     if (scale !== undefined) {
       captionRaw.setScaleX(scale);
       captionRaw.setScaleY(scale);
@@ -273,7 +280,6 @@ export default class TimelineClass {
       return false;
     }
     sticker.raw = stickerRaw;
-    this.stickers.push(sticker); // 可能需要改成按照inPoint进行插入
     scale !== undefined && stickerRaw.setScale(scale);
     rotation !== undefined && stickerRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationX !== undefined) {
@@ -319,11 +325,13 @@ export default class TimelineClass {
   clearVideoTrack() {
     while (this.timeline.videoTrackCount() !== 0) {
       this.timeline.removeVideoTrack(0);
+      this.videoTrack.raw = null;
     }
   }
   clearAudioTrack() {
     while (this.timeline.audioTrackCount() !== 0) {
       this.timeline.removeAudioTrack(0);
+      this.audioTrack.raw = null;
     }
   }
   destroy() {

@@ -30,10 +30,11 @@ import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
 import { CaptionClip, StickerClip, AudioClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
+import keyBindMx from "@/mixins/keyBindMx";
 import WorkFlow from "@/utils/WorkFlow";
 import { mapActions, mapState } from "vuex";
 export default {
-  mixins: [dragMixin],
+  mixins: [dragMixin, keyBindMx],
   props: {},
   data() {
     return {
@@ -147,6 +148,12 @@ export default {
       this.$bus.$on(this.$keys.seek, this.seekTimeline);
       this.$bus.$on(this.$keys.closePanel, this.closePanel);
       this.$bus.$on(this.$keys.drawBox, this.drawBox);
+      this.$bus.$on(this.$keys.rebuildTimeline, this.rebuildTimeline);
+    },
+    // 重新构建timeline
+    async rebuildTimeline() {
+      await this.timelineClass.buildTimeline();
+      this.timelineClass.seekTimeline();
     },
     drawBox(clip) {
       if (this.flow) {
@@ -159,6 +166,7 @@ export default {
         });
       }
     },
+    // 关闭编辑panel
     closePanel() {
       this.$bus.$emit(this.$keys.setPanel, null);
       if (this.flow) {
@@ -169,6 +177,7 @@ export default {
     seekTimeline(t) {
       this.timelineClass.seekTimeline(t);
     },
+    // 删除字幕/贴纸
     async delCaptionSticker(clip) {
       await this.timelineClass.stopEngin();
       let index = -1;
@@ -182,6 +191,7 @@ export default {
       this.timelineClass.seekTimeline();
       this.deleteClipToVuex({ type: clip.type, index });
     },
+    // 拖放
     drop(e) {
       const data = JSON.parse(e.dataTransfer.getData("Text"));
       this.editClip(e, data);
@@ -243,6 +253,10 @@ export default {
             translationY
           });
           result = this.timelineClass.addSticker(sticker);
+          this.addClipToVuex({
+            type: CLIP_TYPES.STICKER,
+            clip: sticker
+          });
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
@@ -250,8 +264,11 @@ export default {
             translationX,
             translationY
           });
-          console.log(caption);
           result = this.timelineClass.addCaption(caption);
+          this.addClipToVuex({
+            type: CLIP_TYPES.CAPTION,
+            clip: caption
+          });
         }
         if (result) {
           this.draggingClip = null;
@@ -390,6 +407,7 @@ export default {
     this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
     this.$bus.$off(this.$keys.delCaptionSticker, this.delCaptionSticker);
     this.$bus.$off(this.$keys.seek, this.seekTimeline);
+    this.$bus.$off(this.$keys.rebuildTimeline, this.rebuildTimeline);
   }
 };
 </script>

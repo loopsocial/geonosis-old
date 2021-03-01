@@ -3,8 +3,8 @@ import { CLIP_TYPES } from "@/utils/Global";
 import { vectorRotate } from "@/utils/common";
 import delImg from "../assets/images/delete.png";
 import store from "../store/index";
-import Keys from '../utils/EventBusKeys';
-import Bus from '../EventBus';
+import Keys from "../utils/EventBusKeys";
+import Bus from "../EventBus";
 
 export default class WorkFlow {
   constructor(options) {
@@ -375,6 +375,7 @@ export default class WorkFlow {
         captionClipRaw.setTextColor(captionColor);
         this.initStage();
         this.timelineClass.seekTimeline();
+        store.commit("clip/updateClipToVuex", this.clip);
       });
     };
     input.onblur = onChange;
@@ -409,3 +410,5 @@ export default class WorkFlow {
     });
   }
 }
+
+// store.commit("clip/updateClipToVuex", this.clip);

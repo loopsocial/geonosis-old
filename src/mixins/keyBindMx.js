@@ -12,6 +12,12 @@ export default {
         });
         return false;
       });
+      Mousetrap.bind(KeyMap.revoke, () => {
+        this.$undoRedoHistory.undo();
+      });
+      Mousetrap.bind(KeyMap.recovery, () => {
+        this.$undoRedoHistory.redo();
+      });
     }
   },
   beforeDestroy() {

@@ -34,6 +34,7 @@ export default {
     async installM3u8() {
       let pos = 0;
       const defaultDuration = 5000000;
+      const clips = [];
       for (let i = 0; i < resource.resourceList.length; i++) {
         const clip = resource.resourceList[i];
         if (!clip.m3u8Path) {
@@ -47,12 +48,13 @@ export default {
           orgDuration: clip.duration * 1000 || defaultDuration,
           duration: clip.duration * 1000 || defaultDuration
         });
-        this.addClipToVuex({
-          type: CLIP_TYPES.VIDEO,
-          clip: videoClip
-        });
+        clips.push(videoClip);
         pos += clip.duration * 1000 || defaultDuration;
       }
+      this.addClipToVuex({
+        type: CLIP_TYPES.VIDEO,
+        clip: clips
+      });
     },
     async installFont() {
       const res = await this.axios.get(this.$api.materials, {

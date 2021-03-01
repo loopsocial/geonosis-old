@@ -1,5 +1,6 @@
 <template>
   <div class="font-panel">
+    <div @click="ts" style="color: white">2222222</div>
     <i class="el-icon-arrow-left back-icon" @click="$emit('close')"></i>
     <el-row :gutter="7" class="scale">
       <el-col :span="12" class="animation-wrapper">
@@ -168,11 +169,15 @@ export default {
     this.installFont();
   },
   methods: {
+    ts() {
+      console.log(this.clip);
+    },
     changeDuration(v) {
       this.clip.duration += v * 1000000;
       const outPoint = this.clip.inPoint + this.clip.duration;
       this.clip.raw.changeOutPoint(outPoint);
       this.$bus.$emit(this.$keys.seek);
+      this.updateClipToVuex(this.clip);
     },
     async installFont() {
       const res = await this.axios.get(this.$api.materials, {
@@ -198,20 +203,24 @@ export default {
     changeFont() {
       this.clip.raw.setFontFamily(this.clip.font);
       this.$bus.$emit(this.$keys.seek);
+      this.updateClipToVuex(this.clip);
     },
     changeColor(color) {
       color = RGBAToNvsColor(color);
       this.clip.raw.setTextColor(color);
       this.$bus.$emit(this.$keys.seek);
+      this.updateClipToVuex(this.clip);
     },
     changeBackground(color) {
       color = RGBAToNvsColor(color);
       this.clip.raw.setBackgroundColor(color);
       this.$bus.$emit(this.$keys.seek);
+      this.updateClipToVuex(this.clip);
     },
     changeAlign(e) {
       this.clip.raw.setTextAlignment(TEXT_ALIGN[e]);
       this.$bus.$emit(this.$keys.seek);
+      this.updateClipToVuex(this.clip);
     },
     changeScale(scale) {
       if (this.clip.type === CLIP_TYPES.STICKER) {
@@ -222,6 +231,7 @@ export default {
       }
       this.$bus.$emit(this.$keys.seek);
       this.$bus.$emit(this.$keys.drawBox);
+      this.updateClipToVuex(this.clip);
     }
   }
 };

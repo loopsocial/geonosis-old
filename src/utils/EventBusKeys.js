@@ -10,5 +10,6 @@ export default {
   setPanel: "setPanel",
   seek: "seek",
   closePanel: "closePanel",
-  drawBox: "drawBox"
+  drawBox: "drawBox",
+  rebuildTimeline: "rebuildTimeline"
 };
