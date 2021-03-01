@@ -1,0 +1,34 @@
+// utils:
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.text-center-h {
+  width: 100%;
+  text-align: center;
+}
+.inline-block {
+  display: inline-block;
+}
+
+@for $i from 1 through 100 {
+  .margin-top-#{$i} {
+    margin-top: #{$i}px;
+  }
+  .margin-left-#{$i} {
+    margin-left: #{$i}px;
+  }
+  .margin-right-#{$i} {
+    margin-right: #{$i}px;
+  }
+  .margin-bottom-#{$i} {
+    margin-bottom: #{$i}px;
+  }
+  .margin-#{$i} {
+    margin: #{$i}px;
+  }
+}
+.white {
+  color: white;
+}
