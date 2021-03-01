@@ -284,6 +284,7 @@ export default {
       this.setEventBus(); // 绑定eventBus相关事件
       this.timelineClass.seekTimeline();
       console.log("时间线创建完成", this.timelineClass);
+      this.keyBind();
     },
     changeMonitor(canvasId) {
       canvasId = canvasId || "live-window";

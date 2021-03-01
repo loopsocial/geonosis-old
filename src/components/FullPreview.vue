@@ -107,6 +107,7 @@ export default {
     playingEvent(timeline, pos) {
       if (timeline === this.timelineClass.timeline) {
         this.seekVal = pos;
+        this.isPlaying = true;
       }
     },
     bindContextEvent() {

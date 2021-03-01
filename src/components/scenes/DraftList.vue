@@ -410,15 +410,7 @@ export default {
     },
     handleResize() {},
     handleNext() {
-      this.activeClip.splitList = this.splitList;
-      // const startTime = this.getStartTime();
-      // const endTime = this.getEndTime();
-      // this.activeClip.trimIn = startTime;
-      // this.activeClip.trimOut = endTime;
-      // this.activeClip.duration = endTime - startTime;
       this.dialogVisible = false;
-      // 添加特效参数
-      this.activeClip.splitList.map(item => (item.videoFxs = []));
       if (this.isImage) {
         // 图片处理
         this.activeClip.splitList[0].trimOut = this.imageDuration;
@@ -426,6 +418,10 @@ export default {
         this.activeClip.motion = this.motion;
       } else {
         // 视频处理
+        this.activeClip.splitList = this.splitList.map(item => {
+          item.videoFxs = [];
+          return item;
+        });
       }
       // 底层执行操作
       this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);

@@ -70,14 +70,14 @@ export default {
       width: 100%;
     }
     .el-tabs__item {
-      font-size: 1.3vw;
-      color: #fff;
+      font-size: 16px;
+      color: $white;
     }
     .el-tabs__content {
       height: calc(100% - 50px);
     }
     .el-tabs__active-bar {
-      background-color: #fff;
+      background-color: $white;
     }
     .el-tab-pane {
       height: 100%;

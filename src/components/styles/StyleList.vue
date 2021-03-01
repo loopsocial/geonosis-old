@@ -57,6 +57,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@media screen and (max-width: 1400px) {
+  .list {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
 .style-list {
   height: 100%;
   overflow: auto;
@@ -65,7 +70,7 @@ export default {
   @include scrollBarStyle();
   .list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     .list-item {
       position: relative;
@@ -73,7 +78,7 @@ export default {
       border-radius: 6px;
       width: 100%;
       height: auto;
-      aspect-ratio: 9/16;
+      box-sizing: border-box;
       .heart-icon {
         position: absolute;
         left: 10px;
@@ -83,6 +88,7 @@ export default {
       .cover {
         width: 100%;
         height: 100%;
+        aspect-ratio: 9/16;
       }
     }
   }
