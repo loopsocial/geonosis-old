@@ -110,8 +110,12 @@ export default class WorkFlow {
       rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
-        const { x, y, width, height } = oldBox;
-        const rectCenter = { x: x + width / 2, y: y + height / 2 }; // 旋转之后的缩放中心不对
+        // const { x, y, width, height } = oldBox;
+        // const rectCenter = { x: x + width / 2, y: y + height / 2 }; // 旋转之后的缩放中心不对
+        const box = this.node.getClientRect();
+        const x = box.x + box.width / 2;
+        const y = box.y + box.height / 2;
+        const rectCenter = { x, y };
         if (this.clip.type === CLIP_TYPES.CAPTION) {
           this.captionTransformer(oldBox, newBox, rectCenter);
         } else if (this.clip.type === CLIP_TYPES.STICKER) {

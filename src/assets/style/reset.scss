@@ -1,4 +1,30 @@
-ul{
-    list-style: none;
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+body .reset-el-color-picker {
+  height: 40px;
+  .el-color-picker__trigger {
+    // border: none;
+    border: none;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+  }
+  .el-color-picker__color {
+    border: none;
+    border-radius: 0;
+  }
+  .el-color-picker__empty {
+    display: none;
+  }
+  .el-color-picker__icon{
+      display: none;
+  }
+}
+
+p{
+    margin: 0;
     padding: 0;
 }
