@@ -66,7 +66,7 @@ export default {
       return this.$route.name === "Create";
     },
     defaultActive() {
-      return this.$route.path.split("/")[1] || "";
+      return this.$route.name || "";
     },
     dragDivStyle() {
       return this.$store.state.draggable.style;
@@ -99,16 +99,22 @@ body {
     font-family: "Avenir Next" !important;
   }
   .el-menu-vertical {
-    width: 8%;
+    height: 100%;
+    overflow-y: scroll;
+    flex-shrink: 0;
+    width: 100px;
     height: 100%;
     background-color: transparent;
     border-right: 1px solid #6b6b6b;
+    &::-webkit-scrollbar {
+      display: none !important;
+    }
     .el-menu-item {
       height: auto;
       // padding-top: 11px;
-      margin-top: 12px;
-      padding-right: 10.23% !important;
-      padding-left: 15.91% !important;
+      margin-bottom: 12px;
+      padding-right: 9px !important;
+      padding-left: 9px !important;
       line-height: 1em;
       &:focus,
       &:hover {
@@ -118,8 +124,8 @@ body {
         position: relative;
         padding-top: 100%;
         .menu-icon {
-          width: 5vw;
-          height: 4vw;
+          width: 70px;
+          height: 60px;
           top: 0;
           left: 50%;
           transform: translateX(-50%);

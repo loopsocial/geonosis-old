@@ -8,5 +8,17 @@
   "textColor":"Text Color",
   "backgroundColor":"Background Color",
   "cancel":"Cancel",
-  "next":"Next"
+  "next":"Next",
+  "standAlone":"Stand alone",
+  "brandLogo":"Brand Logo",
+  "upload":"Upload",
+  "brandColors":"Brand Colors",
+  "brandFonts":"Brand Fonts",
+  "primary": "Primary",
+  "secondary":"Secondary",
+  "intro":"Intro",
+  "outro":"Outro",
+  "overlay":"Overlay",
+  "addNewPreset":"Add new preset",
+  "brandPresetPreview":"Brand preset preview"
 }
