@@ -461,10 +461,6 @@ export default {
     &:hover {
       background-color: rgba(0, 0, 0, 0.3);
     }
-    .icon-pause {
-      width: 24px;
-      height: 24px;
-    }
   }
   .preview-mask {
     position: absolute;

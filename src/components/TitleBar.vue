@@ -20,14 +20,14 @@
         <FullPreview class="preview-box"></FullPreview>
         <svg-icon
           class="preview-close"
-          icon-class="cut"
+          icon-class="close"
           @click="close"
         ></svg-icon>
       </div>
     </transition>
 
-    <transition name="el-fade-in" v-if="dialogVisible">
-      <div class="publish-dialog">
+    <transition name="el-fade-in">
+      <div class="publish-dialog" v-if="dialogVisible">
         <div class="publish-content">
           <FullPreview class="preview-box"></FullPreview>
           <el-form :model="infoForm" class="ln-form">
@@ -68,7 +68,7 @@
           </el-form>
           <svg-icon
             class="preview-close"
-            icon-class="cut"
+            icon-class="close"
             @click="dialogVisible = false"
           ></svg-icon>
         </div>
@@ -171,10 +171,8 @@ export default {
       .preview-close {
         position: absolute;
         right: -44px;
-        cursor: pointer;
         top: 0;
-        width: 44px;
-        height: 44px;
+        cursor: pointer;
       }
       .ln-form {
         height: 100%;
@@ -218,9 +216,6 @@ export default {
       position: absolute;
       right: 22px;
       cursor: pointer;
-      top: 22px;
-      width: 44px;
-      height: 44px;
     }
   }
 }
