@@ -237,7 +237,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .font-panel {
   margin-right: 65px;
   .back-icon {
@@ -328,6 +328,17 @@ export default {
       width: 100%;
       border-bottom: 1px solid #6b6b6b;
     }
+  }
+  // .align-icon:hover {
+  //   path {
+  //     fill: red;
+  //     stroke: yellow;
+  //   }
+  // }
+  svg,
+  path {
+    fill: red;
+    color: yellow;
   }
 }
 </style>

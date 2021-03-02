@@ -79,15 +79,15 @@ export function NvsColorToRGBA(color) {
   return `rgb(${r}, ${g}, ${b}, ${a})`;
 }
 
-export function clone(obj) {
-  if (typeof obj !== "object") return;
-  const res = obj instanceof Array ? [] : {};
-  for (let key in obj) {
-    if (typeof obj[key] === "object") {
-      res[key] = clone(obj[key]);
-    } else {
-      res[key] = obj[key];
-    }
-  }
-  return res;
+// 获取字幕实例的重点
+export function getCaptionCenter(captionRaw) {
+  const vertices = captionRaw.getBoundingRectangleVertices();
+  const p1 = vertices.get(0);
+  // const p2 = vertices.get(1);
+  const p3 = vertices.get(2);
+  // const p4 = vertices.get(3);
+  return {
+    x: (p1.x + p3.x) / 2,
+    y: (p3.y + p1.y) / 2
+  };
 }

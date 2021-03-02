@@ -51,10 +51,7 @@ export default {
         clips.push(videoClip);
         pos += clip.duration * 1000 || defaultDuration;
       }
-      this.addClipToVuex({
-        type: CLIP_TYPES.VIDEO,
-        clip: clips
-      });
+      this.addClipToVuex(clips);
     },
     async installFont() {
       const res = await this.axios.get(this.$api.materials, {

@@ -243,16 +243,35 @@ export default class TimelineClass {
     }
     rotation !== undefined && captionRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationY !== undefined) {
-      const { x, y } = getCenter(captionRaw);
-      const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
-      const offsetTranslation = new NvsPointF(
-        targetPoint.x - x,
-        targetPoint.y - y
+      captionRaw.setCaptionTranslation(
+        new NvsPointF(translationX, translationY)
       );
-      captionRaw.setCaptionTranslation(offsetTranslation);
     }
     fontSize !== undefined && captionRaw.setFontSize(fontSize);
     return captionRaw;
+  }
+  static setCaption(caption) {
+    const {
+      raw,
+      fontSize,
+      scale,
+      rotation,
+      translationX,
+      translationY
+    } = caption;
+    if (!raw) {
+      console.warn("caption add fail", caption);
+      return;
+    }
+    if (scale !== undefined) {
+      raw.setScaleX(scale);
+      raw.setScaleY(scale);
+    }
+    rotation !== undefined && raw.setRotationZ(rotation);
+    if (translationX !== undefined && translationY !== undefined) {
+      raw.setCaptionTranslation(new NvsPointF(translationX, translationY));
+    }
+    fontSize !== undefined && raw.setFontSize(fontSize);
   }
   addSticker(sticker) {
     const {
@@ -283,7 +302,7 @@ export default class TimelineClass {
     scale !== undefined && stickerRaw.setScale(scale);
     rotation !== undefined && stickerRaw.setRotationZ(rotation);
     if (translationX !== undefined && translationX !== undefined) {
-      const targetPoint = this.aTob(new NvsPointF(translationX, translationY));
+      const targetPoint = new NvsPointF(translationX, translationY);
       stickerRaw.setTranslation(targetPoint);
     }
     horizontalFlip !== undefined &&
@@ -362,20 +381,4 @@ export default class TimelineClass {
       );
     });
   }
-  aTob(coordinate) {
-    // 视口层 to 渲染层
-    return this.liveWindow.mapViewToCanonical(coordinate);
-  }
-}
-// 字幕
-function getCenter(captionRaw) {
-  const vertices = captionRaw.getBoundingRectangleVertices();
-  const p1 = vertices.get(0);
-  // const p2 = vertices.get(1);
-  const p3 = vertices.get(2);
-  // const p4 = vertices.get(3);
-  return {
-    x: (p1.x + p3.x) / 2,
-    y: (p3.y + p1.y) / 2
-  };
 }

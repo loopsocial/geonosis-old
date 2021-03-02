@@ -59,8 +59,14 @@ export default class WorkFlow {
         if (x === prevX && y === prevY) {
           return pos;
         }
-        const canonicalPointF = this.aTob(new NvsPointF(x, y));
-        const canonicalPrevPointF = this.aTob(new NvsPointF(prevX, prevY));
+        const canonicalPointF = WorkFlow.aTob(
+          new NvsPointF(x, y),
+          this.timelineClass.liveWindow
+        );
+        const canonicalPrevPointF = WorkFlow.aTob(
+          new NvsPointF(prevX, prevY),
+          this.timelineClass.liveWindow
+        );
         const canonicalOffsetX = canonicalPointF.x - canonicalPrevPointF.x;
         const canonicalOffsetY = canonicalPointF.y - canonicalPrevPointF.y;
         const offsetPointF = new NvsPointF(canonicalOffsetX, canonicalOffsetY);
@@ -240,10 +246,8 @@ export default class WorkFlow {
       this.stage.destroy();
     }
   }
-  aTob(coordinate) {
+  static aTob(coordinate, liveWindow) {
     // 视口层 to 渲染层
-    const liveWindow = this.timelineClass.liveWindow;
-    if (!liveWindow) return;
     return liveWindow.mapViewToCanonical(coordinate);
   }
   captionDrag(offsetPointF) {
@@ -262,7 +266,10 @@ export default class WorkFlow {
     const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
     const scaleFactor = newBox.width / oldBox.width;
     // 缩放操作
-    this.clip.raw.scaleCaption(scaleFactor, this.aTob(centerPointF));
+    this.clip.raw.scaleCaption(
+      scaleFactor,
+      WorkFlow.aTob(centerPointF, this.timelineClass.liveWindow)
+    );
     this.clip.scale = this.clip.raw.getScaleX();
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
@@ -279,14 +286,17 @@ export default class WorkFlow {
     const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
     const scaleFactorX = newBox.width / oldBox.width;
     // 缩放操作
-    this.clip.raw.scaleAnimatedSticker(scaleFactorX, this.aTob(centerPointF));
+    this.clip.raw.scaleAnimatedSticker(
+      scaleFactorX,
+      WorkFlow.aTob(centerPointF, this.timelineClass.liveWindow)
+    );
     this.clip.scale = this.clip.raw.getScale();
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {
       this.clip.raw.rotateAnimatedSticker(
         (diffRotation / Math.PI) * 180,
-        this.aTob(centerPointF)
+        WorkFlow.aTob(centerPointF, this.timelineClass.liveWindow)
       );
       this.clip.rotation = this.clip.raw.getRotationZ();
     }

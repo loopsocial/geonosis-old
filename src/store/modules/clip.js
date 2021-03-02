@@ -11,21 +11,24 @@ export default {
     currentVideoUuid: null
   },
   mutations: {
-    addClipToVuex(state, { type, clip }) {
-      clip = Array.isArray(clip) ? clip : [clip];
+    addClipToVuex(state, clips) {
+      if (!Array.isArray(clips)) {
+        clips = [clips];
+      }
+      const type = clips[0].type;
       switch (type) {
         case CLIP_TYPES.VIDEO:
-          state.videos.push(...clip);
+          state.videos.push(...clips);
           state.currentVideoUuid = state.videos[0].uuid;
           break;
         case CLIP_TYPES.AUDIO:
-          state.audios.push(...clip);
+          state.audios.push(...clips);
           break;
         case CLIP_TYPES.CAPTION:
-          state.captions.push(...clip);
+          state.captions.push(...clips);
           break;
         case CLIP_TYPES.STICKER:
-          state.stickers.push(...clip);
+          state.stickers.push(...clips);
           break;
         default:
           break;

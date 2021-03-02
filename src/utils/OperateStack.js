@@ -1,8 +1,8 @@
-import { clone } from "@/utils/common";
+const cloneDeep = require("clone-deep");
+
 export default class OperateStack {
   stack = [];
   currentIndex = -1;
-
 
   get isOnTop() {
     return this.stack.length - 1 === this.currentIndex;
@@ -13,7 +13,7 @@ export default class OperateStack {
 
   // 添加快照
   pushSnapshot(splitListSnapshot) {
-    const snapshot = clone(splitListSnapshot);
+    const snapshot = cloneDeep(splitListSnapshot);
     this.stack = this.stack.slice(0, this.currentIndex + 1);
     this.stack.push(snapshot);
     this.currentIndex += 1;
@@ -27,12 +27,12 @@ export default class OperateStack {
   moveDown() {
     if (this.isOnBottom) return;
     this.currentIndex -= 1;
-    return clone(this.stack[this.currentIndex]);
+    return cloneDeep(this.stack[this.currentIndex]);
   }
   // 当前指针指向后一个元素
   moveUp() {
     if (this.isOnTop) return;
     this.currentIndex += 1;
-    return clone(this.stack[this.currentIndex]);
+    return cloneDeep(this.stack[this.currentIndex]);
   }
 }

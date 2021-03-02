@@ -27,7 +27,7 @@
 import initSDK from "@/utils/NvBase";
 import TimelineClass from "@/utils/TimelineClass";
 import { CLIP_TYPES } from "@/utils/Global";
-import { vectorRotate } from "@/utils/common";
+import { vectorRotate, getCaptionCenter } from "@/utils/common";
 import { CaptionClip, StickerClip, AudioClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
 import keyBindMx from "@/mixins/keyBindMx";
@@ -218,10 +218,7 @@ export default {
             (durationCumulate - this.timelineClass.timeline.getDuration());
         }
 
-        this.addClipToVuex({
-          type: CLIP_TYPES.AUDIO,
-          clip: new AudioClip(clipOptions)
-        });
+        this.addClipToVuex(new AudioClip(clipOptions));
       }
 
       await this.timelineClass.stopEngin();
@@ -237,11 +234,12 @@ export default {
       } else {
         const container = document.getElementById("live-window");
         const { x, y } = container.getBoundingClientRect();
-        let translationX;
-        let translationY;
+        let targetPoint;
         if (e) {
-          translationX = e.clientX - x;
-          translationY = e.clientY - y;
+          targetPoint = WorkFlow.aTob(
+            new NvsPointF(e.clientX - x, e.clientY - y),
+            this.timelineClass.liveWindow
+          );
         }
         let result;
         if (type === CLIP_TYPES.STICKER) {
@@ -249,26 +247,36 @@ export default {
             ...target,
             inPoint: this.timelineClass.getCurrentPosition(),
             desc: target.id,
-            translationX,
-            translationY
+            translationX: targetPoint && targetPoint.x,
+            translationY: targetPoint && targetPoint.y
           });
           result = this.timelineClass.addSticker(sticker);
-          this.addClipToVuex({
-            type: CLIP_TYPES.STICKER,
-            clip: sticker
-          });
+          this.addClipToVuex(sticker);
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
-            inPoint: this.timelineClass.getCurrentPosition(),
-            translationX,
-            translationY
+            inPoint: this.timelineClass.getCurrentPosition()
           });
-          result = this.timelineClass.addCaption(caption);
-          this.addClipToVuex({
-            type: CLIP_TYPES.CAPTION,
-            clip: caption
-          });
+          if (!e) {
+            // 点击caption上轨
+            this.timelineClass.addCaption(caption);
+          } else {
+            // 拖拽caption上轨
+            // 计算拖拽时, caption的放置点(LiveWindow坐标系)
+            const raw = this.timelineClass.timeline.addCaption(
+              caption.text,
+              caption.inPoint,
+              caption.duration,
+              caption.styleDesc,
+              false
+            );
+            caption.raw = raw;
+            const { x, y } = getCaptionCenter(raw);
+            caption.translationX = targetPoint.x - x;
+            caption.translationY = targetPoint.y - y;
+            TimelineClass.setCaption(caption);
+          }
+          this.addClipToVuex(caption);
         }
         if (result) {
           this.draggingClip = null;
