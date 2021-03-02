@@ -60,21 +60,21 @@
               <el-radio-button label="left">
                 <svg-icon
                   class="align-icon icon-border"
-                  icon-class="align-left"
+                  :icon-class="clip.align === 'left' ? 'align-left-active' : 'align-left'"
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
               <el-radio-button label="center">
                 <svg-icon
                   class="align-icon icon-border"
-                  icon-class="align-center"
+                  :icon-class="clip.align === 'center' ? 'align-center-active' : 'align-center'"
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
               <el-radio-button label="right">
                 <svg-icon
                   class="align-icon"
-                  icon-class="align-right"
+                  :icon-class="clip.align === 'right' ? 'align-right-active' : 'align-right'"
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
