@@ -20,7 +20,7 @@
             v-model="clip.scale"
             :show-tooltip="false"
             @change="changeScale"
-            :max="3"
+            :max="5"
             :min="0"
             :step="0.01"
             class="flex ln-slider"
@@ -275,7 +275,7 @@ export default {
     padding-right: 7px;
     margin-top: 7px;
     .el-col > div {
-      height: 21.5vw;
+      // height: 21.5vw;
     }
     .content {
       margin-top: 12px;

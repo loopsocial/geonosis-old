@@ -260,11 +260,10 @@ export default class WorkFlow {
   }
   captionTransformer(oldBox, newBox, rectCenter) {
     const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
-    const scaleFactorX = newBox.width / oldBox.width;
+    const scaleFactor = newBox.width / oldBox.width;
     // 缩放操作
-    this.clip.raw.scaleCaption(scaleFactorX, this.aTob(centerPointF));
-    this.clip.scaleX = this.clip.raw.getScaleX();
-    this.clip.scaleY = this.clip.raw.getScaleY();
+    this.clip.raw.scaleCaption(scaleFactor, this.aTob(centerPointF));
+    this.clip.scale = this.clip.raw.getScaleX();
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {
