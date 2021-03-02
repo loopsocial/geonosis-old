@@ -14,14 +14,18 @@ export default {
       });
       Mousetrap.bind(KeyMap.revoke, () => {
         this.$undoRedoHistory.undo();
+        return false;
       });
       Mousetrap.bind(KeyMap.recovery, () => {
         this.$undoRedoHistory.redo();
+        return false;
       });
     }
   },
   beforeDestroy() {
     Mousetrap.unbind(KeyMap.play);
     Mousetrap.unbind(KeyMap.save);
+    Mousetrap.unbind(KeyMap.revoke);
+    Mousetrap.unbind(KeyMap.recovery);
   }
 };

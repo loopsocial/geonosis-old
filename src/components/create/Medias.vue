@@ -225,7 +225,7 @@ export default {
       this.addMediaLoading = true;
       for (let i = 0; i < this.selectedList.length; i++) {
         const v = this.selectedList[i];
-        const path = await installAsset(v.m3u8Url);
+        const path = await installAsset(v.m3u8Url); // 函数内部有处理, 防止重复安装
         const video = new VideoClip({
           ...v,
           m3u8Path: path,

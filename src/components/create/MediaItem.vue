@@ -69,10 +69,10 @@ export default {
   .icon-checked {
     position: absolute;
     z-index: 10;
-    width: 22px;
-    height: 22px;
-    top: 4px;
-    left: 4px;
+    width: 24px;
+    height: 24px;
+    top: 8px;
+    left: 8px;
   }
   .duration {
     position: absolute;
