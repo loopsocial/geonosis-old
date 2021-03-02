@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <div class="add-media-btn flex">
+    <div class="add-media-btn flex" @click="mediaDialog = true">
       <svg-icon class="add-icon" icon-class="plus"></svg-icon>
       <span class="add-text">{{ $t("addMedia") }}</span>
     </div>
@@ -206,6 +206,16 @@
         }}</el-button>
       </span>
     </el-dialog>
+    <el-dialog
+      :title="$t('pick')"
+      top="0"
+      custom-class="ln-dialog"
+      width="80%"
+      center
+      :visible.sync="mediaDialog"
+    >
+      <Medias @cancel="cancel" @selected-finish="selectedFinish"></Medias>
+    </el-dialog>
   </div>
 </template>
 
@@ -215,13 +225,16 @@ import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
+import Medias from "../create/Medias"
 export default {
   components: {
+    Medias
     // DraftListItem
   },
   props: {},
   data() {
     return {
+      mediaDialog: false, // 添加素材的弹窗
       currentSplitList: [],
       height: 0,
       dialogVisible: false,
@@ -298,6 +311,18 @@ export default {
     document.body.addEventListener("mousedown", this.handleDocumentClick);
   },
   methods: {
+    cancel() {
+      this.mediaDialog = false;
+    },
+    selectedFinish(list) {
+      this.mediaDialog = false;
+      console.log(list);
+      const videos = list.map(item => {
+        return new VideoClip(item);
+      });
+      this.resetClips(videos);
+      this.$bus.$emit(this.$keys.rebuildTimeline);
+    },
     calcSplittedItemWidth(startTime, endTime) {
       const { activeClip } = this;
       return (
@@ -936,8 +961,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
 }
 ::v-deep.el-dialog__wrapper {
   .el-dialog {
-    width: 600px;
-    height: 560px;
+    // width: 600px;
+    // height: 560px;
     .el-dialog__body {
       padding-bottom: 10px;
     }
@@ -1147,7 +1172,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     "split":"Split",
     "totalVideoDuration":"Total video duration",
     "motionOn": "Motion On ",
-    "motionOff": "Motion Off"
+    "motionOff": "Motion Off",
+    "pick": "Pick Media"
   }
 }
 </i18n>

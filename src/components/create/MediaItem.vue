@@ -1,8 +1,5 @@
 <template>
-  <div
-    :class="['media-item', media.selected ? 'selected' : '']"
-    :style="{ height: itemHieght + 'px' }"
-  >
+  <div :class="['media-item', media.selected ? 'selected' : '']">
     <svg-icon
       icon-class="checked"
       class="icon-checked"
@@ -32,7 +29,6 @@
 export default {
   props: {
     media: Object,
-    itemHieght: Number,
     playingId: [String, Number]
   },
   data() {
@@ -63,13 +59,12 @@ export default {
 
 <style lang="scss" scoped>
 .media-item {
-  border: 4px solid transparent;
-  border-radius: 6px;
   position: relative;
-  overflow: hidden;
-  // transition: all 0.3s;
   &.selected {
-    border-color: white;
+    .media-cover,
+    .preview-video {
+      border-color: white;
+    }
   }
   .icon-checked {
     position: absolute;
@@ -81,8 +76,11 @@ export default {
   }
   .duration {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 8px;
+    right: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 4px 8px;
   }
   .play {
     position: absolute;
@@ -90,7 +88,7 @@ export default {
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.2);
     z-index: 10;
     width: 38px;
     height: 38px;
@@ -99,11 +97,7 @@ export default {
     opacity: 0;
     transition: all 0.3s;
     &:hover {
-      background-color: rgba(0, 0, 0, 0.3);
-    }
-    .icon-pause {
-      width: 24px;
-      height: 24px;
+      background-color: rgba(0, 0, 0, 0.5);
     }
   }
   &:hover {
@@ -115,8 +109,13 @@ export default {
   .media-cover,
   .preview-video {
     filter: drop-shadow(0 0 10 rgba(0, 0, 0, 0.3));
-    height: 100%;
+    height: auto;
     width: 100%;
+    transition: all 0.3s;
+    aspect-ratio: 9/16;
+    border: 4px solid transparent;
+    border-radius: 6px;
+    box-sizing: border-box;
   }
 }
 </style>

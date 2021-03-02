@@ -33,7 +33,7 @@ export default {
     // todo 以下是测试代码
     async installM3u8() {
       let pos = 0;
-      const defaultDuration = 5000000;
+      const defaultDuration = 3000000;
       const clips = [];
       for (let i = 0; i < resource.resourceList.length; i++) {
         const clip = resource.resourceList[i];

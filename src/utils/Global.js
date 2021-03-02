@@ -58,3 +58,10 @@ export const TEXT_ALIGN = {
   center: 1,
   right: 2
 };
+
+// 媒体类型
+export const MEDIA_TYPES = {
+  1: "video",
+  2: "audio",
+  3: "image"
+};

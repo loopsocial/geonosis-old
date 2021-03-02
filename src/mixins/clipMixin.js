@@ -20,7 +20,8 @@ export default {
     ...mapMutations({
       addClipToVuex: "clip/addClipToVuex",
       deleteClipToVuex: "clip/deleteClipToVuex",
-      updateClipToVuex: "clip/updateClipToVuex"
+      updateClipToVuex: "clip/updateClipToVuex",
+      resetClips: "clip/resetClips"
     })
   }
 };

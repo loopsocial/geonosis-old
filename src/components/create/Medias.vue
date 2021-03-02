@@ -25,7 +25,6 @@
             :media="media"
             ref="mediaItem"
             :playing-id="playingId"
-            :item-hieght="itemHieght"
             @click.native="selectedMedia(media)"
             @play="play"
           ></MediaItem>
@@ -67,7 +66,6 @@
               :playing-id="playingId"
               @play="play"
               ref="mediaItem"
-              :item-hieght="itemHieght"
               @click.native="selectedMedia(media)"
             ></MediaItem>
           </div>
@@ -109,6 +107,7 @@
 
 <script>
 import MediaItem from "./MediaItem";
+import { MEDIA_TYPES } from "@/utils/Global";
 const pageSize = 20;
 export default {
   components: {
@@ -119,11 +118,10 @@ export default {
       activeName: "upload",
       uploadList: [], // 已上传的列表
       uploadTotal: 0,
-      uploadPage: 1,
+      uploadPage: 0,
       libraryTotal: 0,
       libraryPage: 0,
       libraryList: [], // 素材库
-      itemHieght: 0,
       loading: false,
       searchVal: "", // 搜索
       typeList: [
@@ -139,12 +137,12 @@ export default {
   async created() {
     try {
       await this.getMediaFromUpload();
-      await this.getMediaFromLibrary();
-      await this.$nextTick();
-      this.resize();
-      window.addEventListener("resize", this.resize);
-      this.$once("hook:beforeDestroy", () => {
-        window.removeEventListener("resize", this.resize);
+      // await this.getMediaFromLibrary();
+      this.selectedList = this.videos;
+      this.uploadList.map(item => {
+        if (this.videos.find(i => i.id === item.id)) {
+          item.selected = true;
+        }
       });
     } catch (error) {
       console.error("请求数据失败", error);
@@ -171,13 +169,13 @@ export default {
     durationTotal() {
       const duration = this.selectedList.reduce((res, item) => {
         if (item.type === "image") {
-          res += 3000;
+          res += 3000000;
         } else {
           res += item.duration;
         }
         return res;
       }, 0);
-      return parseInt(duration / 1000);
+      return parseInt(duration / 1000000);
     }
   },
   methods: {
@@ -199,18 +197,6 @@ export default {
           }
         }
       }
-    },
-    resize() {
-      if (this.timer) {
-        clearTimeout(this.timer);
-      }
-      this.timer = setTimeout(() => {
-        const ref = this.$refs.mediaItem[0];
-        if (ref) {
-          this.itemHieght = (ref.$el.offsetWidth / 9) * 16;
-        }
-        this.timer = null;
-      }, 300);
     },
     beforeUpload(file) {
       console.log(file);
@@ -246,19 +232,21 @@ export default {
       if (this.loading) return;
       this.loading = true;
       return this.axios
-        .get(this.$api.uploadList, {
+        .get(this.$api.resources, {
           params: {
-            pageNum: this.uploadPage,
-            pageSize
+            page: this.uploadPage,
+            pageSize,
+            isPublic: 1
           }
         })
         .then(res => {
-          const { total, rows } = res.data;
-          this.uploadTotal = total;
-          rows.map(item => {
+          const { resourceCount, resourceList } = res.data;
+          this.uploadTotal = resourceCount;
+          resourceList.map(item => {
             item.selected = false;
+            item.type = MEDIA_TYPES[item.mediaType];
           });
-          this.uploadList.push(...rows);
+          this.uploadList.push(...resourceList);
           this.loading = false;
         });
     },
@@ -272,7 +260,7 @@ export default {
         types: this.checkedList
       };
       return this.axios
-        .get(this.$api.libraryList, {
+        .get(this.$api.resources, {
           params
         })
         .then(res => {
@@ -291,17 +279,17 @@ export default {
 <style lang="scss">
 @media screen and (max-width: 1600px) {
   .media-list {
-    grid-template-columns: repeat(6, 1fr) !important;
+    grid-template-columns: repeat(5, 1fr) !important;
   }
 }
 @media screen and (max-width: 1300px) {
   .media-list {
-    grid-template-columns: repeat(5, 1fr) !important;
+    grid-template-columns: repeat(4, 1fr) !important;
   }
 }
 @media screen and (max-width: 1000px) {
   .media-list {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
   }
 }
 
