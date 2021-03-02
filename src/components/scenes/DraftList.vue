@@ -76,14 +76,14 @@
       >
         <div class="undo-btn inline-block">
           <svg-icon
-            @click="handleRedo"
+            @click.prevent="handleUndo"
             class="icon"
-            icon-class="redo"
+            :icon-class="undoable ? 'undo' : 'undo-deactive'"
           ></svg-icon>
           <svg-icon
-            @click="handleUndo"
+            @click.prevent="handleRedo"
             class="icon"
-            icon-class="undo"
+            :icon-class="redoable ? 'redo' : 'redo-deactive'"
           ></svg-icon>
         </div>
 
@@ -214,6 +214,7 @@ import { us2hm, us2time } from "../../utils/common";
 import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip } from "@/utils/ProjectData";
+import OperateStack from "@/utils/OperateStack";
 export default {
   components: {
     // DraftListItem
@@ -243,10 +244,22 @@ export default {
       backgroundCover: "",
       splitList: [],
       totalDuration: 0,
-      currentSplittedUuid: ""
+      currentSplittedUuid: "",
+      operateStack: null,
+      captureMoved: false
     };
   },
   computed: {
+    undoable() {
+      if (!this.operateStack) return false;
+      console.log("this.operateStack.isOnTop", this.operateStack.isOnTop);
+
+      return !this.operateStack.isOnBottom;
+    },
+    redoable() {
+      if (!this.operateStack) return false;
+      return !this.operateStack.isOnTop;
+    },
     allSplitted() {
       const arr = [];
       for (let i = 0; i < this.videos.length; i++) {
@@ -350,7 +363,6 @@ export default {
     },
     handleSplitterMouseUp(e) {
       e.stopPropagation();
-
       removeEventListener("mousemove", this.handleSplitterMouseMove);
     },
 
@@ -389,6 +401,7 @@ export default {
       }, 0);
       this.refreshBackgroundCover();
       this.calcDuration();
+      this.operateStack.pushSnapshot(this.splitList);
     },
 
     handleImageDurationPlus() {
@@ -436,6 +449,7 @@ export default {
       // this.isImage ||
       this.$nextTick(() => {
         this.createTrimTimeline();
+        this.operateStack = new OperateStack();
         if (this.isImage) {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
@@ -443,6 +457,7 @@ export default {
         } else {
           this.initSplit();
           this.getClipListImages();
+          this.operateStack.pushSnapshot(this.splitList);
         }
       });
     },
@@ -455,6 +470,7 @@ export default {
       this.currentVideoUuid = this.videos[i].uuid;
       this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
     },
+
     // 计算出当前播放位置占总体百分比
     calcCurrentPercentage(currentTime) {
       const currentPercentage = currentTime / this.activeClip.orgDuration;
@@ -481,10 +497,14 @@ export default {
       return hm ? us2hm(ms) : us2time(ms);
     },
     handleUndo() {
-      //
+      if (!this.undoable) return;
+      this.splitList = this.operateStack.moveDown();
+      this.refreshBackgroundCover();
     },
     handleRedo() {
-      //
+      if (!this.redoable) return;
+      this.splitList = this.operateStack.moveUp();
+      this.refreshBackgroundCover();
     },
 
     handlePlay(e) {
@@ -603,6 +623,7 @@ export default {
     },
     handleLeftMouseUp(e) {
       e.stopPropagation();
+      this.operateStack.pushSnapshot(this.splitList);
       document.body.removeEventListener("mousemove", this.handleLeftMouseMove);
     },
     handleRightMouseDown(e) {
@@ -677,11 +698,13 @@ export default {
         );
     },
     handleRightMouseUp() {
+      this.operateStack.pushSnapshot(this.splitList);
       document.body.removeEventListener("mousemove", this.handleRightMouseMove);
     },
     handleCaptureMouseDown(e) {
       e.stopPropagation();
 
+      this.captureMoved = false;
       this.mousePos =
         e.clientX - this.$refs.capture.getBoundingClientRect().left - 18;
 
@@ -694,8 +717,8 @@ export default {
       e.preventDefault();
 
       const { clipList } = this.$refs;
-
       const active = this.splitList[this.activeIndex];
+
       this.captureLeft =
         (e.clientX - this.mousePos - clipList.getBoundingClientRect().left) /
         clipList.offsetWidth;
@@ -712,12 +735,14 @@ export default {
         this.captureLeft =
           active.trimOut / this.activeClip.orgDuration - this.captureWidth;
       }
+
       const startTime = this.getStartTime();
       const endTime = this.getEndTime();
       active.captureIn = startTime;
       active.captureOut = endTime;
       this.trimTimeline.seekTimeline(startTime);
 
+      this.captureMoved = true;
       this.resetVector();
       this.refreshBackgroundCover();
     },
@@ -731,6 +756,7 @@ export default {
       return endTime;
     },
     handleCaptureMouseUp() {
+      if (this.captureMoved) this.operateStack.pushSnapshot(this.splitList);
       document.body.removeEventListener(
         "mousemove",
         this.handleCaptureMouseMove
@@ -929,6 +955,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         cursor: pointer;
         width: 40px;
         height: 40px;
+        user-select: none;
       }
     }
     .split-btn {

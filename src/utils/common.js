@@ -78,3 +78,16 @@ export function NvsColorToRGBA(color) {
   // console.log('NvsColorToRGBA', 'rgb(' + r + ',' + g + ',' + b + ',' + a + ')')
   return `rgb(${r}, ${g}, ${b}, ${a})`;
 }
+
+export function clone(obj) {
+  if (typeof obj !== "object") return;
+  const res = obj instanceof Array ? [] : {};
+  for (let key in obj) {
+    if (typeof obj[key] === "object") {
+      res[key] = clone(obj[key]);
+    } else {
+      res[key] = obj[key];
+    }
+  }
+  return res;
+}
