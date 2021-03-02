@@ -111,6 +111,28 @@ export function getAssetFromNetwork(packageUrl) {
       });
   });
 }
+
+/**
+ * 从FS中获取资源数据, 防止重复下载安装
+ * @param {string} packageUrl 资源地址
+ */
+export function getAssetFromFS(packageUrl) {
+  return new Promise(resolve => {
+    const key = getNameFromUrl(packageUrl);
+    const storeName = getStoreName(key);
+    if (storeName !== "m3u8") {
+      resolve();
+    }
+    const id = key.split(".").shift();
+    const m3u8List = FS.readdir(`/m3u8/`);
+    const m = m3u8List.find(item => item.includes(id));
+    if (m) {
+      console.log("已安装过了", key);
+      resolve(`/m3u8/${id}.m3u8`);
+    }
+    resolve();
+  });
+}
 /**
  *
  * @param {string} packageUrl 资源包的地址
@@ -120,6 +142,10 @@ export async function installAsset(packageUrl, checkLic) {
   return new Promise((resolve, reject) => {
     ensureMeisheModule()
       .then(() => {
+        return getAssetFromFS(packageUrl);
+      })
+      .then(data => {
+        if (data) resolve(data);
         return getAssetFromIndexDB(packageUrl);
       })
       .then(data => {

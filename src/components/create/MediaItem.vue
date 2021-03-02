@@ -6,7 +6,7 @@
       v-if="media.selected"
     ></svg-icon>
     <span class="duration">{{
-      (media.type === "video" ? media.duration : 3000) | msFormat
+      (media.type === "video" ? media.duration / 1000 : 3000) | msFormat
     }}</span>
     <div class="play flex" v-if="media.type === 'video'" @click.stop="play">
       <svg-icon

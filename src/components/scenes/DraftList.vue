@@ -314,14 +314,10 @@ export default {
     cancel() {
       this.mediaDialog = false;
     },
-    selectedFinish(list) {
-      this.mediaDialog = false;
-      console.log(list);
-      const videos = list.map(item => {
-        return new VideoClip(item);
-      });
+    selectedFinish(videos) {
       this.resetClips(videos);
       this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.mediaDialog = false;
     },
     calcSplittedItemWidth(startTime, endTime) {
       const { activeClip } = this;

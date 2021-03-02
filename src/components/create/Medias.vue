@@ -96,6 +96,7 @@
           class="round-btn"
           :disabled="selectedList.length === 0"
           size="medium"
+          :loading="addMediaLoading"
           @click="next"
         >
           {{ $t("next") }}
@@ -108,6 +109,11 @@
 <script>
 import MediaItem from "./MediaItem";
 import { MEDIA_TYPES } from "@/utils/Global";
+import { installAsset } from "@/utils/AssetsUtils";
+import { VideoClip } from "@/utils/ProjectData";
+
+const cloneDeep = require("clone-deep");
+
 const pageSize = 20;
 export default {
   components: {
@@ -116,6 +122,7 @@ export default {
   data() {
     return {
       activeName: "upload",
+      addMediaLoading: false,
       uploadList: [], // 已上传的列表
       uploadTotal: 0,
       uploadPage: 0,
@@ -138,7 +145,7 @@ export default {
     try {
       await this.getMediaFromUpload();
       // await this.getMediaFromLibrary();
-      this.selectedList = this.videos;
+      this.selectedList = cloneDeep(this.videos);
       this.uploadList.map(item => {
         if (this.videos.find(i => i.id === item.id)) {
           item.selected = true;
@@ -211,9 +218,25 @@ export default {
         this.selectedList.splice(index, 1);
       }
     },
-    next() {
+    async next() {
       this.playingId = null;
-      this.$emit("selected-finish", this.selectedList);
+      const videos = [];
+      let inPoint = 0;
+      this.addMediaLoading = true;
+      for (let i = 0; i < this.selectedList.length; i++) {
+        const v = this.selectedList[i];
+        const path = await installAsset(v.m3u8Url);
+        const video = new VideoClip({
+          ...v,
+          m3u8Path: path,
+          inPoint
+        });
+        inPoint += v.duration;
+        console.log("push video");
+        videos.push(video);
+      }
+      this.addMediaLoading = false;
+      this.$emit("selected-finish", videos);
     },
     cancel() {
       this.uploadList.map(item => {
@@ -245,6 +268,8 @@ export default {
           resourceList.map(item => {
             item.selected = false;
             item.type = MEDIA_TYPES[item.mediaType];
+            item.duration = item.duration * 1000;
+            item.orgDuration = item.duration * 1000;
           });
           this.uploadList.push(...resourceList);
           this.loading = false;
