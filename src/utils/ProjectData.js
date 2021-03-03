@@ -99,22 +99,23 @@ export class CaptionClip extends Clip {
     super({
       ...option,
       type: CLIP_TYPES.CAPTION,
-      duration: option.duration || 5 * 1000000
+      duration: option.duration || 3 * 1000000
     });
     this.styleDesc = option.desc || option.id;
     this.text = option.text || CLIP_TYPES.CAPTION;
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;
-    this.rotation = option.rotation || 0;
+    this.rotation = option.rotation || 0; // 角度
     this.uuid = generateUUID();
     this.align = "center"; // string, left/center/right
     this.color = ""; // RGBA
     this.backgroundColor = "";
     this.font = ""; // stringValue
+    this.fontUrl = "";
     // 相对于监视器中心点的位置
-    this.translationX = option.translationX;
-    this.translationY = option.translationY;
-    this.z = option.z;
+    this.translationX = option.translationX || 0;
+    this.translationY = option.translationY || 0;
+    this.z = option.z || 0;
   }
 }
 export class StickerClip extends Clip {
@@ -122,14 +123,14 @@ export class StickerClip extends Clip {
     super({
       ...option,
       type: CLIP_TYPES.STICKER,
-      duration: option.duration || 5 * 1000000
+      duration: option.duration || 3 * 1000000
     });
     this.desc = option.desc || option.id;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0;
-    this.translationX = option.translationX;
-    this.translationY = option.translationY;
-    this.z = option.z;
+    this.translationX = option.translationX || 0;
+    this.translationY = option.translationY || 0;
+    this.z = option.z || 0;
     this.uuid = generateUUID();
   }
 }

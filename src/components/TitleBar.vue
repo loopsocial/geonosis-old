@@ -79,6 +79,7 @@
 
 <script>
 import FullPreview from "./FullPreview";
+import { writeXml } from "../utils/XmlUtils";
 export default {
   data() {
     return {
@@ -105,6 +106,8 @@ export default {
     },
     handlePublish() {
       this.dialogVisible = false;
+      writeXml("project.xml");
+      console.log(FS.readFile("project.xml", { encoding: "utf8" }));
     },
     handleBlur() {
       let strArr = this.infoForm.hashtags.split(",");

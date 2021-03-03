@@ -16,6 +16,7 @@ export default class WorkFlow {
     this.node = null;
     this.rectTransform = null;
     this.deleteNode = null;
+    this.box = {};
     this.timelineClass = options.timelineClass || null;
     this.initStage();
   }
@@ -76,8 +77,12 @@ export default class WorkFlow {
           this.stickerDrag(offsetPointF);
         }
         this.timelineClass.seekTimeline();
-        this.deleteNode.x(pos.x + this.node.width() / 2 - 23);
-        this.deleteNode.y(pos.y + this.node.height());
+        console.log(pos);
+        const p = this.targetPos({ ...this.box, ...pos });
+        console.log("计算后", p);
+        this.deleteNode.x(p.x);
+        this.deleteNode.y(p.y);
+
         return pos;
       }
     });
@@ -98,6 +103,11 @@ export default class WorkFlow {
       this.deleteNode.rotation(-this.clip.rotation);
       this.deleteNode.x(x + width / 2);
     }
+    this.box = {
+      width,
+      height,
+      rotation: this.clip.rotation / 180
+    };
     this.layer.add(this.deleteNode);
     this.layer.add(this.node);
     window.node = this.deleteNode;
@@ -128,10 +138,10 @@ export default class WorkFlow {
           this.stickerTransformer(oldBox, newBox, rectCenter);
         }
         this.timelineClass.seekTimeline();
-        // console.log('缩放旋转', newBox);
-        // this.deleteNode.x(newBox.x + newBox.width / 2 - 23);
-        // this.deleteNode.y(newBox.y + newBox.height);
-        this.deleteNode.rotation(-newBox.rotation);
+        const tarPos = this.targetPos(newBox);
+        this.deleteNode.x(tarPos.x);
+        this.deleteNode.y(tarPos.y);
+        this.deleteNode.rotation((newBox.rotation / Math.PI) * 180);
         return newBox;
       }
     });
@@ -421,6 +431,23 @@ export default class WorkFlow {
     this.deleteNode.on("mouseleave", e => {
       e.evt.target.style.cursor = "default";
     });
+  }
+  targetPos(box) {
+    this.box = box;
+    console.log("计算前", box);
+    const { x, y, width, height, rotation } = box;
+    this.rotation = rotation;
+    const sin = Math.sin(rotation);
+    const cos = Math.cos(rotation);
+    // 上边线的中点
+    const center = {
+      x: (width / 2) * cos + x,
+      y: y + (width / 2) * sin
+    };
+    return {
+      x: center.x - (height + 23) * sin - 23,
+      y: center.y + (height + 23) * cos
+    };
   }
 }
 

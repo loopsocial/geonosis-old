@@ -62,8 +62,12 @@ export default class TimelineClass {
     this.stickers = stickers;
   }
   // 构建时间线
-  async buildTimeline() {
-    this.initData();
+  async buildTimeline(clips) {
+    if (clips) {
+      this.videoTrack = { clips, raw: null };
+    } else {
+      this.initData();
+    }
     console.log("重新构建", this);
     await this.streamingContext.streamingEngineReadyForTimelineModification();
     this.clearVideoTrack();

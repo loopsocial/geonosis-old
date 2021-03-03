@@ -94,7 +94,7 @@
               <div class="text-color">
                 {{ $t("textColor") }}
                 <el-color-picker
-                  v-model="clip.fontColor"
+                  v-model="clip.color"
                   show-alpha
                   size="mini"
                   :predefine="predefineColors"
@@ -212,7 +212,9 @@ export default {
         return item;
       });
     },
-    changeFont() {
+    changeFont(e) {
+      const font = this.fonts.find(f => f.stringValue === e);
+      this.clip.fontUrl = font.packageUrl;
       this.clip.raw.setFontFamily(this.clip.font);
       this.$bus.$emit(this.$keys.seek);
       this.updateClipToVuex(this.clip);

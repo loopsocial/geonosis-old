@@ -78,6 +78,37 @@ export function NvsColorToRGBA(color) {
   // console.log('NvsColorToRGBA', 'rgb(' + r + ',' + g + ',' + b + ',' + a + ')')
   return `rgb(${r}, ${g}, ${b}, ${a})`;
 }
+export function RGBAToHex(rgbaValue) {
+  if (rgbaValue === "" || rgbaValue === null || rgbaValue === undefined) {
+    return "";
+  }
+  var rgba = rgbaValue.match(/(\d(\.\d+)?)+/g);
+  var r = parseInt(rgba[0]);
+  var g = parseInt(rgba[1]);
+  var b = parseInt(rgba[2]);
+  var a = parseInt(rgba[3] * 255);
+  var hex =
+    "#" +
+    a.toString(16) +
+    ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  return hex;
+}
+export function HexToRGBA(hexValue) {
+  if (hexValue === "" || hexValue === null || hexValue === undefined) {
+    return "";
+  }
+  var RGBA =
+    "rgba(" +
+    parseInt("0x" + hexValue.slice(3, 5)) +
+    "," +
+    parseInt("0x" + hexValue.slice(5, 7)) +
+    "," +
+    parseInt("0x" + hexValue.slice(7, 9)) +
+    "," +
+    parseInt("0x" + hexValue.slice(1, 3)) / 255.0 +
+    ")";
+  return RGBA;
+}
 
 // 获取字幕实例的重点
 export function getCaptionCenter(captionRaw) {

@@ -506,13 +506,10 @@ export default {
     // 创建监视器时间线
     async createTrimTimeline() {
       const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
-      this.trimTimeline = new TimelineClass("trim-window", {
-        videoTrack: {
-          clips: [videoClip]
-        }
-      });
+      this.trimTimeline = new TimelineClass("trim-window");
+      window.tt = this.trimTimeline;
       await this.trimTimeline.stopEngin();
-      await this.trimTimeline.buildTimeline();
+      await this.trimTimeline.buildTimeline([videoClip]);
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
