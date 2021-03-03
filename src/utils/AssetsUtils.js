@@ -144,8 +144,8 @@ export async function installAsset(packageUrl, checkLic) {
       .then(() => {
         return getAssetFromFS(packageUrl);
       })
-      .then(data => {
-        if (data) resolve(data);
+      .then(path => {
+        if (path) resolve(path);
         return getAssetFromIndexDB(packageUrl);
       })
       .then(data => {
