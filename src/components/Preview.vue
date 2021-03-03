@@ -137,11 +137,11 @@ export default {
     },
     // eventBus事件绑定/解绑
     setEventBus() {
-      this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
+      // this.$bus.$on(this.$keys.deleteClip, this.deleteClip);
       this.$bus.$on(this.$keys.editClip, this.editClip);
       this.$bus.$on(this.$keys.changeMonitor, this.changeMonitor); // 切换监视器
       this.$bus.$on(this.$keys.getTimeline, this.getTimeline); // 切换监视器
-      this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
+      // this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
       this.$bus.$on(this.$keys.addAudioClip, this.addAudioClip); // music页，添加audio
       this.$bus.$on(this.$keys.clearAudioTrack, this.clearAudioTrack); // music页，清空音频
       this.$bus.$on(this.$keys.delCaptionSticker, this.delCaptionSticker); // music页，清空音频
@@ -284,14 +284,14 @@ export default {
       }
       this.timelineClass.seekTimeline();
     },
-    async deleteClip(type, index) {
-      const { VIDEO, AUDIO } = CLIP_TYPES;
-      await this.timelineClass.stopEngin();
-      if ([VIDEO, AUDIO].includes(type)) {
-        this.timelineClass.deleteClipByIndex(type, index);
-      }
-      this.timelineClass.seekTimeline();
-    },
+    // async deleteClip(type, index) {
+    //   const { VIDEO, AUDIO } = CLIP_TYPES;
+    //   await this.timelineClass.stopEngin();
+    //   if ([VIDEO, AUDIO].includes(type)) {
+    //     this.timelineClass.deleteClipByIndex(type, index);
+    //   }
+    //   this.timelineClass.seekTimeline();
+    // },
     ...mapActions({
       setNvsStatus: "setNvsStatus",
       setEditBoxstatus: "setEditBoxStatus"
@@ -324,11 +324,11 @@ export default {
         callback(this.timelineClass);
       }
     },
-    async afreshVideoClip(clip) {
-      await this.timelineClass.stopEngin();
-      this.timelineClass.afreshVideoClip(clip);
-      this.timelineClass.seekTimeline();
-    },
+    // async afreshVideoClip(clip) {
+    //   await this.timelineClass.stopEngin();
+    //   this.timelineClass.afreshVideoClip(clip);
+    //   this.timelineClass.seekTimeline();
+    // },
     play() {
       if (this.isPlaying) {
         this.timelineClass.stop();
@@ -409,8 +409,8 @@ export default {
     this.$bus.$off(this.$keys.editClip, this.editClip);
     this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
     this.$bus.$off(this.$keys.getTimeline, this.getTimeline);
-    this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
-    this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
+    // this.$bus.$off(this.$keys.afreshVideoClip, this.afreshVideoClip);
+    // this.$bus.$off(this.$keys.deleteClip, this.deleteClip);
     this.$bus.$off(this.$keys.addAudioClip, this.addAudioClip);
     this.$bus.$off(this.$keys.clearAudioTrack, this.clearAudioTrack);
     this.$bus.$off(this.$keys.delCaptionSticker, this.delCaptionSticker);

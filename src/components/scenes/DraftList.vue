@@ -435,7 +435,6 @@ export default {
       }
     },
     handlePlaying(timeline, currentTime) {
-      console.log("currentTime", currentTime);
       this.splittreLeft = this.calcCurrentPercentage(currentTime);
     },
     resetVector() {
@@ -457,8 +456,9 @@ export default {
           return item;
         });
       }
+      this.updateClipToVuex(this.activeClip);
       // 底层执行操作
-      this.$bus.$emit(this.$keys.afreshVideoClip, this.activeClip);
+      this.$bus.$emit(this.$keys.rebuildTimeline);
     },
     initSplit() {
       this.splitList = this.activeClip.splitList.map(item => ({ ...item }));
@@ -483,13 +483,19 @@ export default {
       });
     },
     del(index) {
-      this.deleteClipToVuex({
-        type: CLIP_TYPES.VIDEO,
-        index
-      });
-      const i = Math.min(index, this.videos.length);
-      this.currentVideoUuid = this.videos[i].uuid;
-      this.$bus.$emit(this.$keys.deleteClip, CLIP_TYPES.VIDEO, index);
+      const v = [];
+      let inPoint = 0;
+      for (let i = 0; i < this.videos.length; i++) {
+        const el = this.videos[i];
+        if (i === index) continue;
+        el.inPoint = inPoint;
+        inPoint += el.duration;
+        v.push(el);
+      }
+      this.resetClips(v);
+      const i = Math.min(index, v.length);
+      this.currentVideoUuid = v[i] && v[i].uuid;
+      this.$bus.$emit(this.$keys.rebuildTimeline);
     },
 
     // 计算出当前播放位置占总体百分比

@@ -60,21 +60,31 @@
               <el-radio-button label="left">
                 <svg-icon
                   class="align-icon icon-border"
-                  :icon-class="clip.align === 'left' ? 'align-left-active' : 'align-left'"
+                  :icon-class="
+                    clip.align === 'left' ? 'align-left-active' : 'align-left'
+                  "
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
               <el-radio-button label="center">
                 <svg-icon
                   class="align-icon icon-border"
-                  :icon-class="clip.align === 'center' ? 'align-center-active' : 'align-center'"
+                  :icon-class="
+                    clip.align === 'center'
+                      ? 'align-center-active'
+                      : 'align-center'
+                  "
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
               <el-radio-button label="right">
                 <svg-icon
                   class="align-icon"
-                  :icon-class="clip.align === 'right' ? 'align-right-active' : 'align-right'"
+                  :icon-class="
+                    clip.align === 'right'
+                      ? 'align-right-active'
+                      : 'align-right'
+                  "
                   ref="align"
                 ></svg-icon>
               </el-radio-button>
@@ -86,6 +96,7 @@
                 <el-color-picker
                   v-model="clip.fontColor"
                   show-alpha
+                  size="mini"
                   :predefine="predefineColors"
                   class="ln-color-picker"
                   @change="changeColor"
@@ -96,6 +107,7 @@
                 <el-color-picker
                   v-model="clip.backgroundColor"
                   show-alpha
+                  size="mini"
                   class="ln-color-picker"
                   :predefine="predefineColors"
                   @change="changeBackground"
@@ -328,17 +340,6 @@ export default {
       width: 100%;
       border-bottom: 1px solid #6b6b6b;
     }
-  }
-  // .align-icon:hover {
-  //   path {
-  //     fill: red;
-  //     stroke: yellow;
-  //   }
-  // }
-  svg,
-  path {
-    fill: red;
-    color: yellow;
   }
 }
 </style>

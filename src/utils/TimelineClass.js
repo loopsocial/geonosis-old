@@ -145,6 +145,7 @@ export default class TimelineClass {
     }
   }
   // 重新添加一次clip, 用于修改trim
+  // 删除clip的时候会丢失区间内的字幕, 改用rebuildTimeline
   afreshVideoClip(clip) {
     // 删除这个clip下所有的切片
     clip = this.videoTrack.clips.find(c => c.uuid === clip.uuid);
