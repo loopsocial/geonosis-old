@@ -88,11 +88,15 @@ export default class WorkFlow {
     });
     const image = await this.getImage();
     this.deleteNode = new Konva.Image({
-      x: x + width / 2 - 23,
+      x: x + width / 2,
       y: y + height,
       image,
       width: 46,
-      height: 46
+      height: 46,
+      offset: {
+        x: 23,
+        y: 23
+      }
     });
     if (this.clip.rotation !== 0) {
       this.node.offsetX(this.node.width() / 2);
@@ -445,8 +449,8 @@ export default class WorkFlow {
       y: y + (width / 2) * sin
     };
     return {
-      x: center.x - (height + 23) * sin - 23,
-      y: center.y + (height + 23) * cos
+      x: center.x - (height ) * sin,
+      y: center.y + (height ) * cos
     };
   }
 }

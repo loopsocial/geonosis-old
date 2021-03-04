@@ -21,7 +21,7 @@
               rgba(0, 0, 0, 0) 0%,
               rgba(0, 0, 0, 0.3) 100%
             ),
-            url('${item.coverUrl}') no-repeat center center/auto 100%`
+            url('${getCover(item, i)}') no-repeat center center/auto 100%`
           }"
         >
           <div class="order-number">{{ getNum(index, i) }}</div>
@@ -299,6 +299,12 @@ export default {
     document.body.addEventListener("mousedown", this.handleDocumentClick);
   },
   methods: {
+    getCover(item, splitItem) {
+      const inPoint = item.splitList[splitItem].captureIn;
+      return inPoint === 0
+        ? item.coverUrl
+        : item.thumbnails[Math.round(inPoint / 1000000)].url;
+    },
     cancel() {
       this.mediaDialog = false;
     },
