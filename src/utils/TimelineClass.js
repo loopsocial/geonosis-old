@@ -1,4 +1,4 @@
-import { FX_TYPES, PARAMS_TYPES, CLIP_TYPES } from "./Global";
+import { FX_TYPES, PARAMS_TYPES, CLIP_TYPES, FX_DESC } from "./Global";
 import store from "../store";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
@@ -184,6 +184,31 @@ export default class TimelineClass {
         } else if (fx.type === FX_TYPES.PACKAGE) {
           fx.raw = clip.raw.appendPackagedFx(fx.desc);
         }
+      }
+      if (fx.desc === FX_DESC.MOSAIC) {
+        // 添加一个视野内的遮罩
+        fx.raw.setFloatVal("Unit Size", 0);
+        fx.raw.setFilterIntensity(1);
+        fx.raw.setRegional(true);
+        fx.raw.setIgnoreBackground(true);
+        fx.raw.setInverseRegion(false);
+        fx.raw.setRegionalFeatherWidth(0);
+        const region = new NvsVectorFloat();
+        // pos1
+        region.push_back(-1);
+        region.push_back(1);
+        // pos2
+        region.push_back(-1);
+        region.push_back(-1);
+        // pos3
+        region.push_back(1);
+        region.push_back(-1);
+        // pos4
+        region.push_back(1);
+        region.push_back(1);
+        fx.raw.setRegion(region);
+        // 遮罩效果写死, 不需要再判断特效参数了
+        return;
       }
       fx.params.map(({ type, key, value }) => {
         switch (type) {

@@ -34,6 +34,7 @@ module.exports = {
     NvsPointF: true,
     NvsAssetPackageStatusEnum: true,
     NvsSeekFlagEnum: true,
-    NvsColor: true
+    NvsColor: true,
+    NvsVectorFloat: true
   }
 };

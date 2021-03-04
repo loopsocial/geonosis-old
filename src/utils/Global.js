@@ -27,7 +27,8 @@ export const CLIP_TYPES = {
 };
 // 特效desc
 export const FX_DESC = {
-  TRANSFORM2D: "Transform 2D"
+  TRANSFORM2D: "Transform 2D",
+  MOSAIC: "Mosaic"
 };
 // 特效类型
 export const FX_TYPES = {

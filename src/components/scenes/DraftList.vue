@@ -223,9 +223,9 @@
 
 <script>
 import { us2hm, us2time } from "../../utils/common";
-import { CLIP_TYPES } from "@/utils/Global";
+import { CLIP_TYPES, FX_DESC } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
-import { VideoClip } from "@/utils/ProjectData";
+import { VideoClip, FxParam, VideoFx } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
 import Medias from "../create/Medias";
 export default {
@@ -445,15 +445,25 @@ export default {
     handleResize() {},
     handleNext() {
       this.dialogVisible = false;
+      // 计算特效参数
+      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+      transformFx.params = [
+        new FxParam("float", "Trans X", 100), // 偏移
+        new FxParam("float", "Trans Y", 100),
+        new FxParam("float", "Scale X", 2), // 缩放
+        new FxParam("float", "Scale Y", 2)
+      ];
+      const mosaicFx = new VideoFx(FX_DESC.MOSAIC);
       if (this.isImage) {
         // 图片处理
         this.activeClip.splitList[0].trimOut = this.imageDuration;
         this.activeClip.splitList[0].captureOut = this.imageDuration;
+        this.activeClip.splitList[0].videoFxs = [transformFx, mosaicFx];
         this.activeClip.motion = this.motion;
       } else {
         // 视频处理
         this.activeClip.splitList = this.splitList.map(item => {
-          item.videoFxs = [];
+          item.videoFxs = [transformFx, mosaicFx];
           return item;
         });
       }
