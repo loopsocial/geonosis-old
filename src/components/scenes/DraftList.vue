@@ -2,53 +2,55 @@
   <div class="draft-list">
     <div class="draft-list-container">
       <div
-        :class="[
-          'draft-list-item',
-          currentSplittedUuid === item.splittedUuid ? 'onfocus' : ''
-        ]"
-        v-for="(item, index) in allSplitted"
-        :key="item.splittedUuid"
-        @click="selected(item)"
-        :style="{
-          background: `linear-gradient(
-            180deg,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 0.3) 100%
-          ),
-          url('${item.coverUrl}') no-repeat center center/auto 100%`
-        }"
+        :class="['draft-list-item']"
+        v-for="(item, index) in videos"
+        :key="item.uuid"
       >
-        <div class="order-number">{{ index + 1 }}</div>
-        <div class="duration">
-          {{
-            format(
-              item.splitList[0].captureOut - item.splitList[0].captureIn,
-              true
-            )
-          }}
-        </div>
-        <transition name="el-fade-in-linear">
-          <div
-            class="operate-btns"
-            v-if="currentSplittedUuid === item.splittedUuid"
-            @click.stop
-          >
-            <div class="icon flex">
-              <svg-icon
-                class="cut-icon"
-                icon-class="cut"
-                @click="cut(item)"
-              ></svg-icon>
-            </div>
-            <div class="icon flex">
-              <svg-icon
-                class="delete-icon"
-                icon-class="trash"
-                @click="del(index)"
-              ></svg-icon>
-            </div>
+        <div
+          :class="[
+            'split-item',
+            item.uuid + `_${i}`,
+            currentVideoUuid === item.uuid + `_${i}` ? 'onfocus' : ''
+          ]"
+          v-for="(split, i) in item.splitList"
+          :key="i"
+          @click="selected(item, i)"
+          :style="{
+            background: `linear-gradient(
+              180deg,
+              rgba(0, 0, 0, 0) 0%,
+              rgba(0, 0, 0, 0.3) 100%
+            ),
+            url('${item.coverUrl}') no-repeat center center/auto 100%`
+          }"
+        >
+          <div class="order-number">{{ getNum(index, i) }}</div>
+          <div class="duration">
+            {{ format(split.captureOut - split.captureIn, true) }}
           </div>
-        </transition>
+          <transition name="el-fade-in-linear">
+            <div
+              class="operate-btns"
+              v-if="currentVideoUuid === item.uuid + `_${i}`"
+              @click.stop
+            >
+              <div class="icon flex">
+                <svg-icon
+                  class="cut-icon"
+                  icon-class="cut"
+                  @click="cut(item)"
+                ></svg-icon>
+              </div>
+              <div class="icon flex">
+                <svg-icon
+                  class="delete-icon"
+                  icon-class="trash"
+                  @click="del(index, i)"
+                ></svg-icon>
+              </div>
+            </div>
+          </transition>
+        </div>
       </div>
     </div>
 
@@ -257,7 +259,6 @@ export default {
       backgroundCover: "",
       splitList: [],
       totalDuration: 0,
-      currentSplittedUuid: "",
       operateStack: null,
       captureMoved: false
     };
@@ -273,25 +274,12 @@ export default {
       if (!this.operateStack) return false;
       return !this.operateStack.isOnTop;
     },
-    allSplitted() {
-      const arr = [];
-      for (let i = 0; i < this.videos.length; i++) {
-        const video = this.videos[i];
-        for (let j = 0; j < video.splitList.length; j++) {
-          const splittedItem = video.splitList[j];
-          arr.push({
-            ...video,
-            splitList: [splittedItem],
-            splittedUuid: video.uuid + "-" + j
-          });
-        }
-      }
-      return arr;
-    },
     // 当前选中被编辑的视频
     activeClip() {
       if (!this.currentVideoUuid) return {};
-      return this.videos.find(item => this.currentVideoUuid === item.uuid);
+      return this.videos.find(item =>
+        this.currentVideoUuid.includes(item.uuid)
+      );
     },
     isImage() {
       return this.activeClip && this.activeClip.videoType === CLIP_TYPES.IMAGE;
@@ -313,6 +301,13 @@ export default {
   methods: {
     cancel() {
       this.mediaDialog = false;
+    },
+    getNum(videoIndex, splitIndex) {
+      let sum = 0;
+      for (let i = 0; i < videoIndex; i++) {
+        sum += this.videos[i].splitList.length;
+      }
+      return sum + splitIndex;
     },
     selectedFinish(videos) {
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: videos });
@@ -482,19 +477,20 @@ export default {
         }
       });
     },
-    del(index) {
+    del(index, splitIndex) {
       const v = [];
       let inPoint = 0;
+      this.videos[index].splitList.splice(splitIndex, 1);
       for (let i = 0; i < this.videos.length; i++) {
         const el = this.videos[i];
-        if (i === index) continue;
+        if (!el.splitList.length) continue;
         el.inPoint = inPoint;
         inPoint += el.duration;
         v.push(el);
       }
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
       const i = Math.min(index, v.length);
-      this.currentVideoUuid = v[i] && v[i].uuid;
+      this.currentVideoUuid = v[i] && v[i].uuid + "_0";
       this.$bus.$emit(this.$keys.rebuildTimeline);
     },
 
@@ -513,9 +509,8 @@ export default {
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
-    selected(item) {
-      this.currentSplittedUuid = item.splittedUuid;
-      this.currentVideoUuid = item.uuid;
+    selected(item, i) {
+      this.currentVideoUuid = item.uuid + `_${i}`;
     },
     format(ms, hm = false) {
       return hm ? us2hm(ms) : us2time(ms);
@@ -772,12 +767,12 @@ export default {
     },
     getStartTime() {
       const startTime = this.captureLeft * this.activeClip.duration;
-      return startTime;
+      return Math.round(startTime);
     },
     getEndTime() {
       const endTime =
         (this.captureLeft + this.captureWidth) * this.activeClip.duration;
-      return endTime;
+      return Math.round(endTime);
     },
     handleCaptureMouseUp() {
       if (this.captureMoved) this.operateStack.pushSnapshot(this.splitList);
@@ -858,12 +853,6 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     box-sizing: border-box;
     padding-bottom: 68px;
     .draft-list-item {
-      position: relative;
-      height: 180px;
-      width: 180px;
-      border: 2px solid transparent;
-      border-radius: 6px;
-      transition: 0.3s;
       .order-number {
         position: absolute;
         top: 6px;
@@ -920,12 +909,20 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         width: 100%;
         height: 100%;
       }
+      .split-item {
+        border: 2px solid transparent;
+        border-radius: 6px;
+        transition: 0.3s;
+        position: relative;
+        height: 180px;
+        width: 180px;
+        &.onfocus {
+          border-color: $white;
+        }
+      }
     }
     .draft-list-item + .draft-list-item {
       margin-top: 12px;
-    }
-    .onfocus {
-      border-color: #fff;
     }
   }
 

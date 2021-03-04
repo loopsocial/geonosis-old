@@ -15,7 +15,8 @@ export default {
       switch (type) {
         case CLIP_TYPES.VIDEO:
           state.videos = clips;
-          state.currentVideoUuid = state.videos[0] && state.videos[0].uuid;
+          state.currentVideoUuid =
+            state.videos[0] && state.videos[0].uuid + `_0`;
           break;
         case CLIP_TYPES.AUDIO:
           state.audios = clips;
@@ -38,7 +39,7 @@ export default {
       switch (type) {
         case CLIP_TYPES.VIDEO:
           state.videos.push(...clips);
-          state.currentVideoUuid = state.videos[0].uuid;
+          state.currentVideoUuid = state.videos[0].uuid + "_0";
           break;
         case CLIP_TYPES.AUDIO:
           state.audios.push(...clips);
