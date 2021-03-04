@@ -31,32 +31,29 @@
             }}</el-button>
           </div>
         </div>
-        <transition name="el-fade-in">
-          <div class="timeline-wrapper" v-if="music.timelineVisible">
+        <div
+          :class="{ 'timeline-wrapper': true, hidden: !music.timelineVisible }"
+        >
+          <div
+            class="slider-wrapper"
+            :style="{
+              left: sliderLeft + 'px',
+              width: sliderWidth + 'px'
+            }"
+            @mousedown="handleSliderMouseDown"
+            ref="slider"
+          >
             <div
-              class="slider-wrapper"
-              :style="{
-                left: sliderLeft + 'px',
-                width: sliderWidth + 'px'
-              }"
-              @mousedown="handleSliderMouseDown"
-              ref="slider"
+              class="slider"
+              :style="{ backgroundPosition: sliderBgPos + 'px' }"
             >
-              <div
-                class="slider"
-                :style="{ backgroundPosition: sliderBgPos + 'px' }"
-              >
-                <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
-                <div
-                  class="arrow right"
-                  @mousedown="handleRightMouseDown"
-                ></div>
-              </div>
+              <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
+              <div class="arrow right" @mousedown="handleRightMouseDown"></div>
             </div>
-
-            <div class="timeline" ref="timeline"></div>
           </div>
-        </transition>
+
+          <div class="timeline" ref="timeline"></div>
+        </div>
         <!-- <img :src="style.coverUrl" alt="" /> -->
       </li>
     </ul>
@@ -274,7 +271,8 @@ export default {
           name: materialList[i].displayName,
           trimIn: 0,
           trimOut: materialList[i].duration * 1000,
-          orgDuration: materialList[i].duration * 1000
+          orgDuration: materialList[i].duration * 1000,
+          duration: materialList[i].duration * 1000
         };
         this.musicList.push(music);
         installAsset(materialList[i].m3u8Url).then(r => {
@@ -315,8 +313,11 @@ export default {
         width: 100%;
         height: 40px;
         box-sizing: border-box;
-        transition: all 1s ease;
+        transition: all 0.2s;
         overflow: hidden;
+        &.hidden {
+          height: 0;
+        }
         .timeline {
           width: 100%;
           height: 100%;

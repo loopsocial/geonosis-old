@@ -57,7 +57,7 @@ export default class TimelineClass {
   initData() {
     const { videos, audios, captions, stickers } = store.state.clip;
     this.videoTrack = { clips: videos, raw: null };
-    this.audioTrack.clips = { clips: audios, raw: null };
+    this.audioTrack = { clips: audios, raw: null };
     this.captions = captions;
     this.stickers = stickers;
   }

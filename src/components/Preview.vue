@@ -208,7 +208,7 @@ export default {
       const count = Math.ceil(
         this.timelineClass.timeline.getDuration() / duration
       );
-
+      let audios = [];
       for (let index = 0; index < count; index++) {
         durationCumulate += duration;
         clipOptions.inPoint = index * duration;
@@ -217,10 +217,9 @@ export default {
             duration -
             (durationCumulate - this.timelineClass.timeline.getDuration());
         }
-
-        this.addClipToVuex(new AudioClip(clipOptions));
+        audios.push(new AudioClip(clipOptions));
       }
-
+      this.addClipToVuex(audios);
       await this.timelineClass.stopEngin();
       this.timelineClass.buildAudioTrack();
       this.timelineClass.seekTimeline();

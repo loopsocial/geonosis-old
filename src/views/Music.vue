@@ -12,8 +12,14 @@
           ></svg-icon>
         </el-tab-pane>
       </el-tabs>
-      <div class="none" @click="handleNone">
-        <svg-icon slot="label" icon-class="none"></svg-icon>
+      <div
+        :class="['none', this.audios.length ? '' : 'disabled']"
+        @click="handleNone"
+      >
+        <svg-icon
+          slot="label"
+          :icon-class="this.audios.length ? 'none' : 'none-disabled'"
+        ></svg-icon>
         {{ $t("none") }}
       </div>
     </div>
@@ -24,6 +30,7 @@
 <script>
 import Preview from "../components/Preview";
 import MusicList from "../components/music/MusicList";
+import { CLIP_TYPES } from "../utils/Global";
 export default {
   components: { Preview, MusicList },
   data() {
@@ -36,7 +43,13 @@ export default {
   },
   methods: {
     handleNone() {
+      if (this.audios.length === 0) {
+        // 本来就没有音频 不用清空
+        console.log("本就没有音频, 不用清空");
+        return;
+      }
       this.$bus.$emit(this.$keys.clearAudioTrack);
+      this.resetClips({ type: CLIP_TYPES.AUDIO, clips: [] });
     }
   }
 };
@@ -54,6 +67,10 @@ export default {
     color: $white;
     z-index: 999;
     cursor: pointer;
+    &.disabled {
+      color: rgba($color: $white, $alpha: 0.5);
+      cursor: default;
+    }
   }
   .material {
     display: flex;

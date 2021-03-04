@@ -225,7 +225,7 @@ import { CLIP_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
-import Medias from "../create/Medias"
+import Medias from "../create/Medias";
 export default {
   components: {
     Medias
@@ -315,7 +315,7 @@ export default {
       this.mediaDialog = false;
     },
     selectedFinish(videos) {
-      this.resetClips(videos);
+      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: videos });
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.mediaDialog = false;
     },
@@ -492,7 +492,7 @@ export default {
         inPoint += el.duration;
         v.push(el);
       }
-      this.resetClips(v);
+      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
       const i = Math.min(index, v.length);
       this.currentVideoUuid = v[i] && v[i].uuid;
       this.$bus.$emit(this.$keys.rebuildTimeline);

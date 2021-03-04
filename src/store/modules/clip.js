@@ -11,13 +11,11 @@ export default {
     currentVideoUuid: null
   },
   mutations: {
-    resetClips(state, clips) {
-      if (!clips.length) return;
-      const type = clips[0].type;
+    resetClips(state, { type, clips }) {
       switch (type) {
         case CLIP_TYPES.VIDEO:
           state.videos = clips;
-          state.currentVideoUuid = state.videos[0].uuid;
+          state.currentVideoUuid = state.videos[0] && state.videos[0].uuid;
           break;
         case CLIP_TYPES.AUDIO:
           state.audios = clips;
