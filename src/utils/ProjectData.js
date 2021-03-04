@@ -8,11 +8,9 @@ class Raw {
 }
 
 class Clip extends Raw {
-  constructor({ type, index, inPoint, duration }) {
+  constructor({ type, inPoint, duration }) {
     super(null);
-    this.index = index;
     this.type = type;
-    this.raw = null;
     this.inPoint = inPoint;
     this.duration = duration;
   }

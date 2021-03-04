@@ -59,6 +59,7 @@ export default {
         message: this.$t("loadModulesFailed")
       });
     }
+    window.test = this.test;
     document.body.addEventListener("mouseup", this.statusEvent);
   },
   computed: {
@@ -67,6 +68,13 @@ export default {
     })
   },
   methods: {
+    test() {
+      const video = this.timelineClass.videoTrack.clips[0];
+      const fx = video.splitList[0].raw.appendRawBuiltinFx("Transform 2D");
+      fx.setFloatVal("Trans X", 100);
+      fx.setFloatVal("Trans Y", 100);
+      this.timelineClass.seekTimeline();
+    },
     statusEvent() {
       setTimeout(() => {
         this.setEditBoxstatus(false);
