@@ -76,6 +76,7 @@
         class="live-window-wrapper"
         v-loading="waiting"
         element-loading-background="rgba(0, 0, 0, 0)"
+        ref="liveWindowWrapper"
       >
         <div class="undo-btn inline-block">
           <svg-icon
@@ -269,6 +270,10 @@ export default {
   props: {},
   data() {
     return {
+      dialogCanvasSize: {
+        width: 0,
+        height: 0
+      },
       mediaDialog: false, // 添加素材的弹窗
       currentSplitList: [],
       height: 0,
@@ -305,18 +310,12 @@ export default {
         startBottom: 0, // 按下四角时候记录
         mousePosX: 0,
         mousePosY: 0
-      },
-      dialogCanvasSize:{
-        width:0,
-        height:0
       }
     };
   },
   computed: {
     undoable() {
       if (!this.operateStack) return false;
-      console.log("this.operateStack.isOnTop", this.operateStack.isOnTop);
-
       return !this.operateStack.isOnBottom;
     },
     redoable() {
@@ -681,7 +680,7 @@ export default {
       this.activeIndex = -1;
     },
     handleSplitterMouseDown() {
-      addEventListener("mousemove", this.handleSplitterMouseMove);
+      document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
     },
     handleSplitterMouseMove(e) {
       const { clipList } = this.$refs;
@@ -703,11 +702,16 @@ export default {
       const currentSeekTime = this.splittreLeft * this.activeClip.orgDuration;
       this.trimTimeline.seekTimeline(currentSeekTime);
 
-      addEventListener("mouseup", this.handleSplitterMouseUp);
+      document.body.addEventListener("mouseup", this.handleSplitterMouseUp, {
+        once: true
+      });
     },
     handleSplitterMouseUp(e) {
       e.stopPropagation();
-      removeEventListener("mousemove", this.handleSplitterMouseMove);
+      document.body.removeEventListener(
+        "mousemove",
+        this.handleSplitterMouseMove
+      );
     },
 
     handleSplit() {
@@ -721,6 +725,7 @@ export default {
       this.splitList.reduce((prev, cur, curIdx, arr) => {
         const curWidth = this.calcSplittedItemWidth(cur.trimIn, cur.trimOut);
         if (splitterPercentage < curWidth + prev && splitterPercentage > prev) {
+          this.delMaterials(cur);
           // 一分为二
           splitedArr = [
             {
@@ -1005,11 +1010,11 @@ export default {
     },
     // 拼出缩略图
     getClipListImages() {
-      const videoInfo = streamingContext.streamingContext.getAVFileInfo(
+      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
         this.activeClip.m3u8Path,
         0
       );
-      const { width, height } = videoInfo.videoStreamInfo;
+      const { width, height } = this.videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
 
       const containableItemNum = Math.floor(
@@ -1026,10 +1031,7 @@ export default {
           counter++;
         }
       }
-      this.background = bg.substring(0, bg.length - 10) + "repeat";
-      this.refreshBackgroundCover();
-      this.calcDuration();
-      this.splittreLeft = 0;
+      this.background = bg.substring(0, bg.length - 10) + "repeat-x";
     },
     // 处理切片的选中
     handleClipClick(e) {
@@ -1092,7 +1094,6 @@ export default {
       this.calcDuration(startTime, endTime);
       this.refreshBackgroundCover();
       this.trimTimeline.seekTimeline(startTime);
-      this.resetVector();
     },
     handleLeftMouseUp(e) {
       e.stopPropagation();
@@ -1145,7 +1146,6 @@ export default {
       active.captureIn = startTime;
       active.captureOut = endTime;
       this.calcDuration(startTime, endTime);
-      this.resetVector();
       this.refreshBackgroundCover();
     },
     calcDuration(startTime, endTime) {
@@ -1216,7 +1216,6 @@ export default {
       this.trimTimeline.seekTimeline(startTime);
 
       this.captureMoved = true;
-      this.resetVector();
       this.refreshBackgroundCover();
     },
     getStartTime() {
@@ -1429,6 +1428,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
 
 .ln-dialog {
   .live-window-wrapper {
+    height: calc(100% - 50px);
+    // flex: 1;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -1443,7 +1444,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         height: 100%;
         overflow: hidden;
         .selected-rect {
-          outline: rgba(0, 0, 0, 0.5) solid 1000px;
+          outline: rgba(0, 0, 0, 0.6) solid 1000px;
         }
       }
       .selected-rect {
@@ -1505,8 +1506,6 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       }
     }
     .live-window {
-      width: 276px;
-      height: 360px;
       background-color: violet;
     }
   }
@@ -1564,10 +1563,11 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     }
 
     .clip-list-container {
-      display: inline-block;
+      flex: 1;
       position: relative;
       height: 30px;
       .clip-item-container {
+        display: flex;
         position: absolute;
         top: 0;
         width: 100%;
@@ -1575,7 +1575,8 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         box-sizing: border-box;
         overflow: hidden;
         .clip-item {
-          float: left;
+          flex-shrink: 0;
+          flex-grow: 0;
           height: 100%;
           box-sizing: border-box;
           border: 1px solid #fff;
@@ -1586,7 +1587,6 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         position: relative;
         margin-left: 18px;
         height: 100%;
-        width: 500px;
       }
       .clip-list {
         position: relative;
