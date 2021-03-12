@@ -14,7 +14,7 @@ let config = {
   // withCredentials: true, // Check cross-site Access-Control
   headers: {
     Authorization:
-      "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMzMiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNDU3NjYxOCwiZXhwIjoxNjE1MTgxNDE4fQ.fd1PBv8K6dEykcmLqR_p1WtFvnL3oC5TSRJMt3hibGcd0h6BlYIwtg9869msnu7btfs2KHspCKuA7MKFN130bQ"
+      "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNTUyOTY3OSwiZXhwIjoxNjE2MTM0NDc5fQ.ePigI8ZYSekpVlHITjzfQACqiPTHGGX32dQspZb1FvF14l4q1VI8MOavVUXiSOdq-RAsgMHjXiqp2JOEHEXeww"
   }
 };
 

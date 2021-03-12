@@ -27,6 +27,7 @@ module.exports = {
     Module: true,
     videojs: true,
     NvsXmlStreamWriter: true,
+    NvsXmlStreamReader: true,
     NvsTimeline: true,
     NvsPointF: true,
     NvsXmlStreamWriter: true,

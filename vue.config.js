@@ -3,6 +3,9 @@ function resolve(dir) {
   return path.join(__dirname, ".", dir);
 }
 module.exports = {
+  devServer: {
+    port: 5000, // 端口
+  },
   lintOnSave: false,
   css: {
     loaderOptions: {
