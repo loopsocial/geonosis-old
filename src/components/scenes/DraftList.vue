@@ -254,7 +254,7 @@
 
 <script>
 import { us2hm, us2time } from "../../utils/common";
-import { CLIP_TYPES, FX_DESC } from "@/utils/Global";
+import { CLIP_TYPES, FX_DESC, TRANSFORM2D_KEYS, PARAMS_TYPES } from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip, FxParam, VideoFx } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
@@ -562,16 +562,16 @@ export default {
         let scaleY = 1;
         transformData.params.forEach(param => {
           switch (param.key) {
-            case "Trans X":
+            case TRANSFORM2D_KEYS.TRANS_X:
               paramX = param.value;
               break;
-            case "Trans Y":
+            case TRANSFORM2D_KEYS.TRANS_Y:
               paramY = param.value;
               break;
-            case "Scale X":
+            case TRANSFORM2D_KEYS.SCALE_X:
               scaleX = param.value;
               break;
-            case "Scale Y":
+            case TRANSFORM2D_KEYS.SCALE_Y:
               scaleY = param.value;
               break;
           }
@@ -860,11 +860,11 @@ export default {
         -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
 
       transformFx.params = [
-        new FxParam("float", "Trans X", transX), // 偏移
-        new FxParam("float", "Trans Y", transY),
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_X, transX), // 偏移
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_Y, transY),
 
-        new FxParam("float", "Scale X", scaleX), // 缩放
-        new FxParam("float", "Scale Y", scaleY)
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scaleX), // 缩放
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scaleY)
       ];
 
       const mosaicFx = new VideoFx(FX_DESC.MOSAIC);
@@ -1015,6 +1015,7 @@ export default {
         this.activeClip.m3u8Path,
         0
       );
+      if (this.isImage) return;
       const { width, height } = this.videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
 
