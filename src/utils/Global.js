@@ -73,3 +73,4 @@ export const MEDIA_TYPES = {
   2: "audio",
   3: "image"
 };
+export const RATIO = 0.5625;

@@ -65,7 +65,8 @@
       top="0"
       :modal-append-to-body="false"
       :close-on-click-modal="false"
-      ref="dialog"
+      destroy-on-close
+      :before-close="destroy"
     >
       <template #title>
         <h1>{{ $t("trimVideo") }}</h1>
@@ -89,12 +90,41 @@
           ></svg-icon>
         </div>
 
-        <canvas
-          width="540"
-          height="960"
-          class="live-window inline-block"
-          id="trim-window"
-        ></canvas>
+        <div class="live-window" ref="liveWindow">
+          <canvas
+            :width="dialogCanvasSize.width"
+            :height="dialogCanvasSize.height"
+            class="live-window inline-block"
+            id="trim-window"
+          ></canvas>
+          <div class="selected-rect-wrapper">
+            <div
+              class="selected-rect"
+              :style="{
+                width: rect.width * 100 + '%',
+                height: rect.height * 100 + '%',
+                left: rect.left * 100 + '%',
+                top: rect.top * 100 + '%'
+              }"
+            ></div>
+          </div>
+          <div
+            class="selected-rect"
+            :style="{
+              width: rect.width * 100 + '%',
+              height: rect.height * 100 + '%',
+              left: rect.left * 100 + '%',
+              top: rect.top * 100 + '%'
+            }"
+            @mousedown="handleRectMouseDown"
+            ref="selectedRect"
+          >
+            <div class="left-top point"></div>
+            <div class="right-top point"></div>
+            <div class="right-bottom point"></div>
+            <div class="left-bottom point"></div>
+          </div>
+        </div>
 
         <div @click="handleSplit" class="split-btn inline-block">
           <svg-icon
@@ -200,7 +230,7 @@
         <el-button
           class="round-btn white-btn"
           :style="{ background: '#2B2B2B' }"
-          @click="dialogVisible = false"
+          @click="(dialogVisible = false), destroy()"
           >{{ $t("cancel") }}</el-button
         >
         <el-button class="round-btn" type="primary" @click="handleNext">{{
@@ -228,6 +258,9 @@ import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip, FxParam, VideoFx } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
 import Medias from "../create/Medias";
+import { RATIO } from "@/utils/Global";
+import WorkFlow from "@/utils/WorkFlow";
+
 export default {
   components: {
     Medias
@@ -260,7 +293,23 @@ export default {
       splitList: [],
       totalDuration: 0,
       operateStack: null,
-      captureMoved: false
+      captureMoved: false,
+      videoInfo: null,
+      currentSplitedIdx: 0,
+      rect: {
+        width: 0,
+        height: 0,
+        left: 0,
+        top: 0,
+        startRight: 0, // 按下四角时候记录
+        startBottom: 0, // 按下四角时候记录
+        mousePosX: 0,
+        mousePosY: 0
+      },
+      dialogCanvasSize:{
+        width:0,
+        height:0
+      }
     };
   },
   computed: {
@@ -295,15 +344,288 @@ export default {
       return this.$t("split");
     }
   },
-  mounted() {
-    document.body.addEventListener("mousedown", this.handleDocumentClick);
-  },
+  mounted() {},
   methods: {
     getCover(item, splitItem) {
       const inPoint = item.splitList[splitItem].captureIn;
       return inPoint === 0
         ? item.coverUrl
         : item.thumbnails[Math.round(inPoint / 1000000)].url;
+    },
+    handleRectMouseDown(e) {
+      const { width, height } = this.dialogCanvasSize;
+
+      this.rect.startLeft = this.rect.left;
+      this.rect.startRight = this.rect.left + this.rect.width;
+      this.rect.startBottom = this.rect.top + this.rect.height;
+      this.rect.mousePosX =
+        e.clientX -
+        this.rect.left * width -
+        this.$refs.liveWindow.getBoundingClientRect().left;
+      this.rect.mousePosY =
+        e.clientY -
+        this.rect.top * height -
+        this.$refs.liveWindow.getBoundingClientRect().top;
+
+      if (e.target.classList.contains("right-bottom")) {
+        document.body.addEventListener(
+          "mousemove",
+          this.handleRightBottomResizeMouseMove
+        );
+      } else if (e.target.classList.contains("right-top")) {
+        document.body.addEventListener(
+          "mousemove",
+          this.handleRightTopResizeMouseMove
+        );
+      } else if (e.target.classList.contains("left-bottom")) {
+        document.body.addEventListener(
+          "mousemove",
+          this.handleLeftBottomResizeMouseMove
+        );
+      } else if (e.target.classList.contains("left-top")) {
+        document.body.addEventListener(
+          "mousemove",
+          this.handleLeftTopResizeMouseMove
+        );
+      } else {
+        document.body.addEventListener("mousemove", this.handleRectMouseMove);
+      }
+      document.body.addEventListener("mouseup", this.handleRectMouseUp, {
+        once: true
+      });
+    },
+    widthToHeight(w) {
+      const { width, height } = this.dialogCanvasSize;
+      this.rect.height = (w * width) / RATIO / height;
+    },
+    heightToWidth(h) {
+      const { width, height } = this.dialogCanvasSize;
+      this.rect.width = (h * height * RATIO) / width;
+    },
+    handleRightTopResizeMouseMove(e) {
+      e.preventDefault();
+      const { width } = this.dialogCanvasSize;
+      const {
+        rect,
+        widthToHeight,
+        heightToWidth,
+        $refs: { liveWindow }
+      } = this;
+
+      rect.width =
+        (e.clientX -
+          liveWindow.getBoundingClientRect().left -
+          rect.left * width) /
+        width;
+      widthToHeight(rect.width);
+
+      rect.top = rect.startBottom - rect.height;
+
+      if (rect.top < 0) {
+        rect.top = 0;
+        rect.height = rect.startBottom;
+        heightToWidth(rect.height);
+      }
+      if (rect.width + rect.left > 1) {
+        rect.width = 1 - rect.left;
+        widthToHeight(rect.width);
+        rect.top = rect.startBottom - rect.height;
+      }
+    },
+    handleRightBottomResizeMouseMove(e) {
+      e.preventDefault();
+      const { width, height } = this.dialogCanvasSize;
+      const {
+        rect,
+        heightToWidth,
+        widthToHeight,
+        $refs: { liveWindow }
+      } = this;
+
+      rect.width =
+        (e.clientX -
+          liveWindow.getBoundingClientRect().left -
+          rect.left * width) /
+        width;
+      rect.height = (rect.width * width) / RATIO / height;
+
+      if (rect.width + rect.left > 1) {
+        rect.width = 1 - rect.left;
+        widthToHeight(rect.width);
+      }
+      if (rect.height + rect.top > 1) {
+        rect.height = 1 - rect.top;
+        heightToWidth(rect.height);
+      }
+    },
+    handleLeftTopResizeMouseMove(e) {
+      e.preventDefault();
+      const { width } = this.dialogCanvasSize;
+      const {
+        rect,
+        widthToHeight,
+        heightToWidth,
+        $refs: { liveWindow }
+      } = this;
+
+      rect.left = (e.clientX - liveWindow.getBoundingClientRect().left) / width;
+      rect.width = rect.startRight - rect.left;
+
+      widthToHeight(rect.width);
+      rect.top = rect.startBottom - rect.height;
+
+      if (rect.top < 0) {
+        rect.top = 0;
+        rect.height = rect.startBottom;
+        heightToWidth(rect.height);
+        rect.left = rect.startRight - rect.width;
+      }
+      if (rect.left < 0) {
+        rect.left = 0;
+        rect.width = rect.startRight;
+        widthToHeight(rect.width);
+        rect.top = rect.startBottom - rect.height;
+      }
+    },
+    handleLeftBottomResizeMouseMove(e) {
+      e.preventDefault();
+      const { width } = this.dialogCanvasSize;
+      const { left } = this.$refs.liveWindow.getBoundingClientRect();
+      const { rect, widthToHeight, heightToWidth } = this;
+
+      rect.width = rect.startRight - (e.clientX - left) / width;
+      rect.left = rect.startRight - rect.width;
+      widthToHeight(rect.width);
+
+      if (rect.height + rect.top > 1) {
+        rect.height = 1 - rect.top;
+        heightToWidth(rect.height);
+        rect.left = rect.startRight - rect.width;
+      }
+      if (rect.left < 0) {
+        rect.left = 0;
+        rect.width = rect.startRight;
+        widthToHeight(rect.width);
+      }
+    },
+    handleRectMouseMove(e) {
+      e.preventDefault();
+      const { width, height } = this.dialogCanvasSize;
+      const { left, top } = this.$refs.liveWindow.getBoundingClientRect();
+
+      this.rect.left = (e.clientX - this.rect.mousePosX - left) / width;
+      this.rect.top = (e.clientY - this.rect.mousePosY - top) / height;
+
+      this.rect.left <= 0 && (this.rect.left = 0);
+      this.rect.top <= 0 && (this.rect.top = 0);
+
+      if (this.rect.left + this.rect.width >= 1) {
+        this.rect.left = 1 - this.rect.width;
+      }
+      if (this.rect.top + this.rect.height >= 1) {
+        this.rect.top = 1 - this.rect.height;
+      }
+    },
+    handleRectMouseUp() {
+      document.body.removeEventListener(
+        "mousemove",
+        this.handleRightTopResizeMouseMove
+      );
+      document.body.removeEventListener(
+        "mousemove",
+        this.handleRightBottomResizeMouseMove
+      );
+      document.body.removeEventListener(
+        "mousemove",
+        this.handleLeftTopResizeMouseMove
+      );
+      document.body.removeEventListener(
+        "mousemove",
+        this.handleLeftBottomResizeMouseMove
+      );
+      document.body.removeEventListener("mousemove", this.handleRectMouseMove);
+    },
+    calcSelectRectSize() {
+      const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
+      const { videoFxs } = this.activeClip.splitList[this.currentSplitedIdx];
+      const [videoWidth, videoHeight] = [
+        // dialog中视频宽高
+        this.videoInfo.videoStreamInfo.width,
+        this.videoInfo.videoStreamInfo.height
+      ];
+      const transformData = videoFxs.find(
+        fx => fx.desc === FX_DESC.TRANSFORM2D
+      );
+      if (transformData) {
+        let paramX = 0;
+        let paramY = 0;
+        let scaleX = 1;
+        let scaleY = 1;
+        transformData.params.forEach(param => {
+          switch (param.key) {
+            case "Trans X":
+              paramX = param.value;
+              break;
+            case "Trans Y":
+              paramY = param.value;
+              break;
+            case "Scale X":
+              scaleX = param.value;
+              break;
+            case "Scale Y":
+              scaleY = param.value;
+              break;
+          }
+        });
+
+        const [
+          imageWidth,
+          imageHeight,
+          standardizedVideoHeight,
+          standardizedVideoWidth
+        ] = this.calcTransformParams();
+
+        const centerX = -(
+          paramX /
+          ((imageWidth / standardizedVideoWidth) * scaleX)
+        );
+        const centerY = -(
+          paramY /
+          ((imageHeight / standardizedVideoHeight) * scaleY)
+        );
+
+        if (videoWidth > videoHeight) {
+          this.rect.height = standardizedVideoHeight / scaleY / videoHeight;
+          this.rect.width =
+            ((9 / 16) * (this.rect.height * videoHeight)) / videoWidth;
+        } else {
+          this.rect.width = standardizedVideoWidth / scaleX / videoWidth;
+          this.rect.height =
+            ((16 / 9) * (this.rect.width * videoWidth)) / videoHeight;
+        }
+
+        const centerInLiveWindow = WorkFlow.bToa(
+          new NvsPointF(centerX, centerY),
+          this.trimTimeline.liveWindow
+        );
+
+        this.rect.left = centerInLiveWindow.x / width - this.rect.width / 2;
+        this.rect.top = centerInLiveWindow.y / height - this.rect.height / 2;
+      } else {
+        const { width, height } = this.dialogCanvasSize;
+        if (width > height) {
+          this.rect.height = 1;
+          this.rect.width = (height * RATIO) / width;
+          this.rect.top = 0;
+          this.rect.left = (1 - this.rect.width) / 2;
+        } else {
+          // 高度过高
+          this.rect.width = 1;
+          this.rect.height = width / RATIO / height;
+          this.rect.top = 0;
+          this.rect.left = 0;
+        }
+      }
     },
     cancel() {
       this.mediaDialog = false;
@@ -438,21 +760,108 @@ export default {
     handlePlaying(timeline, currentTime) {
       this.splittreLeft = this.calcCurrentPercentage(currentTime);
     },
-    resetVector() {
-      this.vectorLeft = this.captureLeft;
-      this.trimTimeline.seekTimeline(this.getStartTime());
+    handleResize() {
+      this.getClipListImages();
+      const { width, height } = this.videoInfo.videoStreamInfo;
+      this.dialogCanvasSize = {
+        height: this.$refs.liveWindow.offsetHeight,
+        width: (width / height) * this.$refs.liveWindow.offsetHeight
+      };
+      // if (width > height) {
+      //   this.$refs.liveWindow.style.width = "70%";
+      //   this.$refs.liveWindow.style.height = "auto";
+      //   this.$nextTick(() => {
+      //     this.dialogCanvasSize = {
+      //       width: this.$refs.liveWindow.offsetWidth,
+      //       height: (height / width) * this.$refs.liveWindow.offsetWidth
+      //     };
+      //     debugger
+      //   });
+      // } else {
+      //   this.$refs.liveWindow.style.width = "auto";
+      //   this.$refs.liveWindow.style.height = "100%";
+      //   this.$nextTick(() => {
+      //     this.dialogCanvasSize = {
+      //       height: this.$refs.liveWindow.offsetHeight,
+      //       width: (width / height) * this.$refs.liveWindow.offsetHeight
+      //     };
+      //   });
+      // }
     },
-    handleResize() {},
+
+    calcTransformParams() {
+      let { imageWidth, imageHeight } = new NvsVideoResolution(540, 960); // 主 LiveWindow 渲染层视频像素宽高
+
+      const [videoWidth, videoHeight] = [
+        // dialog中视频宽高
+        this.videoInfo.videoStreamInfo.width,
+        this.videoInfo.videoStreamInfo.height
+      ];
+      let standardizedVideoHeight = 0; //原始素材按 9/16 计算后高度
+      let standardizedVideoWidth = 0; //原始素材按 9/16 计算后宽度
+      let scaleX = 0;
+      let scaleY = 0;
+
+      if (videoWidth > videoHeight) {
+        standardizedVideoHeight = (16 / 9) * videoWidth;
+        standardizedVideoWidth = videoWidth;
+        scaleY =
+          1 / ((videoHeight * this.rect.height) / standardizedVideoHeight);
+        scaleX = scaleY;
+      } else {
+        standardizedVideoWidth = (9 / 16) * videoHeight;
+        standardizedVideoHeight = videoHeight;
+        scaleX = 1 / ((videoWidth * this.rect.width) / standardizedVideoWidth);
+        scaleY = scaleX;
+      }
+      return [
+        imageWidth,
+        imageHeight,
+        standardizedVideoHeight,
+        standardizedVideoWidth,
+        scaleX,
+        scaleY
+      ];
+    },
     handleNext() {
       this.dialogVisible = false;
+      const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
+
       // 计算特效参数
+      // ui层 选中的rect中点(视图坐标系为基准)
+      let center = {
+        x: (this.rect.left + this.rect.width / 2) * width,
+        y: (this.rect.top + this.rect.height / 2) * height
+      };
+      // 渲染层 选中的rect中点（时间线坐标系为基准）
+      const centerPos = WorkFlow.aTob(
+        new NvsPointF(center.x, center.y),
+        this.trimTimeline.liveWindow
+      );
+
+      const [
+        imageWidth,
+        imageHeight,
+        standardizedVideoHeight,
+        standardizedVideoWidth,
+        scaleX,
+        scaleY
+      ] = this.calcTransformParams();
+
       const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+      const transX =
+        -(imageWidth / standardizedVideoWidth) * centerPos.x * scaleX;
+      const transY =
+        -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
+
       transformFx.params = [
-        new FxParam("float", "Trans X", 100), // 偏移
-        new FxParam("float", "Trans Y", 100),
-        new FxParam("float", "Scale X", 2), // 缩放
-        new FxParam("float", "Scale Y", 2)
+        new FxParam("float", "Trans X", transX), // 偏移
+        new FxParam("float", "Trans Y", transY),
+
+        new FxParam("float", "Scale X", scaleX), // 缩放
+        new FxParam("float", "Scale Y", scaleY)
       ];
+
       const mosaicFx = new VideoFx(FX_DESC.MOSAIC);
       if (this.isImage) {
         // 图片处理
@@ -470,6 +879,7 @@ export default {
       this.updateClipToVuex(this.activeClip);
       // 底层执行操作
       this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.destroy();
     },
     initSplit() {
       this.splitList = this.activeClip.splitList.map(item => ({ ...item }));
@@ -478,25 +888,47 @@ export default {
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      // this.isImage ||
-      this.$nextTick(() => {
-        this.createTrimTimeline();
+      this.$nextTick(async () => {
+        this.handleResize(); // 计算canvas尺寸、计算缩略图
+        await this.createTrimTimeline();
         this.operateStack = new OperateStack();
         if (this.isImage) {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
           this.motion = this.activeClip.motion;
         } else {
-          this.initSplit();
-          this.getClipListImages();
+          this.initSplit(); // 根据当前video的splitList分隔当前缩略图
+          this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
+          this.calcDuration(); // 计算Duration
+          this.calcSelectRectSize();
+          this.splittreLeft = 0;
           this.operateStack.pushSnapshot(this.splitList);
+          addEventListener("resize", this.handleResize);
+          document.body.addEventListener("mousedown", this.handleDocumentClick);
+        }
+      });
+    },
+    delMaterials(delItem) {
+      ["captions", "stickers"].forEach(type => {
+        for (let i = 0; i < this[type].length; i++) {
+          const caption = this[type][i];
+          if (
+            delItem.captureIn <= caption.inPoint &&
+            delItem.captureOut > caption.inPoint
+          ) {
+            this[type].splice(i, 1);
+            i--;
+          }
         }
       });
     },
     del(index, splitIndex) {
       const v = [];
       let inPoint = 0;
-      this.videos[index].splitList.splice(splitIndex, 1);
+      const delItem = this.videos[index].splitList.splice(splitIndex, 1)[0];
+
+      this.delMaterials(delItem);
+
       for (let i = 0; i < this.videos.length; i++) {
         const el = this.videos[i];
         if (!el.splitList.length) continue;
@@ -518,7 +950,13 @@ export default {
     // 创建监视器时间线
     async createTrimTimeline() {
       const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
-      this.trimTimeline = new TimelineClass("trim-window");
+      this.trimTimeline = new TimelineClass(
+        "trim-window",
+        streamingContext.streamingContext.getAVFileInfo(
+          this.activeClip.m3u8Path,
+          0
+        ).videoStreamInfo
+      );
       window.tt = this.trimTimeline;
       await this.trimTimeline.stopEngin();
       await this.trimTimeline.buildTimeline([videoClip]);
@@ -527,6 +965,7 @@ export default {
     },
     selected(item, i) {
       this.currentVideoUuid = item.uuid + `_${i}`;
+      this.currentSplitedIdx = i;
     },
     format(ms, hm = false) {
       return hm ? us2hm(ms) : us2time(ms);
@@ -602,7 +1041,6 @@ export default {
       this.calcDuration(clip.captureIn, clip.captureOut);
 
       this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
-      console.log("clip.captureIn", clip.captureIn);
       this.captureWidth =
         (clip.captureOut - clip.captureIn) / this.activeClip.orgDuration;
     },
@@ -821,12 +1259,15 @@ export default {
       );
     },
     // 销毁时间线, 并解除事件绑定
-    destroy() {
+    destroy(done) {
       if (this.trimTimeline) {
         this.trimTimeline.stopEngin().then(() => {
           this.trimTimeline.destroy();
+          done && done();
         });
       }
+      document.body.removeEventListener("mousedown", this.handleDocumentClick);
+      removeEventListener("resize", this.handleResize);
       window.streamingContext.removeEventListener(
         "onPlaybackStopped",
         this.stopEvent
@@ -976,7 +1417,12 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     // width: 600px;
     // height: 560px;
     .el-dialog__body {
-      padding-bottom: 10px;
+      height: calc(100% - 130px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+
+      // display: flex;
     }
   }
 }
@@ -986,6 +1432,54 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    .live-window {
+      position: relative;
+      height: 100%;
+      .selected-rect-wrapper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        .selected-rect {
+          outline: rgba(0, 0, 0, 0.5) solid 1000px;
+        }
+      }
+      .selected-rect {
+        position: absolute;
+        top: 0;
+        // width: 100%;
+        height: 100%;
+        border: 1px solid;
+        box-sizing: border-box;
+        .point {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background-color: #fff;
+          border-radius: 50%;
+          cursor: crosshair;
+          // visibility: hidden;
+          &.left-top {
+            left: -4px;
+            top: -4px;
+          }
+          &.right-top {
+            right: -4px;
+            top: -4px;
+          }
+          &.right-bottom {
+            bottom: -4px;
+            right: -4px;
+          }
+          &.left-bottom {
+            left: -4px;
+            bottom: -4px;
+          }
+        }
+      }
+    }
     .undo-btn {
       margin-bottom: 25px;
       .icon {
