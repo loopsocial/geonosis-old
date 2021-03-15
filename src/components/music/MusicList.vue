@@ -140,6 +140,9 @@ export default {
       const { trimIn, trimOut } = this.activeAudioClip;
       this.sliderLeft = trimIn / videoDuration;
       this.sliderWidth = (trimOut - trimIn) / videoDuration;
+      if (this.sliderLeft + this.sliderWidth > 1) {
+        this.sliderWidth = 1 - this.sliderLeft;
+      }
     },
     handleSliderMouseDown(e) {
       const timeline = this.$refs.timeline[this.activeIndex];
