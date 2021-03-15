@@ -79,7 +79,6 @@ export default class WorkFlow {
         this.timelineClass.seekTimeline();
         console.log(pos);
         const p = this.targetPos({ ...this.box, ...pos });
-        console.log("计算后", p);
         this.deleteNode.x(p.x);
         this.deleteNode.y(p.y);
 
@@ -95,7 +94,7 @@ export default class WorkFlow {
       height: 46,
       offset: {
         x: 23,
-        y: 23
+        y: 0
       }
     });
     if (this.clip.rotation !== 0) {
@@ -438,7 +437,6 @@ export default class WorkFlow {
   }
   targetPos(box) {
     this.box = box;
-    console.log("计算前", box);
     const { x, y, width, height, rotation } = box;
     this.rotation = rotation;
     const sin = Math.sin(rotation);
@@ -449,8 +447,8 @@ export default class WorkFlow {
       y: y + (width / 2) * sin
     };
     return {
-      x: center.x - (height ) * sin,
-      y: center.y + (height ) * cos
+      x: center.x - height * sin,
+      y: center.y + height * cos
     };
   }
 }

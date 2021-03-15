@@ -1,6 +1,5 @@
 <template>
   <div class="font-panel">
-    <div @click="ts" style="color: white">2222222</div>
     <i class="el-icon-arrow-left back-icon" @click="$emit('close')"></i>
     <el-row :gutter="7" class="scale">
       <el-col :span="12" class="animation-wrapper">
@@ -181,9 +180,6 @@ export default {
     this.installFont();
   },
   methods: {
-    ts() {
-      console.log(this.clip);
-    },
     changeDuration(v) {
       this.clip.duration += v * 1000000;
       const outPoint = this.clip.inPoint + this.clip.duration;
