@@ -85,3 +85,98 @@
     }
 ]
 ```
+## 工程XML 与 vuex 中数据转换
+### 写工程XML（vuex -> XML)
+先将vuex中的数据转换成`中间结构`, 使用`XmlUtils.transformation()`，返回的数据结构如下
+```
+{
+  "videoWidth": 540, 
+  "videoHeight": 960, 
+  "version": 1, 
+  "alias": "Meme-2",
+  "scenes": [
+    {
+      "video": {
+        "inPoint": 0, 
+        "duration": 3000000, 
+        "trimIn": 0, 
+        "trimOut": 3000000, 
+        "scaleX": 1, 
+        "scaleY": 1, 
+        "translationX": 0, 
+        "translationY": 0, 
+        "source": {
+          "src": "http://alieasset.meishesdk.com/video/141/feb43423-cf9a-4b59-a52b-0c7094bfb8a9.jpeg", 
+          "width": -1, 
+          "height": -1
+        }
+      }, 
+      "captions": [
+        {
+          "zValue": 1, 
+          "fontColor": "", 
+          "translationX": 0, 
+          "translationY": 0, 
+          "scaleX": 1, 
+          "scaleY": 1, 
+          "frameWidth": "", 
+          "frameHeight": "", 
+          "duration": 3000000, 
+          "value": "caption", 
+          "textXAlignment": "center", 
+          "font": ""
+        }
+      ]
+    }, 
+    {
+      "video": {
+        "inPoint": 3000000, 
+        "duration": 15000000, 
+        "trimIn": 0, 
+        "trimOut": 15000000, 
+        "scaleX": 1, 
+        "scaleY": 1, 
+        "translationX": 0, 
+        "translationY": 0, 
+        "source": {
+          "src": "https://alieasset.meishesdk.com/video/2/segmentation.mp4", 
+          "width": 0, 
+          "height": 0
+        }
+      }, 
+      "captions": [
+        {
+          "zValue": 1, 
+          "fontColor": "", 
+          "translationX": 0, 
+          "translationY": 0, 
+          "scaleX": 1, 
+          "scaleY": 1, 
+          "frameWidth": "", 
+          "frameHeight": "", 
+          "duration": 3000000, 
+          "value": "caption", 
+          "textXAlignment": "center", 
+          "font": ""
+        }, 
+        {
+          "zValue": 1, 
+          "fontColor": "", 
+          "translationX": 50.858184814453125, 
+          "translationY": 151.58167171478271, 
+          "scaleX": 1, 
+          "scaleY": 1, 
+          "frameWidth": "", 
+          "frameHeight": "", 
+          "duration": 3000000, 
+          "value": "caption", 
+          "textXAlignment": "center", 
+          "font": ""
+        }
+      ]
+    }
+  ]
+}
+```
+### 读取工程XML（XML -> vuex)
+直接读写

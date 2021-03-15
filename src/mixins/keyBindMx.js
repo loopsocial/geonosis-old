@@ -1,15 +1,25 @@
 import KeyMap from "@/utils/KeyMap";
+import { writeXml } from "@/utils/XmlUtils";
 import Mousetrap from "mousetrap";
-
 export default {
   methods: {
     keyBind() {
       Mousetrap.bind(KeyMap.play, this.play);
       Mousetrap.bind(KeyMap.save, () => {
-        this.$message({
-          type: "success",
-          message: "保存成功"
-        });
+        try {
+          writeXml("project.xml");
+          console.log(FS.readFile("project.xml", { encoding: "utf8" }));
+          this.$message({
+            type: "success",
+            message: "保存成功"
+          });
+        } catch (error) {
+          console.error("保存失败", error);
+          this.$message({
+            type: "error",
+            message: "保存失败"
+          });
+        }
         return false;
       });
       Mousetrap.bind(KeyMap.revoke, () => {

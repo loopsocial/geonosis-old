@@ -42,26 +42,31 @@ export class VideoClip extends Clip {
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
     this.videoType = CLIP_TYPES[getType(option.mediaType)];
-    this.trimIn = option.trimIn || 0;
-    this.trimOut = option.trimOut || option.duration;
+    // this.trimIn = option.trimIn || 0;
+    // this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.duration;
     this.splitList = [
       {
         trimIn: 0,
-        trimOut: option.trimOut || option.duration,
+        trimOut: option.trimOut || option.duration, // 切割点
         captureIn: 0,
-        captureOut: option.trimOut || option.duration,
+        captureOut: option.trimOut || option.duration, // 选中点
         raw: null,
         videoFxs: []
       }
     ];
-    this.videoFxs = [];
+    this.width = option.width; // 视频宽度
+    this.height = option.height; // 视频高度
+    this.aspectRatio = option.aspectRatio; // 视频宽高比
+    // this.videoFxs = [];
     this.motion = option.motion === undefined ? true : !!option.motion;
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
     this.uuid = option.uuid || generateUUID();
-    this.leftChannelUrl = option.leftChannelUrl || "";
-    this.rightChannelUrl = option.rightChannelUrl || "";
+
+    // 视频中音频的波形图
+    // this.leftChannelUrl = option.leftChannelUrl || "";
+    // this.rightChannelUrl = option.rightChannelUrl || "";
   }
 }
 function getType(num) {

@@ -1,6 +1,92 @@
 import store from "../store";
 import { RGBAToHex } from "./common";
+import { FX_DESC, TRANSFORM2D_KEYS } from "./Global";
+// 将vuex中的数据转换格式，方便写入xml
+function transformation() {
+  const creation = {
+    scenes: [],
+    videoWidth: 540,
+    videoHeight: 960,
+    version: 1,
+    alias: "Meme-2"
+  };
+  const { videos, audios, captions, stickers } = store.state.clip;
+  const videoList = [];
+  videos.map(video => {
+    video.splitList.map(item => {
+      const transform2D = item.videoFxs.find(
+        fx => fx.desc === FX_DESC.transform2D
+      );
+      let scaleX = 1,
+        scaleY = 1,
+        translationX = 0,
+        translationY = 0;
+      if (transform2D) {
+        transform2D.params.map(p => {
+          if (p.key === TRANSFORM2D_KEYS.scaleX) scaleX = p.value;
+          if (p.key === TRANSFORM2D_KEYS.scaleY) scaleY = p.value;
+          if (p.key === TRANSFORM2D_KEYS.TRANS_X) translationX = p.value;
+          if (p.key === TRANSFORM2D_KEYS.TRANS_Y) translationY = p.value;
+        });
+      }
+      videoList.push({
+        inPoint: video.inPoint + item.captureIn,
+        duration: item.captureOut - item.captureIn,
+        trimIn: item.captureIn,
+        trimOut: item.captureOut,
+        videoType: item.videoType,
+        scaleX,
+        scaleY,
+        translationX,
+        translationY,
+        source: {
+          src: video.url,
+          width: video.width,
+          height: video.height,
+          aspectRatio: video.aspectRatio
+        }
+      });
+    });
+  });
+  creation.scenes = videoList.map(v => {
+    // 将字幕按照 视频槽的方式进行规整
+    const c = captions.reduce((res, caption) => {
+      const { inPoint, duration } = caption;
+      if (
+        inPoint === v.inPoint ||
+        (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
+      ) {
+        res.push({
+          zValue: caption.z || 1,
+          fontColor: caption.color,
+          translationX: caption.translationX,
+          translationY: caption.translationY,
+          scaleX: caption.scale,
+          scaleY: caption.scale,
+          fontSize: caption.fontSize,
+          frameWidth: "",
+          frameHeight: "",
+          duration: Math.min(v.duration, duration),
+          value: caption.text,
+          textXAlignment: caption.align,
+          font: caption.fontUrl,
+          backgroundImage: caption.backgroundImage
+        });
+      }
+      return res;
+    }, []);
+
+    return {
+      video: v,
+      captions: c
+      // stickers: s
+    };
+  });
+  return creation;
+}
+
 export function writeXml(xmlPath) {
+  console.log(transformation());
   const stream = new NvsXmlStreamWriter(xmlPath);
   if (!stream.open()) {
     console.error("xmlStreamWriter open failed!");
@@ -14,72 +100,62 @@ export function writeXml(xmlPath) {
   stream.close();
 }
 function writeCreation(stream) {
+  const creation = transformation();
+  console.log(JSON.stringify(creation));
   stream.writeStartElement("fw-creation");
-  stream.writeAttribute("video-width", "1080");
-  stream.writeAttribute("video-height", "1920");
-  stream.writeAttribute("version", "1");
-  stream.writeAttribute("alias", "Meme-2");
-  writeScene(stream);
+  stream.writeAttribute("video-width", "" + creation.videoWidth);
+  stream.writeAttribute("video-height", "" + creation.videoHeight);
+  stream.writeAttribute("version", "" + creation.version);
+  stream.writeAttribute("alias", "" + creation.alias);
+  creation.scenes.map(scene => {
+    writeScene(stream, scene);
+  });
   stream.writeEndElement();
 }
-function writeScene(stream) {
+function writeScene(stream, scene) {
   stream.writeStartElement("fw-scene");
-  writeVideoLayer(stream);
-  writeCaptionLayer(stream);
+  writeVideoLayer(stream, scene.video);
+  writeCaptionLayer(stream, scene.captions);
   stream.writeEndElement();
 }
-function writeVideoLayer(stream) {
+function writeVideoLayer(stream, video) {
   stream.writeStartElement("fw-scene-layer");
   stream.writeAttribute("type", "raw");
-  const videos = store.state.clip.videos;
-  for (let i = 0; i < videos.length; i++) {
-    const video = videos[i];
-    video.splitList.map(({ captureIn, captureOut }) => {
-      const v = {
-        ...video,
-        trimIn: captureIn,
-        trimOut: captureOut,
-        duration: captureOut - captureIn
-      };
-      writeVideo(stream, v);
-    });
-  }
-  stream.writeEndElement();
-}
-
-function writeVideo(stream, video) {
-  stream.writeStartElement(`fw-${video.type}`);
+  // 写video标签
+  stream.writeStartElement("fw-video");
   stream.writeAttribute("duration", "" + video.duration);
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
-  stream.writeAttribute("scale-x", "" + 1);
-  stream.writeAttribute("scale-y", "" + 1);
-  stream.writeAttribute("translation-x", "" + 0);
-  stream.writeAttribute("translation-y", "" + 0);
-
+  stream.writeAttribute("scale-x", "" + video.scaleX);
+  stream.writeAttribute("scaleY", "" + video.scaleY);
+  stream.writeAttribute("translation-x", "" + video.translationX);
+  stream.writeAttribute("translation-y", "" + video.translationY);
+  // 写 source标签
   stream.writeStartElement("source");
-  stream.writeAttribute("src", video.url);
-  // stream.writeAttribute("width", "");
-  // stream.writeAttribute("height", "");
-  // stream.writeAttribute("aspect-ratio", "");
-  stream.writeEndElement();
+  stream.writeAttribute("src", "" + video.source.src);
+  stream.writeAttribute("width", "" + video.source.width);
+  stream.writeAttribute("height", "" + video.source.height);
+  stream.writeAttribute("aspect-ratio", "" + video.source.aspectRatio);
+  stream.writeEndElement(); // source
 
-  stream.writeEndElement();
+  stream.writeEndElement(); // fw-video
+
+  stream.writeEndElement(); // fw-scene-layer
 }
-function writeCaptionLayer(stream) {
+
+function writeCaptionLayer(stream, captions) {
+  if (!captions.length) return;
   stream.writeStartElement("fw-scene-layer");
   stream.writeAttribute("type", "module");
-  const captions = store.state.clip.captions;
   for (let i = 0; i < captions.length; i++) {
-    const caption = captions[i];
-    writeCaption(stream, caption);
+    writeCaption(stream, captions[i]);
   }
   stream.writeEndElement();
 }
 function writeCaption(stream, caption) {
   stream.writeStartElement(`fw-text`);
-  stream.writeAttribute("z-value", "" + caption.z);
-  stream.writeAttribute("font-color", "" + RGBAToHex(caption.color));
+  stream.writeAttribute("z-value", "" + caption.zValue);
+  stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
   stream.writeAttribute(
     "background-color",
     "" + RGBAToHex(caption.backgroundColor)
@@ -89,11 +165,16 @@ function writeCaption(stream, caption) {
   // stream.writeAttribute("font-size", "" + caption.fontSize);
   // stream.writeAttribute("frame-width", "" + 0);
   // stream.writeAttribute("frame-height", "" + 0);
-  stream.writeAttribute("text-x-alignment", "" + caption.align);
+  stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
-  stream.writeAttribute("value", "" + caption.text);
-  stream.writeAttribute("font", "" + caption.fontUrl);
+  stream.writeAttribute("value", "" + caption.value);
+  stream.writeAttribute("font", "" + caption.font);
   stream.writeEndElement();
+  if (caption.backgroundImage) {
+    stream.writeStartElement(`fw-image`);
+    stream.writeAttribute("src", "" + caption.backgroundImage);
+    stream.writeEndElement();
+  }
 }
 
 export function readXml() {}

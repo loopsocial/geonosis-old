@@ -30,6 +30,13 @@ export const FX_DESC = {
   TRANSFORM2D: "Transform 2D",
   MOSAIC: "Mosaic"
 };
+// transform 2D 特效可设参数对应的Key
+export const TRANSFORM2D_KEYS = {
+  TRANS_X: "Trans X", // 偏移
+  TRANS_Y: "Trans Y",
+  SCALE_X: "Scale X", // 缩放
+  SCALE_Y: "Scale Y"
+};
 // 特效类型
 export const FX_TYPES = {
   BUILTIN: "builtin",
