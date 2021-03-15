@@ -1,18 +1,34 @@
 import KeyMap from "@/utils/KeyMap";
 import { writeXml } from "@/utils/XmlUtils";
 import Mousetrap from "mousetrap";
+import upload from "@/utils/Uploader";
 export default {
+  data() {
+    return {
+      saving: false
+    };
+  },
   methods: {
     keyBind() {
       Mousetrap.bind(KeyMap.play, this.play);
       Mousetrap.bind(KeyMap.save, () => {
+        if (this.saving) return;
         try {
+          this.saving = true;
           writeXml("project.xml");
-          console.log(FS.readFile("project.xml", { encoding: "utf8" }));
-          this.$message({
-            type: "success",
-            message: "保存成功"
-          });
+          const file = FS.readFile("project.xml", { encoding: "utf8" });
+          console.log(file);
+          upload(file)
+            .then(url => {
+              localStorage.projectUrl = url;
+              this.$message({
+                type: "success",
+                message: "保存成功"
+              });
+            })
+            .finally(() => {
+              this.saving = false;
+            });
         } catch (error) {
           console.error("保存失败", error);
           this.$message({

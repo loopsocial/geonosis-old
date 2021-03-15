@@ -21,7 +21,8 @@ export default {
       addClipToVuex: "clip/addClipToVuex",
       deleteClipToVuex: "clip/deleteClipToVuex",
       updateClipToVuex: "clip/updateClipToVuex",
-      resetClips: "clip/resetClips"
+      resetClips: "clip/resetClips",
+      initVuex: "clip/init"
     })
   }
 };

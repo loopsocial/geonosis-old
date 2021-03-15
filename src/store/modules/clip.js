@@ -1,6 +1,8 @@
 // 该module与撤销栈相关
 import { CLIP_TYPES } from "@/utils/Global";
 import Vue from "vue";
+const cloneDeep = require("clone-deep");
+
 export default {
   namespaced: true,
   state: {
@@ -11,9 +13,20 @@ export default {
     currentVideoUuid: null,
     videoWidth: 540,
     videoHeight: 960,
-    alias: ""
+    alias: "",
+    version: "1"
   },
   mutations: {
+    init(state, data) {
+      state.videos = cloneDeep(data.videos);
+      state.audios = cloneDeep(data.audios);
+      state.captions = cloneDeep(data.captions);
+      state.stickers = cloneDeep(data.stickers);
+      state.videoHeight = data.videoHeighth;
+      state.videoWidth = data.videoWidth;
+      state.alias = data.alias;
+      state.version = data.version;
+    },
     resetClips(state, { type, clips }) {
       switch (type) {
         case CLIP_TYPES.VIDEO:

@@ -14,13 +14,10 @@ const undoRedoPlugin = store => {
   undoRedoHistory.init(store);
   // let firstState = cloneDeep(store.state);
   // undoRedoHistory.addState(firstState);
-
+  const exclude = ["clip/setCurrentVideoUuid", "clip/init"];
   store.subscribe((mutation, state) => {
     // is called AFTER every mutation
-    if (
-      /^clip\//.test(mutation.type) &&
-      mutation.type !== "clip/setCurrentVideoUuid"
-    ) {
+    if (/^clip\//.test(mutation.type) && !exclude.includes(mutation.type)) {
       console.warn("添加到撤销栈", state.clip);
       undoRedoHistory.addState(cloneDeep(state.clip));
     }

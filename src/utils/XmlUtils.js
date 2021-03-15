@@ -53,7 +53,8 @@ function transformation() {
           src: video.url,
           width: video.width,
           height: video.height,
-          aspectRatio: video.aspectRatio
+          aspectRatio: video.aspectRatio,
+          m3u8Url: video.m3u8Url
         }
       });
     });
@@ -146,6 +147,7 @@ function writeVideoLayer(stream, video) {
   stream.writeAttribute("width", "" + video.source.width);
   stream.writeAttribute("height", "" + video.source.height);
   stream.writeAttribute("aspect-ratio", "" + video.source.aspectRatio);
+  stream.writeAttribute("m3u8-url", "" + video.source.m3u8Url);
   stream.writeEndElement(); // source
 
   stream.writeEndElement(); // fw-video

@@ -14,9 +14,7 @@ import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
-
-import { writeModuleXml, writeProjectXml } from "@/test/xml";
-import { readModuleXml, readProjectXml } from "@/utils/XmlUtils";
+import { readProjectXml } from "@/utils/XmlUtils";
 export default {
   components: {
     DraftList,
@@ -28,12 +26,18 @@ export default {
   },
   async created() {
     await this.installFont();
-    await this.installM3u8();
-    this.$refs.preview.createTimeline();
-    window.w = writeModuleXml;
-    window.wp = writeProjectXml;
-    window.r = readModuleXml;
-    window.rp = readProjectXml;
+    if (localStorage.projectUrl) {
+      const res = await this.axios.get(localStorage.projectUrl);
+      FS.writeFile("/project.xml", res);
+      const data = readProjectXml("/project.xml");
+      await this.installProjectAssets(data);
+      this.initVuex(data);
+      console.log(data);
+      this.$refs.preview.createTimeline();
+    } else {
+      await this.installM3u8();
+      this.$refs.preview.createTimeline();
+    }
   },
   methods: {
     // todo 以下是测试代码
@@ -70,6 +74,18 @@ export default {
       const fonts = res.data.materialList;
       const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
       await installAsset(font.packageUrl);
+    },
+    async installProjectAssets(data) {
+      const { videos, audios, captions, stickers } = data;
+      for (let i = 0; i < videos.length; i++) {
+        const video = videos[i];
+        video.m3u8Path = await installAsset(video.m3u8Url);
+      }
+      for (let i = 0; i < audios.length; i++) {
+        const audios = audios[i];
+        audios.m3u8Path = await installAsset(audios.m3u8Url);
+      }
+      // 字幕、贴纸还不确定用什么方式
     }
   }
 };

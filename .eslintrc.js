@@ -36,6 +36,7 @@ module.exports = {
     NvsAssetPackageStatusEnum: true,
     NvsSeekFlagEnum: true,
     NvsColor: true,
-    NvsVectorFloat: true
+    NvsVectorFloat: true,
+    axios: true
   }
 };
