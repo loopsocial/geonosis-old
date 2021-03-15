@@ -173,6 +173,21 @@ export function writeModuleXml(path) {
                     z-value="1" />
             </fw-scene-layer>
         </fw-scene>
+        <fw-scene temporal="out">
+            <fw-scene-layer type="module">
+                <fw-text
+                    text-x-alignment="center"
+                    text-y-alignment="center"
+                    caption-style-uuid="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/captionpackage/4F09E7EB-9C2A-4C60-995D-B27B4F68DBCA.1.captionstyle"
+                    font="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/font/Avenir-Medium.ttf"
+                    font-size="38"
+                    font-color="#ffffffff"
+                    translation-x="0"
+                    translation-y="0"
+                    value="BEAUTY"
+                    z-value="1" />
+            </fw-scene-layer>
+        </fw-scene>
     </fw-creation>
 </modules>`
   );

@@ -99,6 +99,7 @@ function writeCaption(stream, caption) {
 export function readXml() {}
 // 读取module的xml
 export function readModuleXml(xmlPath) {
+  let result;
   const stream = new NvsXmlStreamReader(xmlPath || "t.xml");
   if (!stream.open()) {
     console.error("stream open failed!");
@@ -112,8 +113,8 @@ export function readModuleXml(xmlPath) {
     if (stream.isStartElement()) {
       if (stream.name() === "modules") {
         console.log("这是模板");
-        const module = readModules(stream);
-        console.log("模板结果", module);
+        result = readModules(stream);
+        console.log("模板结果", result);
       } else if (stream.name === "dom") {
         console.log("这是工程");
       }
@@ -124,6 +125,7 @@ export function readModuleXml(xmlPath) {
   }
 
   stream.close();
+  return result;
 }
 function readModules(stream) {
   const creations = [];
@@ -188,11 +190,27 @@ function readLayer(stream) {
         scaleX: stream.getAttributeValue("scale-x"),
         scaleY: stream.getAttributeValue("scale-y"),
         translationX: stream.getAttributeValue("translation-x"),
-        translationY: stream.getAttributeValue("translation-y"),
+        translationY: stream.getAttributeValue("translation-y")
       };
+      const source = {};
+      while (!(stream.isEndElement() && stream.name() === "fw-image")) {
+        if (stream.name() === "source" && stream.isStartElement()) {
+          const src = stream.getAttributeValue("src");
+          const width = stream.getAttributeValue("width");
+          const height = stream.getAttributeValue("height");
+          const aspectRatio = stream.getAttributeValue("aspect-ratio");
+          if (src) source.src = src;
+          if (width) source.width = width;
+          if (height) source.height = height;
+          if (aspectRatio) source.aspectRatio = aspectRatio;
+        }
+        stream.readNext();
+      }
+      if (Object.keys(source)) layer.image.source = source;
       // layer.image.source = readSource(stream);
     } else if (stream.name() === "fw-text" && stream.isStartElement()) {
-      layer.text = {
+      if (!Array.isArray(layer.text)) layer.text = [];
+      layer.text.push({
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
         font: stream.getAttributeValue("font"),
         fontSize: stream.getAttributeValue("font-size"),
@@ -203,27 +221,10 @@ function readLayer(stream) {
         translationY: stream.getAttributeValue("translation-y"),
         zValue: stream.getAttributeValue("z-value"),
         value: stream.getAttributeValue("value")
-      };
+      });
     }
     stream.readNext();
   }
   console.log("解析出的layer", layer);
   return layer;
-}
-function readSource(stream) {
-  const source = {};
-  while (!(stream.isEndElement() && stream.name() === "source")) {
-    if (stream.name() === "source" && stream.isStartElement()) {
-      const src = stream.getAttributeValue("src");
-      const width = stream.getAttributeValue("width");
-      const height = stream.getAttributeValue("height");
-      const aspectRatio = stream.getAttributeValue("aspect-ratio");
-      if (src) source.src = src;
-      if (width) source.width = width;
-      if (height) source.height = height;
-      if (aspectRatio) source.aspectRatio = aspectRatio;
-    }
-    stream.readNext();
-  }
-  return Object.keys(source).length ? source : null;
 }
