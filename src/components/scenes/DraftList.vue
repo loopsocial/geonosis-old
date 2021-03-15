@@ -971,6 +971,7 @@ export default {
     selected(item, i) {
       this.currentVideoUuid = item.uuid + `_${i}`;
       this.currentSplitedIdx = i;
+      this.$bus.$emit(this.$keys.seek, item.inPoint);
     },
     format(ms, hm = false) {
       return hm ? us2hm(ms) : us2time(ms);
