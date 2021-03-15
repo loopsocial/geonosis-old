@@ -192,3 +192,85 @@ export function writeModuleXml(path) {
 </modules>`
   );
 }
+
+export function writeProjectXml(path) {
+  FS.writeFile(
+    path || "p.xml",
+    `<?xml version="1.0" encoding="utf-8"?>
+  <dom>
+      <fw-creation
+          video-width="1080"
+          video-height="1920"
+          version="1"
+          alias="Meme-2">
+          <fw-scene>
+              <fw-scene-layer type="raw">
+                  <fw-video
+                      duration="9561000"
+                      trim-in="-1"
+                      trim-out="-1"
+                      scale-x="1.0"
+                      scale-y="1.0"
+                      translation-x="0"
+                      translation-y="0.125">
+                      <source
+                          src="https://cdn1.fireworktv.com/medias/2021/2/24/1614200924-unafxvoi/watermarked/540/20210225050830.mp4"
+                          width="540"
+                          height="960"
+                          aspect-ratio="9:16" />
+                  </fw-video>
+              </fw-scene-layer>
+              <fw-scene-layer type="module">
+                  <fw-text
+                      z-value="1"
+                      font-color="#ff000000"
+                      translation-x="0"
+                      translation-y="0.36"
+                      font-size="40"
+                      frame-width="70%"
+                      frame-height="10%"
+                      text-x-alignment="center"
+                      value="An inspiring journey"
+                      font="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/font/Modern_Abel-Regular.ttf" />
+                  <fw-image>
+                      <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/meme2.png" />
+                  </fw-image>
+              </fw-scene-layer>
+          </fw-scene>
+          <fw-scene>
+              <fw-scene-layer type="raw">
+                  <fw-image
+                      duration="3000000"
+                      motion-on="true"
+                      scale-x="1.0"
+                      scale-y="1.0"
+                      translation-x="0.0"
+                      translation-y="0.125">
+                      <source
+                          src="https://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/transcoded/20210225051236-540-4.jpg"
+                          width="1080"
+                          height="1920"
+                          aspect-ratio="9:16" />
+                  </fw-image>
+              </fw-scene-layer>
+              <fw-scene-layer type="module">
+                  <fw-text
+                      z-value="1"
+                      font-color="#ff000000"
+                      translation-x="0"
+                      translation-y="0.36"
+                      font-size="40"
+                      frame-width="70%"
+                      frame-height="10%"
+                      text-x-alignment="center"
+                      value="An inspiring journey"
+                      font="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/font/Modern_Abel-Regular.ttf" />
+                  <fw-image>
+                      <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/meme2.png" />
+                  </fw-image>
+              </fw-scene-layer>
+          </fw-scene>
+      </fw-creation>
+  </dom>`
+  );
+}

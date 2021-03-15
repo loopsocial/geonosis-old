@@ -15,8 +15,8 @@ import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
 
-import { writeModuleXml } from "@/test/xml";
-import { readModuleXml } from "@/utils/XmlUtils";
+import { writeModuleXml, writeProjectXml } from "@/test/xml";
+import { readModuleXml, readProjectXml } from "@/utils/XmlUtils";
 export default {
   components: {
     DraftList,
@@ -31,7 +31,9 @@ export default {
     await this.installM3u8();
     this.$refs.preview.createTimeline();
     window.w = writeModuleXml;
+    window.wp = writeProjectXml;
     window.r = readModuleXml;
+    window.rp = readProjectXml;
   },
   methods: {
     // todo 以下是测试代码

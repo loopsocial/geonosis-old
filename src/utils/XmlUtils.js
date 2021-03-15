@@ -1,16 +1,26 @@
 import store from "../store";
 import { RGBAToHex } from "./common";
 import { FX_DESC, TRANSFORM2D_KEYS } from "./Global";
+import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
+
 // 将vuex中的数据转换格式，方便写入xml
 function transformation() {
+  const {
+    videos,
+    audios,
+    captions,
+    stickers,
+    videoWidth,
+    videoHeight,
+    alias
+  } = store.state.clip;
   const creation = {
     scenes: [],
-    videoWidth: 540,
-    videoHeight: 960,
+    videoWidth,
+    videoHeight,
     version: 1,
-    alias: "Meme-2"
+    alias
   };
-  const { videos, audios, captions, stickers } = store.state.clip;
   const videoList = [];
   videos.map(video => {
     video.splitList.map(item => {
@@ -127,7 +137,7 @@ function writeVideoLayer(stream, video) {
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
   stream.writeAttribute("scale-x", "" + video.scaleX);
-  stream.writeAttribute("scaleY", "" + video.scaleY);
+  stream.writeAttribute("scale-y", "" + video.scaleY);
   stream.writeAttribute("translation-x", "" + video.translationX);
   stream.writeAttribute("translation-y", "" + video.translationY);
   // 写 source标签
@@ -155,20 +165,22 @@ function writeCaptionLayer(stream, captions) {
 function writeCaption(stream, caption) {
   stream.writeStartElement(`fw-text`);
   stream.writeAttribute("z-value", "" + caption.zValue);
-  stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
   stream.writeAttribute(
     "background-color",
     "" + RGBAToHex(caption.backgroundColor)
   );
   stream.writeAttribute("translation-x", "" + caption.translationX);
   stream.writeAttribute("translation-y", "" + caption.translationY);
-  // stream.writeAttribute("font-size", "" + caption.fontSize);
+  stream.writeAttribute("font-size", "" + caption.fontSize);
+  stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
+  stream.writeAttribute("font", "" + caption.font);
   // stream.writeAttribute("frame-width", "" + 0);
   // stream.writeAttribute("frame-height", "" + 0);
   stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
+  stream.writeAttribute("scale-x", "" + caption.scaleX);
+  stream.writeAttribute("scale-y", "" + caption.scaleY);
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
   stream.writeAttribute("value", "" + caption.value);
-  stream.writeAttribute("font", "" + caption.font);
   stream.writeEndElement();
   if (caption.backgroundImage) {
     stream.writeStartElement(`fw-image`);
@@ -176,8 +188,153 @@ function writeCaption(stream, caption) {
     stream.writeEndElement();
   }
 }
-
-export function readXml() {}
+// 读取工程的XML
+export function readProjectXml(xmlPath) {
+  let result;
+  const stream = new NvsXmlStreamReader(xmlPath || "p.xml");
+  if (!stream.open()) {
+    console.error("stream open failed!");
+    return;
+  }
+  while (!stream.atEnd() && !stream.hasError()) {
+    if (stream.isStartElement() && stream.name() === "dom") {
+      result = readDom(stream);
+    }
+    stream.readNext();
+  }
+  if (stream.hasError()) {
+    console.error("stream has error");
+  }
+  stream.close();
+  return result;
+}
+function readDom(stream) {
+  const res = {};
+  while (!(stream.isEndElement() && stream.name() === "fw-creation")) {
+    if (stream.isStartElement() && stream.name() === "fw-creation") {
+      res.videoWidth = stream.getAttributeValue("video-width") * 1;
+      res.videoHeight = stream.getAttributeValue("video-height") * 1;
+      res.version = stream.getAttributeValue("version");
+      res.alias = stream.getAttributeValue("alias");
+      res.videos = [];
+      res.audios = [];
+      res.captions = [];
+      res.stickers = [];
+    } else if (stream.isStartElement() && stream.name() === "fw-scene") {
+      const { video, captions } = readProjectScene(stream, res);
+      res.videos.push(video);
+      res.captions.push(...captions);
+    }
+    stream.readNext();
+  }
+  return res;
+}
+function readProjectScene(stream, res) {
+  const scene = {
+    video: null,
+    captions: []
+  };
+  while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
+    if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
+      const type = stream.getAttributeValue("type");
+      if (type == "raw") {
+        scene.video = readProjectVideo(stream, res.videos);
+      } else if (type === "module") {
+        const captions = readProjectCaptions(stream, scene.video);
+        scene.captions.push(...captions);
+      }
+    }
+    stream.readNext();
+  }
+  return scene;
+}
+// 读取 fw-video
+function readProjectVideo(stream, videos) {
+  const pre = videos[videos.length - 1];
+  let video = {
+    inPoint: pre ? pre.inPoint + pre.duration : 0
+  };
+  while (
+    !(
+      stream.isEndElement() &&
+      (stream.name() === "fw-video" || stream.name() === "fw-image")
+    )
+  ) {
+    if (
+      (stream.name() === "fw-video" || stream.name() === "fw-image") &&
+      stream.isStartElement()
+    ) {
+      video.duration = stream.getAttributeValue("duration") * 1;
+      video.trimIn = stream.getAttributeValue("trim-in") * 1;
+      video.trimOut = stream.getAttributeValue("trim-out") * 1;
+      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+      transformFx.params = [
+        new FxParam(
+          "float",
+          TRANSFORM2D_KEYS.TRANS_X,
+          stream.getAttributeValue("translation-x") * 1
+        ), // 偏移
+        new FxParam(
+          "float",
+          TRANSFORM2D_KEYS.TRANS_Y,
+          stream.getAttributeValue("translation-y") * 1
+        ),
+        new FxParam(
+          "float",
+          TRANSFORM2D_KEYS.SCALE_X,
+          stream.getAttributeValue("scale-x") * 1
+        ), // 缩放
+        new FxParam(
+          "float",
+          TRANSFORM2D_KEYS.SCALE_Y,
+          stream.getAttributeValue("scale-y") * 1
+        )
+      ];
+      video.videoFxs = [transformFx];
+    } else if (stream.name() === "source" && stream.isStartElement()) {
+      video.src = stream.getAttributeValue("src");
+      video.width = stream.getAttributeValue("width");
+      video.height = stream.getAttributeValue("height");
+      video.aspectRatio = stream.getAttributeValue("aspect-ratio");
+      video.m3u8Url = stream.getAttributeValue("m3u8-url");
+    }
+    stream.readNext();
+  }
+  return new VideoClip(video);
+}
+// 读取 fw-text/fw-image
+function readProjectCaptions(stream, video) {
+  const captions = [];
+  while (!(stream.isEndElement() && stream.name() === "fw-scene-layer")) {
+    if (stream.isStartElement() && stream.name() === "fw-text") {
+      const caption = new CaptionClip({
+        inPoint: video.inPoint,
+        duration: stream.getAttributeValue("duration") || video.duration,
+        z: stream.getAttributeValue("z-value") * 1,
+        color: stream.getAttributeValue("font-color"),
+        translationX: stream.getAttributeValue("translation-x") * 1,
+        translationY: stream.getAttributeValue("translation-y") * 1,
+        fontSize: stream.getAttributeValue("font-size") * 1,
+        frameWidth: stream.getAttributeValue("frame-width"),
+        frameHeight: stream.getAttributeValue("frame-height"),
+        align: stream.getAttributeValue("text-x-alignment"),
+        text: stream.getAttributeValue("value"),
+        scale: stream.getAttributeValue("scale-x") * 1
+      });
+      captions.push(caption);
+    } else if (stream.isStartElement() && stream.name() === "fw-image") {
+      while (!(stream.isEndElement() && stream.name() === "fw-image")) {
+        if (stream.isStartElement() && stream.name() === "source") {
+          const caption = captions[captions.length - 1];
+          caption.backgroundImage = stream.getAttributeValue("src");
+        }
+        stream.readNext();
+      }
+    }
+    stream.readNext();
+  }
+  return captions;
+}
 // 读取module的xml
 export function readModuleXml(xmlPath) {
   let result;
@@ -187,19 +344,12 @@ export function readModuleXml(xmlPath) {
     return;
   }
   while (!stream.atEnd() && !stream.hasError()) {
+    if (stream.isStartElement() && stream.name() === "modules") {
+      result = readModules(stream);
+      console.log("模板结果", result);
+      break;
+    }
     stream.readNext();
-    if (stream.isStartDocument()) {
-      continue;
-    }
-    if (stream.isStartElement()) {
-      if (stream.name() === "modules") {
-        console.log("这是模板");
-        result = readModules(stream);
-        console.log("模板结果", result);
-      } else if (stream.name === "dom") {
-        console.log("这是工程");
-      }
-    }
   }
   if (stream.hasError()) {
     console.error("stream has error");
@@ -236,7 +386,6 @@ function readSceneList(stream) {
 function readScene(stream) {
   const scene = {};
   while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
-    stream.isStartElement() && console.log("循环开始", stream.name());
     if (stream.name() === "fw-scene" && stream.isStartElement()) {
       scene.temporal = stream.getAttributeValue("temporal") || "default";
       scene.layers = [];

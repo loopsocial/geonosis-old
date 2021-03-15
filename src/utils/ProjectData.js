@@ -52,7 +52,7 @@ export class VideoClip extends Clip {
         captureIn: 0,
         captureOut: option.trimOut || option.duration, // 选中点
         raw: null,
-        videoFxs: []
+        videoFxs: option.videoFxs || []
       }
     ];
     this.width = option.width; // 视频宽度

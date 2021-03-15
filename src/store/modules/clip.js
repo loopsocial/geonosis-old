@@ -8,7 +8,10 @@ export default {
     audios: [],
     captions: [],
     stickers: [],
-    currentVideoUuid: null
+    currentVideoUuid: null,
+    videoWidth: 540,
+    videoHeight: 960,
+    alias: ""
   },
   mutations: {
     resetClips(state, { type, clips }) {
