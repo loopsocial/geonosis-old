@@ -37,18 +37,18 @@
           <div
             class="slider-wrapper"
             :style="{
-              left: sliderLeft + 'px',
-              width: sliderWidth + 'px'
+              left: sliderLeft * 100 + '%',
+              width: sliderWidth * 100 + '%'
             }"
             @mousedown="handleSliderMouseDown"
             ref="slider"
           >
             <div
               class="slider"
-              :style="{ backgroundPosition: sliderBgPos + 'px' }"
+              :style="{ backgroundPosition: sliderBgPos + '%' }"
             >
-              <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
-              <div class="arrow right" @mousedown="handleRightMouseDown"></div>
+              <!-- <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
+              <div class="arrow right" @mousedown="handleRightMouseDown"></div> -->
             </div>
           </div>
 
@@ -117,8 +117,8 @@ export default {
       this.$nextTick(() => {
         if (this.musicList[idx].timelineVisible) {
           this.activeIndex = idx;
-          this.calcSliderPosAndWidth();
-          this.markSliderInitPos();
+          this.calcSliderStyle();
+          // this.markSliderInitPos();
           addEventListener("resize", this.handleTimelineResize);
         } else {
           this.activeIndex = -1;
@@ -126,98 +126,28 @@ export default {
         }
       });
     },
-
-    calcSliderPosAndWidth() {
-      this.sliderLeft =
-        (this.activeAudioClip.trimIn / this.activeAudioClip.duration) *
-        this.$refs.timeline[0].offsetWidth;
-      this.sliderWidth =
-        (this.activeAudioClip.trimOut / this.activeAudioClip.orgDuration) *
-        this.$refs.timeline[0].offsetWidth;
+    getVideoDuration() {
+      let time = 0;
+      this.videos.forEach(video => {
+        video.splitList.forEach(item => {
+          time += item.captureOut - item.captureIn;
+        });
+      });
+      return time;
     },
-
-    markSliderInitPos() {
-      this.sliderPos.start =
-        this.sliderLeft / this.$refs.timeline[0].offsetWidth;
-      this.sliderPos.end =
-        (this.sliderLeft + this.sliderWidth) /
-        this.$refs.timeline[0].offsetWidth;
-    },
-
-    handleTimelineResize() {
-      this.sliderLeft =
-        this.sliderPos.start * this.$refs.timeline[0].offsetWidth;
-      this.sliderWidth =
-        this.sliderPos.end * this.$refs.timeline[0].offsetWidth -
-        this.sliderLeft;
-    },
-
-    handleLeftMouseDown(e) {
-      this.mousePos =
-        e.clientX -
-        (this.$refs.timeline[0].getBoundingClientRect().left + this.sliderLeft);
-      this.sliderEndPercentage =
-        (this.sliderWidth + this.sliderLeft) /
-        this.$refs.timeline[0].offsetWidth;
-
-      addEventListener("mousemove", this.handleLeftMouseMove);
-      addEventListener("mouseup", this.handleLeftMouseUp, { once: true });
-    },
-    handleLeftMouseMove(e) {
-      e.preventDefault();
-      const [timeline] = this.$refs.timeline;
-      const minDuration = 5000 * 1000;
-      const minWidth =
-        (timeline.offsetWidth / this.activeAudioClip.orgDuration) * minDuration;
-
-      this.sliderLeft =
-        e.clientX - this.mousePos - timeline.getBoundingClientRect().left;
-      this.sliderWidth =
-        this.sliderEndPercentage * timeline.offsetWidth - this.sliderLeft;
-
-      if (this.sliderLeft < 0) {
-        this.sliderLeft = 0;
-        this.sliderWidth = this.sliderEndPercentage * timeline.offsetWidth;
-      }
-      if (this.sliderWidth < minWidth) {
-        this.sliderLeft =
-          this.sliderEndPercentage * timeline.offsetWidth - minWidth;
-        this.sliderWidth = minWidth;
-      }
-    },
-    handleLeftMouseUp() {
-      removeEventListener("mousemove", this.handleLeftMouseMove);
-    },
-    handleRightMouseDown(e) {
-      e.stopPropagation();
-
-      this.mousePos =
-        this.$refs.slider[0].getBoundingClientRect().left +
-        this.sliderWidth -
-        e.clientX;
-
-      addEventListener("mousemove", this.handleRightMouseMove);
-      addEventListener("mouseup", this.handleRightMouseUp, { once: true });
-    },
-    handleRightMouseMove(e) {
-      e.preventDefault();
-      this.sliderWidth =
-        e.clientX -
-        this.$refs.timeline[0].getBoundingClientRect().left -
-        this.sliderLeft +
-        this.mousePos;
-      if (this.sliderWidth > this.$refs.timeline[0].offsetWidth) {
-        this.sliderWidth = this.$refs.timeline[0].offsetWidth;
-      }
-    },
-    handleRightMouseUp() {
-      removeEventListener("mousemove", this.handleRightMouseMove);
+    calcSliderStyle() {
+      const videoDuration = this.getVideoDuration();
+      const { trimIn, trimOut } = this.activeAudioClip;
+      this.sliderLeft = trimIn / videoDuration;
+      this.sliderWidth = (trimOut - trimIn) / videoDuration;
     },
     handleSliderMouseDown(e) {
+      const timeline = this.$refs.timeline[this.activeIndex];
       this.mousePos =
         e.clientX -
-        this.sliderLeft -
-        this.$refs.timeline[0].getBoundingClientRect().left;
+        this.sliderLeft * timeline.offsetWidth -
+        timeline.getBoundingClientRect().left;
+
       addEventListener("mousemove", this.handleSliderMouseMove);
       addEventListener("mouseup", this.handleSliderMouseUp, { once: true });
     },
@@ -227,24 +157,22 @@ export default {
     },
 
     handleSliderMouseMove(e) {
+      const timeline = this.$refs.timeline[this.activeIndex];
+
       e.preventDefault();
       this.sliderLeft =
-        e.clientX -
-        this.mousePos -
-        this.$refs.timeline[0].getBoundingClientRect().left;
-      this.sliderBgPos = -this.sliderLeft;
+        (e.clientX - this.mousePos - timeline.getBoundingClientRect().left) /
+        timeline.offsetWidth;
+      this.sliderBgPos = -this.sliderLeft * timeline.offsetWidth;
 
       if (this.sliderLeft < 0) {
         this.sliderLeft = 0;
         this.sliderBgPos = 0;
       }
 
-      if (
-        this.sliderLeft + this.sliderWidth >
-        this.$refs.timeline[0].offsetWidth
-      ) {
-        this.sliderLeft = this.$refs.timeline[0].offsetWidth - this.sliderWidth;
-        this.sliderBgPos = -this.sliderLeft;
+      if (this.sliderLeft + this.sliderWidth > 1) {
+        this.sliderLeft = 1 - this.sliderWidth;
+        this.sliderBgPos = -this.sliderLeft * timeline.offsetWidth;
       }
     },
 

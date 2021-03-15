@@ -68,11 +68,11 @@ export default {
     })
   },
   methods: {
-    test() {
-      const raw = this.timelineClass.videoTrack.clips[0].splitList[0].raw;
+    test(point1, point2, point3, point4, raw) {
+      raw = raw ?? this.timelineClass.videoTrack.clips[0].splitList[0].raw;
       const fx = raw.appendRawBuiltinFx("Transform 2D");
-      fx.setFloatVal("Trans X", 100);
-      fx.setFloatVal("Trans Y", 100);
+      // fx.setFloatVal("Trans X", 100);
+      // fx.setFloatVal("Trans Y", 100);
       console.log("吊");
       window.fx = fx;
       const mosaicFx = raw.appendRawBuiltinFx("Mosaic");
@@ -84,20 +84,26 @@ export default {
       mosaicFx.setRegionalFeatherWidth(0);
       const region = new NvsVectorFloat();
       // pos1
-      region.push_back(-0.5);
-      region.push_back(0.5);
+      region.push_back(point1.x);
+      region.push_back(point1.y);
+      region.push_back(point2.x);
+      region.push_back(point2.y);
+      region.push_back(point3.x);
+      region.push_back(point3.y);
+      region.push_back(point4.x);
+      region.push_back(point4.y);
+
       // pos2
-      region.push_back(-0.5);
-      region.push_back(-0.5);
-      // pos3
-      region.push_back(0.5);
-      region.push_back(-0.5);
-      // pos4
-      region.push_back(0.5);
-      region.push_back(0.5);
+      // region.push_back(-0.5);
+      // region.push_back(-0.5);
+      // // pos3
+      // region.push_back(0.5);
+      // region.push_back(-0.5);
+      // // pos4
+      // region.push_back(0.5);
+      // region.push_back(0.5);
       mosaicFx.setRegion(region);
 
-      
       this.timelineClass.seekTimeline();
     },
     statusEvent() {
@@ -257,8 +263,20 @@ export default {
       this.timelineClass.buildAudioTrack();
       this.timelineClass.seekTimeline();
     },
+    calcMaterialDuration(currentTime) {
+      let inPoint = 0;
+      for (let video of this.videos) {
+        for (let item of video.splitList) {
+          inPoint += item.captureOut - item.captureIn;
+          if (inPoint > currentTime) {
+            return inPoint - currentTime;
+          }
+        }
+      }
+    },
     async editClip(e, option) {
       const { type, target, raw } = option;
+      const currentPosition = this.timelineClass.getCurrentPosition();
       if (!raw && !target) return;
       await this.timelineClass.stopEngin();
       if (raw) {
@@ -277,7 +295,8 @@ export default {
         if (type === CLIP_TYPES.STICKER) {
           const sticker = new StickerClip({
             ...target,
-            inPoint: this.timelineClass.getCurrentPosition(),
+            inPoint: currentPosition,
+            duration: this.calcMaterialDuration(currentPosition),
             desc: target.id,
             translationX: targetPoint && targetPoint.x,
             translationY: targetPoint && targetPoint.y
@@ -287,7 +306,7 @@ export default {
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
-            inPoint: this.timelineClass.getCurrentPosition()
+            inPoint: currentPosition
           });
           if (!e) {
             // 点击caption上轨
@@ -298,7 +317,7 @@ export default {
             const raw = this.timelineClass.timeline.addCaption(
               caption.text,
               caption.inPoint,
-              caption.duration,
+              this.calcMaterialDuration(currentPosition),
               caption.styleDesc,
               false
             );
