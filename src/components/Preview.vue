@@ -243,18 +243,16 @@ export default {
     async addAudioClip(clip) {
       let durationCumulate = 0;
       const clipOptions = { ...clip };
-      const duration = clipOptions.trimOut - clipOptions.trimIn;
-      const count = Math.ceil(
-        this.timelineClass.timeline.getDuration() / duration
-      );
+      const clipDuration = clipOptions.trimOut - clipOptions.trimIn;
+      const timelineDuration = this.timelineClass.timeline.getDuration();
+      const count = Math.ceil(timelineDuration / clipDuration);
       let audios = [];
       for (let index = 0; index < count; index++) {
-        durationCumulate += duration;
-        clipOptions.inPoint = index * duration;
-        if (durationCumulate > this.timelineClass.timeline.getDuration()) {
+        durationCumulate += clipDuration;
+        clipOptions.inPoint = index * clipDuration;
+        if (durationCumulate > timelineDuration) {
           clipOptions.trimOut =
-            duration -
-            (durationCumulate - this.timelineClass.timeline.getDuration());
+            clipDuration - (durationCumulate - timelineDuration);
         }
         audios.push(new AudioClip(clipOptions));
       }
