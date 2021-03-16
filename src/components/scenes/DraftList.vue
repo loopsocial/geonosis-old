@@ -766,7 +766,11 @@ export default {
       this.splittreLeft = this.calcCurrentPercentage(currentTime);
     },
     handleResize() {
-      this.getClipListImages();
+      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
+        this.activeClip.m3u8Path,
+        0
+      );
+      !this.isImage && this.getClipListImages();
       const { width, height } = this.videoInfo.videoStreamInfo;
       this.dialogCanvasSize = {
         height: this.$refs.liveWindow.offsetHeight,
@@ -816,6 +820,7 @@ export default {
       } else {
         standardizedVideoWidth = (9 / 16) * videoHeight;
         standardizedVideoHeight = videoHeight;
+        debugger
         scaleX = 1 / ((videoWidth * this.rect.width) / standardizedVideoWidth);
         scaleY = scaleX;
       }
@@ -852,13 +857,12 @@ export default {
         scaleX,
         scaleY
       ] = this.calcTransformParams();
-
-      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
       const transX =
         -(imageWidth / standardizedVideoWidth) * centerPos.x * scaleX;
       const transY =
         -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
 
+      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
       transformFx.params = [
         new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_X, transX), // 偏移
         new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_Y, transY),
@@ -901,6 +905,8 @@ export default {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
           this.motion = this.activeClip.motion;
+          this.calcSelectRectSize();
+          this.operateStack.pushSnapshot(this.splitList);
         } else {
           this.initSplit(); // 根据当前video的splitList分隔当前缩略图
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
@@ -1011,11 +1017,6 @@ export default {
     },
     // 拼出缩略图
     getClipListImages() {
-      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
-        this.activeClip.m3u8Path,
-        0
-      );
-      if (this.isImage) return;
       const { width, height } = this.videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
 
