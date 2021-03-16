@@ -24,7 +24,7 @@
             url('${getCover(item, i)}') no-repeat center center/auto 100%`
           }"
         >
-          <div class="order-number">{{ getNum(index, i) }}</div>
+          <div class="order-number">{{ getNum(index, i) + 1 }}</div>
           <div class="duration">
             {{ format(split.captureOut - split.captureIn, true) }}
           </div>
@@ -73,10 +73,9 @@
       </template>
 
       <div
-        class="live-window-wrapper"
+        class="video-container"
         v-loading="waiting"
         element-loading-background="rgba(0, 0, 0, 0)"
-        ref="liveWindowWrapper"
       >
         <div class="undo-btn inline-block">
           <svg-icon
@@ -91,14 +90,32 @@
           ></svg-icon>
         </div>
 
-        <div class="live-window" ref="liveWindow">
-          <canvas
-            :width="dialogCanvasSize.width"
-            :height="dialogCanvasSize.height"
-            class="live-window inline-block"
-            id="trim-window"
-          ></canvas>
-          <div class="selected-rect-wrapper">
+        <div class="live-window-wrapper" ref="liveWindowWrapper">
+          <div
+            class="live-window"
+            ref="liveWindow"
+            :style="{
+              width: Math.floor(dialogCanvasSize.width) + 'px',
+              height: Math.floor(dialogCanvasSize.height) + 'px'
+            }"
+          >
+            <canvas
+              :width="dialogCanvasSize.width"
+              :height="dialogCanvasSize.height"
+              class="live-window inline-block"
+              id="trim-window"
+            ></canvas>
+            <div class="selected-rect-wrapper">
+              <div
+                class="selected-rect"
+                :style="{
+                  width: rect.width * 100 + '%',
+                  height: rect.height * 100 + '%',
+                  left: rect.left * 100 + '%',
+                  top: rect.top * 100 + '%'
+                }"
+              ></div>
+            </div>
             <div
               class="selected-rect"
               :style="{
@@ -107,23 +124,14 @@
                 left: rect.left * 100 + '%',
                 top: rect.top * 100 + '%'
               }"
-            ></div>
-          </div>
-          <div
-            class="selected-rect"
-            :style="{
-              width: rect.width * 100 + '%',
-              height: rect.height * 100 + '%',
-              left: rect.left * 100 + '%',
-              top: rect.top * 100 + '%'
-            }"
-            @mousedown="handleRectMouseDown"
-            ref="selectedRect"
-          >
-            <div class="left-top point"></div>
-            <div class="right-top point"></div>
-            <div class="right-bottom point"></div>
-            <div class="left-bottom point"></div>
+              @mousedown="handleRectMouseDown"
+              ref="selectedRect"
+            >
+              <div class="left-top point"></div>
+              <div class="right-top point"></div>
+              <div class="right-bottom point"></div>
+              <div class="left-bottom point"></div>
+            </div>
           </div>
         </div>
 
@@ -254,7 +262,12 @@
 
 <script>
 import { us2hm, us2time } from "../../utils/common";
-import { CLIP_TYPES, FX_DESC, TRANSFORM2D_KEYS, PARAMS_TYPES } from "@/utils/Global";
+import {
+  CLIP_TYPES,
+  FX_DESC,
+  TRANSFORM2D_KEYS,
+  PARAMS_TYPES
+} from "@/utils/Global";
 import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip, FxParam, VideoFx } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
@@ -766,36 +779,32 @@ export default {
       this.splittreLeft = this.calcCurrentPercentage(currentTime);
     },
     handleResize() {
-      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
-        this.activeClip.m3u8Path,
-        0
-      );
       !this.isImage && this.getClipListImages();
       const { width, height } = this.videoInfo.videoStreamInfo;
-      this.dialogCanvasSize = {
-        height: this.$refs.liveWindow.offsetHeight,
-        width: (width / height) * this.$refs.liveWindow.offsetHeight
-      };
-      // if (width > height) {
-      //   this.$refs.liveWindow.style.width = "70%";
-      //   this.$refs.liveWindow.style.height = "auto";
-      //   this.$nextTick(() => {
-      //     this.dialogCanvasSize = {
-      //       width: this.$refs.liveWindow.offsetWidth,
-      //       height: (height / width) * this.$refs.liveWindow.offsetWidth
-      //     };
-      //     debugger
-      //   });
-      // } else {
-      //   this.$refs.liveWindow.style.width = "auto";
-      //   this.$refs.liveWindow.style.height = "100%";
-      //   this.$nextTick(() => {
-      //     this.dialogCanvasSize = {
-      //       height: this.$refs.liveWindow.offsetHeight,
-      //       width: (width / height) * this.$refs.liveWindow.offsetHeight
-      //     };
-      //   });
-      // }
+      const { offsetWidth, offsetHeight } = this.$refs.liveWindowWrapper;
+      // this.dialogCanvasSize = {
+      //   height: this.$refs.liveWindow.offsetHeight,
+      //   width: (width / height) * this.$refs.liveWindow.offsetHeight
+      // };
+      if (offsetWidth / offsetHeight < width / height) {
+        this.$nextTick(() => {
+          this.dialogCanvasSize = {
+            width: this.$refs.liveWindowWrapper.offsetWidth,
+            height: (height / width) * this.$refs.liveWindowWrapper.offsetWidth
+          };
+          // this.$refs.liveWindow.style.height =
+          //   Math.floor(this.dialogCanvasSize.height) + "px";
+        });
+      } else {
+        this.$nextTick(() => {
+          this.dialogCanvasSize = {
+            height: this.$refs.liveWindowWrapper.offsetHeight,
+            width: (width / height) * this.$refs.liveWindowWrapper.offsetHeight
+          };
+          // this.$refs.liveWindow.style.width =
+          //   Math.floor(this.dialogCanvasSize.width) + "px";
+        });
+      }
     },
 
     calcTransformParams() {
@@ -820,7 +829,6 @@ export default {
       } else {
         standardizedVideoWidth = (9 / 16) * videoHeight;
         standardizedVideoHeight = videoHeight;
-        debugger
         scaleX = 1 / ((videoWidth * this.rect.width) / standardizedVideoWidth);
         scaleY = scaleX;
       }
@@ -897,6 +905,10 @@ export default {
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
+      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
+        this.activeClip.m3u8Path,
+        0
+      );
       this.$nextTick(async () => {
         this.handleResize(); // 计算canvas尺寸、计算缩略图
         await this.createTrimTimeline();
@@ -1017,24 +1029,62 @@ export default {
     },
     // 拼出缩略图
     getClipListImages() {
+      const { offsetWidth } = this.$refs.clipList;
       const { width, height } = this.videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
+      const clipItemDuration =
+        (clipItemWidth / offsetWidth) * this.activeClip.orgDuration;
 
-      const containableItemNum = Math.floor(
-        this.$refs.clipList.offsetWidth / clipItemWidth
-      );
+      const containableItemNum = Math.floor(offsetWidth / clipItemWidth);
+
       const step = Math.floor(this.item.thumbnails.length / containableItemNum);
-      let counter = 0;
-      let bg = "";
-      for (let i = 0; i < this.item.thumbnails.length; i++) {
-        if (i % step === 0) {
-          bg += `url("${this.item.thumbnails[i].url}") ${counter *
-            clipItemWidth}px 0/${clipItemWidth}px 100% no-repeat,`;
 
-          counter++;
+      let bg = "";
+      let counter = 0;
+
+      if (step !== 0) {
+        // 如果缩略图可以涵盖整个缩略图条
+        for (let i = 0; i < this.item.thumbnails.length; i++) {
+          if (i % step === 0) {
+            bg += `url("${this.item.thumbnails[i].url}") ${counter *
+              clipItemWidth}px 0/${clipItemWidth}px 100% no-repeat,`;
+
+            counter++;
+          }
+        }
+      } else {
+        // 如果缩略图数量过少，计算时加入时间维度
+        let durationCumulate = 0;
+        // 先插入第一张
+        bg += `url("${this.item.thumbnails[0].url}") 0 0/${clipItemWidth}px 100% no-repeat,`;
+        durationCumulate += clipItemDuration;
+        counter++;
+
+        for (let i = 1; i < this.item.thumbnails.length; i++) {
+          const thumbnail = this.item.thumbnails[i];
+          if (durationCumulate <= thumbnail.time) {
+            // 时间区间可以容纳多少缩略图
+            const capableItemNum = Math.floor(
+              (thumbnail.time - durationCumulate) / clipItemDuration
+            );
+            if (capableItemNum >= 1) {
+              for (let j = 0; j < capableItemNum; j++) {
+                bg += `url("${this.item.thumbnails[i - 1].url}") ${counter++ * // 因为此时间点是上一个时间点缩略图的重复，所以最后一个时间点一直到结尾的缩略图可能无法展示，需要单独补充
+                  clipItemWidth}px 0/${clipItemWidth}px 100% no-repeat,`;
+                durationCumulate += clipItemDuration;
+              }
+            }
+          }
+        }
+
+        // 补充最后一张
+        if (durationCumulate < this.activeClip.orgDuration) {
+          bg += `url("${this.item.thumbnails.slice(-1)[0].url}") ${counter++ *
+            clipItemWidth}px 0/${clipItemWidth}px 100% repeat,`;
         }
       }
-      this.background = bg.substring(0, bg.length - 10) + "repeat-x";
+      console.log(bg);
+      this.background = bg.substring(0, bg.length - 1);
     },
     // 处理切片的选中
     handleClipClick(e) {
@@ -1429,16 +1479,31 @@ $infoBgc: rgba(0, 0, 0, 0.5);
   }
 }
 
-.ln-dialog {
+@media screen and (max-width: 1650px) {
   .live-window-wrapper {
+    width: 66%;
+  }
+}
+@media screen and (min-width: 1651px) {
+  .live-window-wrapper {
+    width: 75%;
+  }
+}
+.ln-dialog {
+  .video-container {
     height: calc(100% - 50px);
     // flex: 1;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    .live-window-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
     .live-window {
       position: relative;
-      height: 100%;
       .selected-rect-wrapper {
         position: absolute;
         left: 0;
