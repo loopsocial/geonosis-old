@@ -142,6 +142,7 @@ export default class TimelineClass {
           this.addVideoFx(item);
           if (clip.videoType === CLIP_TYPES.IMAGE) {
             item.raw.setImageMotionAnimationEnabled(clip.motion);
+            item.raw.setImageMotionMode(0);
           }
           return res + item.captureOut - item.captureIn;
         }, clip.inPoint);
