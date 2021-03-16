@@ -186,14 +186,15 @@ export default {
     },
 
     async getMusic() {
-      const res = await this.axios.get(this.$api.materials, {
-        params: {
-          type: 7,
-          page: this.page,
-          pageSize: 40,
-          category: 1
-        }
+      const res = await this.axios.get(this.$api.soundTracks, {
+        // params: {
+        //   type: 7,
+        //   page: this.page,
+        //   pageSize: 40,
+        //   category: 1
+        // }
       });
+      console.log(res)
       const { materialCount, materialList } = res.data;
       this.musicCount = materialCount;
       for (let i = 0; i < materialList.length; i++) {

@@ -9,13 +9,13 @@ import axios from "axios";
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 let config = {
-  baseURL: "https://testeapi.meishesdk.com:8443",
+  // baseURL: "https://testeapi.meishesdk.com:8443",
   // timeout: 60 * 1000, // Timeout
   // withCredentials: true, // Check cross-site Access-Control
-  headers: {
-    Authorization:
-      "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxNDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNTU0NDk1MSwiZXhwIjoxNjE2MTQ5NzUxfQ.fPKXC3acHb9Jrdsv_xqm6vj9smHfqCYSQGbbpjmP4DeJa9ZrVvX0TzzEjdukIdDZXjitRHRrUem7AlwLXobRWQ"
-  }
+  // headers: {
+  //   Authorization:
+  //     "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxNDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNTU0NDk1MSwiZXhwIjoxNjE2MTQ5NzUxfQ.fPKXC3acHb9Jrdsv_xqm6vj9smHfqCYSQGbbpjmP4DeJa9ZrVvX0TzzEjdukIdDZXjitRHRrUem7AlwLXobRWQ"
+  // }
 };
 
 const _axios = axios.create(config);

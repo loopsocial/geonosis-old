@@ -140,8 +140,8 @@ export default class TimelineClass {
           };
           item.raw = this.addVideoClip(clipInfo, this.videoTrack.raw);
           this.addVideoFx(item);
-          if (clip.videoType === CLIP_TYPES.IMAGE && !clip.motion) {
-            item.raw.setImageMotionAnimationEnabled(false);
+          if (clip.videoType === CLIP_TYPES.IMAGE) {
+            item.raw.setImageMotionAnimationEnabled(clip.motion);
           }
           return res + item.captureOut - item.captureIn;
         }, clip.inPoint);
@@ -178,12 +178,10 @@ export default class TimelineClass {
   // clip添加特效, 用户修剪视频
   addVideoFx(clip) {
     clip.videoFxs.map(fx => {
-      if (!fx.raw) {
-        if (fx.type === FX_TYPES.BUILTIN) {
-          fx.raw = clip.raw.appendBuiltinFx(fx.desc);
-        } else if (fx.type === FX_TYPES.PACKAGE) {
-          fx.raw = clip.raw.appendPackagedFx(fx.desc);
-        }
+      if (fx.type === FX_TYPES.BUILTIN) {
+        fx.raw = clip.raw.appendBuiltinFx(fx.desc);
+      } else if (fx.type === FX_TYPES.PACKAGE) {
+        fx.raw = clip.raw.appendPackagedFx(fx.desc);
       }
       if (fx.desc === FX_DESC.MOSAIC) {
         // 添加一个视野内的遮罩
