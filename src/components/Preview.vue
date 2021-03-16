@@ -136,13 +136,14 @@ export default {
     // 查找当前时刻点击位置是否有字幕/贴纸
     findClipAtNowPoint(e) {
       let { offsetX, offsetY } = e;
+      const seekVal = this.timelineClass.getCurrentPosition();
       const captions = this.captions.filter(
         ({ inPoint, duration }) =>
-          this.seekVal >= inPoint && this.seekVal <= inPoint + duration
+          seekVal >= inPoint && seekVal <= inPoint + duration
       );
       const stickers = this.stickers.filter(
         ({ inPoint, duration }) =>
-          this.seekVal >= inPoint && this.seekVal <= inPoint + duration
+          seekVal >= inPoint && seekVal <= inPoint + duration
       );
       if (captions.length || stickers.length) {
         return [...captions, ...stickers].find(item => {
@@ -183,7 +184,7 @@ export default {
       // this.$bus.$on(this.$keys.afreshVideoClip, this.afreshVideoClip); // 重新添加clip, 用于修改trim
       this.$bus.$on(this.$keys.addAudioClip, this.addAudioClip); // music页，添加audio
       this.$bus.$on(this.$keys.clearAudioTrack, this.clearAudioTrack); // music页，清空音频
-      this.$bus.$on(this.$keys.delCaptionSticker, this.delCaptionSticker); // music页，清空音频
+      this.$bus.$on(this.$keys.delCaptionSticker, this.delCaptionSticker);
       this.$bus.$on(this.$keys.seek, this.seekTimeline);
       this.$bus.$on(this.$keys.closePanel, this.closePanel);
       this.$bus.$on(this.$keys.drawBox, this.drawBox);
@@ -214,6 +215,15 @@ export default {
       }
     },
     seekTimeline(t) {
+      if (!isNaN(t)) this.seekVal = t * 1;
+      if (this.flow) {
+        // 正在显示字幕编辑框
+        console.log(this.flow);
+        const { inPoint, duration } = this.flow.clip;
+        if (this.seekVal < inPoint || this.seekVal >= inPoint + duration) {
+          this.closePanel();
+        }
+      }
       this.timelineClass.seekTimeline(t);
     },
     // 删除字幕/贴纸
