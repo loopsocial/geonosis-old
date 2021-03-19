@@ -165,23 +165,28 @@ function writeCaptionLayer(stream, captions) {
   stream.writeEndElement();
 }
 function writeCaption(stream, caption) {
+  const { videoWidth, videoHeight } = store.state.clip;
+  const translationX = caption.translationX / videoWidth;
+  const translationY = caption.translationY / videoHeight;
+  const videoLength = Math.max(videoHeight, videoWidth);
+  const fontSize = (caption.fontSize * 720) / videoLength;
   stream.writeStartElement(`fw-text`);
   stream.writeAttribute("z-value", "" + caption.zValue);
   stream.writeAttribute(
     "background-color",
     "" + RGBAToHex(caption.backgroundColor)
   );
-  stream.writeAttribute("translation-x", "" + caption.translationX);
-  stream.writeAttribute("translation-y", "" + caption.translationY);
-  stream.writeAttribute("font-size", "" + caption.fontSize);
+  stream.writeAttribute("translation-x", "" + translationX);
+  stream.writeAttribute("translation-y", "" + translationY);
+  stream.writeAttribute("font-size", "" + fontSize);
   stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
   stream.writeAttribute("font", "" + caption.font);
   // stream.writeAttribute("frame-width", "" + 0);
   // stream.writeAttribute("frame-height", "" + 0);
   stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
+  // stream.writeAttribute("text-y-alignment", "" + caption.align);
   stream.writeAttribute("scale-x", "" + caption.scaleX);
   stream.writeAttribute("scale-y", "" + caption.scaleY);
-  // stream.writeAttribute("text-y-alignment", "" + caption.align);
   stream.writeAttribute("value", "" + caption.value);
   stream.writeEndElement();
   if (caption.backgroundImage) {
@@ -262,6 +267,8 @@ function readProjectScene(stream, res) {
 // 读取 fw-video
 function readProjectVideo(stream, videos) {
   const pre = videos[videos.length - 1];
+  const { videoWidth, videoHeight } = store.state.clip;
+  const videoLength = Math.max(videoHeight, videoWidth);
   let video = {
     inPoint: pre ? pre.inPoint + pre.duration : 0
   };
@@ -283,12 +290,12 @@ function readProjectVideo(stream, videos) {
         new FxParam(
           "float",
           TRANSFORM2D_KEYS.TRANS_X,
-          stream.getAttributeValue("translation-x") * 1
+          stream.getAttributeValue("translation-x") * videoLength
         ), // 偏移
         new FxParam(
           "float",
           TRANSFORM2D_KEYS.TRANS_Y,
-          stream.getAttributeValue("translation-y") * 1
+          stream.getAttributeValue("translation-y") * videoLength
         ),
         new FxParam(
           "float",
@@ -316,6 +323,8 @@ function readProjectVideo(stream, videos) {
 // 读取 fw-text/fw-image
 function readProjectCaptions(stream, video) {
   const captions = [];
+  const { videoWidth, videoHeight } = store.state.clip;
+  const videoLength = Math.max(videoHeight, videoWidth);
   while (!(stream.isEndElement() && stream.name() === "fw-scene-layer")) {
     if (stream.isStartElement() && stream.name() === "fw-text") {
       const caption = new CaptionClip({
@@ -323,9 +332,9 @@ function readProjectCaptions(stream, video) {
         duration: stream.getAttributeValue("duration") || video.duration,
         z: stream.getAttributeValue("z-value") * 1,
         color: stream.getAttributeValue("font-color"),
-        translationX: stream.getAttributeValue("translation-x") * 1,
-        translationY: stream.getAttributeValue("translation-y") * 1,
-        fontSize: stream.getAttributeValue("font-size") * 1,
+        translationX: stream.getAttributeValue("translation-x") * videoLength,
+        translationY: stream.getAttributeValue("translation-y") * videoLength,
+        fontSize: stream.getAttributeValue("font-size") * videoLength,
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
         align: stream.getAttributeValue("text-x-alignment"),
@@ -409,6 +418,8 @@ function readScene(stream) {
 
 function readLayer(stream) {
   const layer = {};
+  const { videoWidth, videoHeight } = store.state.clip;
+  const videoLength = Math.max(videoHeight, videoWidth);
   while (!(stream.isEndElement() && stream.name() === "fw-scene-layer")) {
     if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
       layer.type = stream.getAttributeValue("type");
@@ -416,15 +427,15 @@ function readLayer(stream) {
       layer.video = {
         scaleX: stream.getAttributeValue("scale-x") * 1,
         scaleY: stream.getAttributeValue("scale-y") * 1,
-        translationX: stream.getAttributeValue("translation-x") * 1,
-        translationY: stream.getAttributeValue("translation-y") * 1
+        translationX: stream.getAttributeValue("translation-x") * videoLength,
+        translationY: stream.getAttributeValue("translation-y") * videoLength
       };
     } else if (stream.name() === "fw-image" && stream.isStartElement()) {
       layer.image = {
         scaleX: stream.getAttributeValue("scale-x") * 1,
         scaleY: stream.getAttributeValue("scale-y") * 1,
-        translationX: stream.getAttributeValue("translation-x") * 1,
-        translationY: stream.getAttributeValue("translation-y") * 1
+        translationX: stream.getAttributeValue("translation-x") * videoLength,
+        translationY: stream.getAttributeValue("translation-y") * videoLength
       };
       const source = {};
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
@@ -449,12 +460,12 @@ function readLayer(stream) {
       layer.text.push({
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
         font: stream.getAttributeValue("font"),
-        fontSize: stream.getAttributeValue("font-size") * 1,
+        fontSize: (stream.getAttributeValue("font-size") * videoLength) / 720,
         fontColor: stream.getAttributeValue("font-color"),
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
-        translationX: stream.getAttributeValue("translation-x") * 1,
-        translationY: stream.getAttributeValue("translation-y") * 1,
+        translationX: stream.getAttributeValue("translation-x") * videoLength,
+        translationY: stream.getAttributeValue("translation-y") * videoLength,
         zValue: stream.getAttributeValue("z-value") * 1,
         value: stream.getAttributeValue("value")
       });

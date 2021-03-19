@@ -200,7 +200,9 @@ export default class TimelineClass {
         fontSize: item.fontSize,
         align: item.textXAlignment,
         translationY: item.translationY,
-        translationX: item.translationX
+        translationX: item.translationX,
+        frameWidth: item.frameWidth,
+        frameHeight: item.frameHeight
       });
     });
     console.log("模板 字幕添加完成", text);
@@ -354,6 +356,8 @@ export default class TimelineClass {
       translationX,
       color,
       translationY,
+      frameWidth,
+      frameHeight,
       z
     } = caption;
     const captionRaw = this.timeline.addCaption(
@@ -378,7 +382,6 @@ export default class TimelineClass {
         new NvsPointF(translationX, translationY)
       );
     }
-    fontSize !== undefined && captionRaw.setFontSize(fontSize);
     if (color) {
       const rgba = color[0] === "#" ? HexToRGBA(color) : color;
       const nvsColor = RGBAToNvsColor(rgba);
@@ -392,8 +395,30 @@ export default class TimelineClass {
       };
       captionRaw.setTextAlignment(temp[align]);
     }
+    if (frameWidth && frameHeight) {
+      const { videoWidth, videoHeight } = store.state.clip;
+      const x = this.getValue(frameWidth, videoWidth);
+      const y = this.getValue(frameHeight, videoHeight);
+      const rect = {
+        left: -0.5 * x,
+        top: 0.5 * y,
+        right: 0.5 * x,
+        bottom: -0.5 * y
+      };
+      // TODO: 暂时没有以下的接口，需要更新SDK
+      // captionRaw.setTextOriginFrameRectForFrameCaption(rect);
+      // fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
+    } else {
+      fontSize !== undefined && captionRaw.setFontSize(fontSize);
+    }
     if (z) captionRaw.setZValue(z);
     return captionRaw;
+  }
+  getValue(string, length) {
+    if (string.search("%") > -1) {
+      return parseFloat(string) * length;
+    }
+    return parseFloat(string);
   }
   static setCaption(caption) {
     const {

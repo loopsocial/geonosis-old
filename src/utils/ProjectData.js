@@ -119,6 +119,8 @@ export class CaptionClip extends Clip {
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;
     this.z = option.z || 0;
+    this.frameWidth = option.frameWidth;
+    this.frameHeight = option.frameHeight;
   }
 }
 export class StickerClip extends Clip {
