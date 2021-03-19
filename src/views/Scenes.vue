@@ -42,6 +42,7 @@ export default {
   methods: {
     // todo 以下是测试代码
     async installM3u8() {
+      if (this.videos.length) return;
       let pos = 0;
       const defaultDuration = 3000000;
       const clips = [];

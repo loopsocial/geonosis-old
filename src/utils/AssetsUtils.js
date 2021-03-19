@@ -1,5 +1,5 @@
 import { getNameFromUrl } from "./common";
-import { objectStores, assetTypes, needInstall } from "./Global";
+import { objectStores, assetTypes, needInstall, RESOURCE } from "./Global";
 import axios from "axios";
 import store from "../store";
 
@@ -61,9 +61,9 @@ function getStoreName(key) {
  * @param {string} packageUrl 需要保存的资源地址  例如:https://xx.com/E6AD8162-1394-44F5-BA22-6402C828B12F.2.captionstyle?a=1
  * @param {*} value 资源包的内容
  */
-export function saveAssetToIndexDB(packageUrl, value) {
+export function saveAssetToIndexDB(packageUrl, value, isCustom) {
   const key = getNameFromUrl(packageUrl); // E6AD8162-1394-44F5-BA22-6402C828B12F.2.captionstyle
-  const storeName = getStoreName(key); // captionstyle
+  const storeName = isCustom ? RESOURCE : getStoreName(key); // captionstyle
   const uuid = key.split(".").shift(); // E6AD8162-1394-44F5-BA22-6402C828B12F
   if (db !== undefined && db.objectStoreNames.contains(storeName)) {
     var transaction = db.transaction(storeName, "readwrite");
@@ -77,10 +77,10 @@ export function saveAssetToIndexDB(packageUrl, value) {
  * 从IndexDB中获取资源数据
  * @param {string} packageUrl 资源地址
  */
-export function getAssetFromIndexDB(packageUrl) {
+export function getAssetFromIndexDB(packageUrl, isCustom) {
   const key = getNameFromUrl(packageUrl);
   return new Promise(resolve => {
-    const storeName = getStoreName(key);
+    const storeName = isCustom ? RESOURCE : getStoreName(key);
     const id = key.split(".").shift();
     let transaction = db.transaction(storeName, "readwrite");
     let store = transaction.objectStore(storeName);
@@ -97,13 +97,14 @@ export function getAssetFromIndexDB(packageUrl) {
 /**
  * 从网络中下载资源数据, 并保存到IndexDB中
  * @param {string} packageUrl 资源地址
+ * @param {boolean} isCustom 是否为自定义资源（自定义贴纸）
  */
-export function getAssetFromNetwork(packageUrl) {
+export function getAssetFromNetwork(packageUrl, isCustom) {
   return new Promise((resolve, reject) => {
     axios
       .get(packageUrl, { responseType: "arraybuffer" })
       .then(res => {
-        saveAssetToIndexDB(packageUrl, new Uint8Array(res.data));
+        saveAssetToIndexDB(packageUrl, new Uint8Array(res.data), isCustom);
         resolve(new Uint8Array(res.data));
       })
       .catch(e => {
@@ -113,22 +114,22 @@ export function getAssetFromNetwork(packageUrl) {
 }
 
 /**
- * 从FS中获取资源数据, 防止重复下载安装
+ * 从FS中获取资源数据, 防止重复下载安装，用于检测m3u8和自定义贴纸素材
  * @param {string} packageUrl 资源地址
  */
-export function getAssetFromFS(packageUrl) {
+export function getAssetFromFS(packageUrl, isCustom) {
   return new Promise(resolve => {
     const key = getNameFromUrl(packageUrl);
     const storeName = getStoreName(key);
-    if (storeName !== "m3u8") {
+    if (storeName !== "m3u8" && !isCustom) {
       resolve();
     }
     const id = key.split(".").shift();
-    const m3u8List = FS.readdir(`/m3u8/`);
+    const m3u8List = FS.readdir(`/${isCustom ? RESOURCE : "m3u8"}/`);
     const m = m3u8List.find(item => item.includes(id));
     if (m) {
-      console.log("已安装过了", key);
-      resolve(`/m3u8/${id}.m3u8`);
+      console.log("已安装过了", key, m);
+      resolve(`/${isCustom ? RESOURCE : "m3u8"}/${m}`);
     }
     resolve();
   });
@@ -138,26 +139,27 @@ export function getAssetFromFS(packageUrl) {
  * @param {string} packageUrl 资源包的地址
  * @param {boolean} checkLic 是否验证授权
  */
-export async function installAsset(packageUrl, checkLic) {
+export async function installAsset(packageUrl, options) {
+  const { checkLic, isCustom } = options || {};
   return new Promise((resolve, reject) => {
     ensureMeisheModule()
       .then(() => {
-        return getAssetFromFS(packageUrl);
+        return getAssetFromFS(packageUrl, isCustom);
       })
       .then(path => {
         if (path) resolve(path);
-        return getAssetFromIndexDB(packageUrl);
+        return getAssetFromIndexDB(packageUrl, isCustom);
       })
       .then(data => {
         if (data) return data;
-        return getAssetFromNetwork(packageUrl);
+        return getAssetFromNetwork(packageUrl, isCustom);
       })
       .then(async data => {
         if (!data) {
           reject(new Error("get asset fail. " + packageUrl));
         }
         const key = getNameFromUrl(packageUrl);
-        const storeName = getStoreName(key);
+        const storeName = isCustom ? RESOURCE : getStoreName(key);
         const uuid = key.split(".").shift();
         const filePath = `/${storeName}/${key}`;
         FS.writeFile(filePath, data);
@@ -166,7 +168,7 @@ export async function installAsset(packageUrl, checkLic) {
             filePath
           );
           resolve(fontFamily);
-        } else if (storeName === "m3u8") {
+        } else if (storeName === "m3u8" || isCustom) {
           resolve(filePath);
         } else if (needInstall.includes(storeName)) {
           const status = window.streamingContext.streamingContext

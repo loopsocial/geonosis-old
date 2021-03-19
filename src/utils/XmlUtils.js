@@ -419,11 +419,6 @@ function readLayer(stream) {
         translationX: stream.getAttributeValue("translation-x") * 1,
         translationY: stream.getAttributeValue("translation-y") * 1
       };
-      // 模板的video没有source
-      // const source = readSource(stream);
-      // if (source) {
-      //   layer.video.source = source;
-      // }
     } else if (stream.name() === "fw-image" && stream.isStartElement()) {
       layer.image = {
         scaleX: stream.getAttributeValue("scale-x") * 1,
@@ -438,10 +433,12 @@ function readLayer(stream) {
           const width = stream.getAttributeValue("width") * 1;
           const height = stream.getAttributeValue("height") * 1;
           const aspectRatio = stream.getAttributeValue("aspect-ratio");
+          const m3u8Url = stream.getAttributeValue("m3u8-url");
           if (src) source.src = src;
           if (width) source.width = width;
           if (height) source.height = height;
           if (aspectRatio) source.aspectRatio = aspectRatio;
+          if (m3u8Url) source.m3u8Url = m3u8Url;
         }
         stream.readNext();
       }

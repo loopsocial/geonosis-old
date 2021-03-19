@@ -4,9 +4,10 @@ export const objectStores = [
   "font",
   "captionstyle",
   "animatedsticker",
-  "compoundcaption"
+  "compoundcaption",
+  "resource"
 ];
-
+export const RESOURCE = "resource";
 // 资源包对应的类型
 export const assetTypes = {
   captionstyle: 2,

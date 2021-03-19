@@ -6,6 +6,7 @@ import {
   TRANSFORM2D_KEYS
 } from "./Global";
 import store from "../store";
+import { installAsset } from "./AssetsUtils";
 import { HexToRGBA, RGBAToNvsColor } from "./common";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
@@ -21,6 +22,7 @@ export default class TimelineClass {
     this.audioTrack = { raw: null, clips: [] };
     this.captions = [];
     this.stickers = [];
+    this.otherTrackRaw = null;
     this.init();
   }
   // 初始化
@@ -83,7 +85,7 @@ export default class TimelineClass {
     this.clearStickers();
     this.buildVideoTrack();
     this.buildAudioTrack();
-    this.buildModule();
+    await this.buildModule();
     this.captions.map(c => this.addCaption(c));
     this.stickers.map(s => this.addSticker(s));
   }
@@ -133,7 +135,7 @@ export default class TimelineClass {
   getCurrentPosition() {
     return this.streamingContext.getTimelineCurrentPosition(this.timeline);
   }
-  buildModule() {
+  async buildModule() {
     const { module, videos } = store.state.clip;
     if (!module) return;
     let intro;
@@ -144,8 +146,12 @@ export default class TimelineClass {
       return true;
     });
     console.log("解析出的模板", intro, defaultScenes, end);
-    videos.reduce((j, video, index) => {
-      video.splitList.map((item, i, arr) => {
+    let j = 0;
+    for (let index = 0; index < videos.length; index++) {
+      const video = videos[index];
+      for (let i = 0; i < video.splitList.length; i++) {
+        const arr = video.splitList;
+        const item = video.splitList[i];
         const v = {
           inPoint: video.inPoint,
           duration: item.captureOut - item.captureIn,
@@ -154,23 +160,22 @@ export default class TimelineClass {
         };
         if (j === 0) {
           console.log("应用模板，片头，使用0");
-          this.applyModuleScene(v, intro || defaultScenes[0]);
+          await this.applyModuleScene(v, intro || defaultScenes[0]);
         } else if (index === videos.length - 1 && arr.length - 1 === i) {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
           console.log("应用模板，片尾，使用", index);
-          this.applyModuleScene(v, end || defaultScenes[index]);
+          await this.applyModuleScene(v, end || defaultScenes[index]);
         } else {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
           console.log("应用模板，中间，使用", index);
-          this.applyModuleScene(v, defaultScenes[index]);
+          await this.applyModuleScene(v, defaultScenes[index]);
         }
         j += 1;
-      });
-      return j;
-    }, 0);
+      }
+    }
   }
   // 再视频上应用模板scene
-  applyModuleScene(video, scene) {
+  async applyModuleScene(video, scene) {
     if (!scene) return;
     const { raw, inPoint, duration, videoType } = video;
     const rawLayer = scene.layers.find(l => l.type === "raw");
@@ -200,10 +205,28 @@ export default class TimelineClass {
     });
     console.log("模板 字幕添加完成", text);
     // 添加图片
+    if (image && image.source) {
+      const { m3u8Url } = image.source;
+      if (!m3u8Url) {
+        console.warn("图片添加失败，缺少m3u8Url", image);
+        return;
+      }
+      const m3u8Path = await installAsset(m3u8Url);
+      const clip = this.otherTrackRaw.addClip2(m3u8Path, inPoint, 0, duration);
+      if (!clip) {
+        console.warn("图片添加失败", m3u8Path, image);
+        return;
+      }
+      clip.setImageMotionAnimationEnabled(false);
+      clip.setImageMotionMode(0);
+    }
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
       this.videoTrack.raw = this.timeline.appendVideoTrack();
+    }
+    if (!this.otherTrackRaw) {
+      this.otherTrackRaw = this.timeline.appendVideoTrack();
     }
     if (Array.isArray(this.videoTrack.clips)) {
       this.videoTrack.clips.map(clip => {
@@ -466,8 +489,9 @@ export default class TimelineClass {
   clearVideoTrack() {
     while (this.timeline.videoTrackCount() !== 0) {
       this.timeline.removeVideoTrack(0);
-      this.videoTrack.raw = null;
     }
+    this.videoTrack.raw = null;
+    this.otherTrackRaw = null;
   }
   clearAudioTrack() {
     while (this.timeline.audioTrackCount() !== 0) {

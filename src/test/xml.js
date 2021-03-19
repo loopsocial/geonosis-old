@@ -32,7 +32,7 @@ export function writeModuleXml(path) {
                     value="An inspiring journey"
                     z-value="1" />
                 <fw-image>
-                    <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/meme2.png" />
+                    <source src="https://alieasset.meishesdk.com/video-thumbnail/2/5f8e098e-dd0c-4c4f-89f9-93654970186a.jpg" m3u8-url="https://alieasset.meishesdk.com/editor/2021/03/19/image/e36650e1-932a-498b-aaca-b6c2cd8bcebd/e36650e1-932a-498b-aaca-b6c2cd8bcebd.m3u8" />
                 </fw-image>
             </fw-scene-layer>
         </fw-scene>
@@ -82,7 +82,7 @@ export function writeModuleXml(path) {
                     value="Toward an inspiring journey"
                     z-value="1" />
                 <fw-image>
-                    <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/story_3.png" />
+                    <source src="https://alieasset.meishesdk.com/video-thumbnail/2/5f8e098e-dd0c-4c4f-89f9-93654970186a.jpg" m3u8-url="https://alieasset.meishesdk.com/editor/2021/03/19/image/e36650e1-932a-498b-aaca-b6c2cd8bcebd/e36650e1-932a-498b-aaca-b6c2cd8bcebd.m3u8" />
                 </fw-image>
             </fw-scene-layer>
         </fw-scene>
@@ -233,7 +233,7 @@ export function writeProjectXml(path) {
                       value="An inspiring journey"
                       font="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/font/Modern_Abel-Regular.ttf" />
                   <fw-image>
-                      <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/meme2.png" />
+                      <source src="https://alieasset.meishesdk.com/video-thumbnail/2/5f8e098e-dd0c-4c4f-89f9-93654970186a.jpg" />
                   </fw-image>
               </fw-scene-layer>
           </fw-scene>
@@ -266,7 +266,7 @@ export function writeProjectXml(path) {
                       value="An inspiring journey"
                       font="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/font/Modern_Abel-Regular.ttf" />
                   <fw-image>
-                      <source src="http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/meme2.png" />
+                      <source src="https://alieasset.meishesdk.com/video-thumbnail/2/5f8e098e-dd0c-4c4f-89f9-93654970186a.jpg" />
                   </fw-image>
               </fw-scene-layer>
           </fw-scene>
