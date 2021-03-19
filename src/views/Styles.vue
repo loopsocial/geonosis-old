@@ -12,8 +12,11 @@
           ></svg-icon>
         </el-tab-pane>
       </el-tabs>
-      <div class="none">
-        <svg-icon slot="label" icon-class="none"></svg-icon>
+      <div :class="{ none: true, disabled: !videoModule }" @click="clearModule">
+        <svg-icon
+          slot="label"
+          :icon-class="videoModule ? 'none' : 'none-disabled'"
+        ></svg-icon>
         {{ $t("none") }}
       </div>
     </div>
@@ -35,6 +38,14 @@ export default {
   async mounted() {
     await this.$refs.preview.createTimeline();
     this.coverData = await this.$refs.preview.getImgFromTimeline();
+  },
+  methods: {
+    clearModule() {
+      if (this.videoModule) {
+        this.setModule(null);
+        this.$bus.$emit(this.$keys.rebuildTimeline);
+      }
+    }
   }
 };
 </script>
@@ -48,7 +59,21 @@ export default {
     position: absolute;
     top: 30px;
     right: 0;
-    color: white;
+    color: $white;
+    border-radius: 16px;
+    padding: 4px 12px;
+    z-index: 10;
+    transition: all 0.3s;
+    cursor: pointer;
+    &.disabled {
+      color: rgba($color: $white, $alpha: 0.5);
+      cursor: default;
+    }
+    &:not(.disabled) {
+      &:hover {
+        background-color: rgba($color: $white, $alpha: 0.1);
+      }
+    }
   }
   .material {
     display: flex;

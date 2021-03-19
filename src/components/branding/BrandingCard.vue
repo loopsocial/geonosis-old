@@ -27,7 +27,7 @@ export default {
   padding-top: 0;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  color: $main-font-color;
+  color: $white;
   .branding-title {
     display: flex;
     justify-content: space-between;

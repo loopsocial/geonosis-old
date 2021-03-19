@@ -11,13 +11,13 @@ export function writeModuleXml(path) {
                 <fw-video
                     scale-x="1.0"
                     scale-y="1.0"
-                    translation-x="0"
+                    translation-x="200"
                     translation-y="0.125" />
                 <fw-image
                     scale-x="1.0"
                     scale-y="1.0"
-                    translation-x="0"
-                    translation-y="0.125" />
+                    translation-x="100"
+                    translation-y="125" />
             </fw-scene-layer>
             <fw-scene-layer type="module">
                 <fw-text
@@ -27,8 +27,8 @@ export function writeModuleXml(path) {
                     font-color="#ff000000"
                     frame-width="70%"
                     frame-height="10%"
-                    translation-x="0"
-                    translation-y="0.36"
+                    translation-x="100"
+                    translation-y="60"
                     value="An inspiring journey"
                     z-value="1" />
                 <fw-image>

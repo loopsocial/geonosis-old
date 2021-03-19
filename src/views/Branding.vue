@@ -260,7 +260,7 @@ export default {
       padding-right: 9px;
       padding-bottom: 0;
       height: 36px;
-      color: $main-font-color;
+      color: $white;
       font-size: 14px;
       line-height: 36px;
       cursor: pointer;
@@ -292,7 +292,7 @@ export default {
       bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
-      color: $main-font-color;
+      color: $white;
       cursor: pointer;
     }
   }
@@ -424,7 +424,7 @@ export default {
   }
   .preset-preview-wrapper {
     padding: 0 27px;
-    color: $main-font-color;
+    color: $white;
     font-size: 14px;
     height: 100%;
     overflow: hidden;

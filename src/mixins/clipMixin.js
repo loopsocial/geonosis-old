@@ -5,7 +5,8 @@ export default {
       videos: state => state.clip.videos,
       audios: state => state.clip.audios,
       captions: state => state.clip.captions,
-      stickers: state => state.clip.stickers
+      stickers: state => state.clip.stickers,
+      videoModule: state => state.clip.module
     }),
     currentVideoUuid: {
       get() {
@@ -22,7 +23,8 @@ export default {
       deleteClipToVuex: "clip/deleteClipToVuex",
       updateClipToVuex: "clip/updateClipToVuex",
       resetClips: "clip/resetClips",
-      initVuex: "clip/init"
+      initVuex: "clip/init",
+      setModule: "clip/setModule"
     })
   }
 };

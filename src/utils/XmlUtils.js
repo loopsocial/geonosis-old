@@ -3,7 +3,7 @@ import { RGBAToHex } from "./common";
 import { FX_DESC, TRANSFORM2D_KEYS } from "./Global";
 import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
 
-// 将vuex中的数据转换格式，方便写入xml
+// 将vuex中的数据转换格式，方便写入xml  TODO: 要合并module
 function transformation() {
   const {
     videos,
@@ -158,7 +158,7 @@ function writeVideoLayer(stream, video) {
 function writeCaptionLayer(stream, captions) {
   if (!captions.length) return;
   stream.writeStartElement("fw-scene-layer");
-  stream.writeAttribute("type", "module");
+  stream.writeAttribute("type", "user-added");
   for (let i = 0; i < captions.length; i++) {
     writeCaption(stream, captions[i]);
   }
@@ -232,9 +232,13 @@ function readDom(stream) {
   return res;
 }
 function readProjectScene(stream, res) {
+  // TODO: 估计还好拖拽sticker
   const scene = {
     video: null,
-    captions: []
+    captions: [],
+    module: {
+      captions: []
+    }
   };
   while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
     if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
@@ -242,6 +246,11 @@ function readProjectScene(stream, res) {
       if (type == "raw") {
         scene.video = readProjectVideo(stream, res.videos);
       } else if (type === "module") {
+        // TODO: 用户使用的模板（字幕、贴纸）
+        const captions = readProjectCaptions(stream, scene.video);
+        scene.module.captions.push(...captions);
+      } else if (type === "user-added") {
+        // TODO: 用户添加的字幕、贴纸等
         const captions = readProjectCaptions(stream, scene.video);
         scene.captions.push(...captions);
       }
@@ -369,7 +378,6 @@ function readModules(stream) {
       creation.id = stream.getAttributeValue("id");
       creation.scenes = readSceneList(stream);
       creations.push(creation);
-      console.log("creation", creation);
     }
     stream.readNext();
   }
@@ -394,7 +402,6 @@ function readScene(stream) {
     } else if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
       scene.layers.push(readLayer(stream));
     }
-    stream.isStartElement() && console.log("循环结束", stream.name());
     stream.readNext();
   }
   return scene;
@@ -407,10 +414,10 @@ function readLayer(stream) {
       layer.type = stream.getAttributeValue("type");
     } else if (stream.name() === "fw-video" && stream.isStartElement()) {
       layer.video = {
-        scaleX: stream.getAttributeValue("scale-x"),
-        scaleY: stream.getAttributeValue("scale-y"),
-        translationX: stream.getAttributeValue("translation-x"),
-        translationY: stream.getAttributeValue("translation-y")
+        scaleX: stream.getAttributeValue("scale-x") * 1,
+        scaleY: stream.getAttributeValue("scale-y") * 1,
+        translationX: stream.getAttributeValue("translation-x") * 1,
+        translationY: stream.getAttributeValue("translation-y") * 1
       };
       // 模板的video没有source
       // const source = readSource(stream);
@@ -419,17 +426,17 @@ function readLayer(stream) {
       // }
     } else if (stream.name() === "fw-image" && stream.isStartElement()) {
       layer.image = {
-        scaleX: stream.getAttributeValue("scale-x"),
-        scaleY: stream.getAttributeValue("scale-y"),
-        translationX: stream.getAttributeValue("translation-x"),
-        translationY: stream.getAttributeValue("translation-y")
+        scaleX: stream.getAttributeValue("scale-x") * 1,
+        scaleY: stream.getAttributeValue("scale-y") * 1,
+        translationX: stream.getAttributeValue("translation-x") * 1,
+        translationY: stream.getAttributeValue("translation-y") * 1
       };
       const source = {};
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
         if (stream.name() === "source" && stream.isStartElement()) {
           const src = stream.getAttributeValue("src");
-          const width = stream.getAttributeValue("width");
-          const height = stream.getAttributeValue("height");
+          const width = stream.getAttributeValue("width") * 1;
+          const height = stream.getAttributeValue("height") * 1;
           const aspectRatio = stream.getAttributeValue("aspect-ratio");
           if (src) source.src = src;
           if (width) source.width = width;
@@ -445,18 +452,17 @@ function readLayer(stream) {
       layer.text.push({
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
         font: stream.getAttributeValue("font"),
-        fontSize: stream.getAttributeValue("font-size"),
+        fontSize: stream.getAttributeValue("font-size") * 1,
         fontColor: stream.getAttributeValue("font-color"),
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
-        translationX: stream.getAttributeValue("translation-x"),
-        translationY: stream.getAttributeValue("translation-y"),
-        zValue: stream.getAttributeValue("z-value"),
+        translationX: stream.getAttributeValue("translation-x") * 1,
+        translationY: stream.getAttributeValue("translation-y") * 1,
+        zValue: stream.getAttributeValue("z-value") * 1,
         value: stream.getAttributeValue("value")
       });
     }
     stream.readNext();
   }
-  console.log("解析出的layer", layer);
   return layer;
 }

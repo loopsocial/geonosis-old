@@ -12,6 +12,7 @@
         v-for="style of styleList"
         :key="style.uuid"
         v-loading="style.isInstalling"
+        @click="userModule(style)"
       >
         <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
         <img class="cover" :src="coverData" alt="" v-if="coverData" />
@@ -25,6 +26,7 @@
 
 <script>
 import SvgIcon from "../SvgIcon.vue";
+import { getModule } from "../../test/module";
 export default {
   components: { SvgIcon },
   props: {
@@ -51,6 +53,12 @@ export default {
 
         this.isLoading = false;
       }, 1999);
+    },
+    userModule(style) {
+      const data = getModule();
+      console.log("使用的模板", data);
+      this.setModule(data);
+      this.$bus.$emit(this.$keys.rebuildTimeline);
     }
   }
 };
@@ -66,7 +74,7 @@ export default {
   height: 100%;
   overflow: auto;
   padding: 0 20px;
-  color: #fff;
+  color: $white;
   @include scrollBarStyle();
   .list {
     display: grid;
@@ -74,11 +82,15 @@ export default {
     gap: 15px;
     .list-item {
       position: relative;
-      border: 2px solid #fff;
       border-radius: 6px;
       width: 100%;
       height: auto;
       box-sizing: border-box;
+      border: 2px solid transparent;
+      transition: color 0.3s;
+      &.active {
+        border-color: $white;
+      }
       .heart-icon {
         position: absolute;
         left: 10px;

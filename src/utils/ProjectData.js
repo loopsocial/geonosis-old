@@ -41,7 +41,7 @@ export class VideoClip extends Clip {
     this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
-    this.videoType = CLIP_TYPES[getType(option.mediaType)];
+    this.videoType = CLIP_TYPES[getType(option.mediaType)]; // videoType 是字符串，且只能是video、image、（audio）
     // this.trimIn = option.trimIn || 0;
     // this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.duration;

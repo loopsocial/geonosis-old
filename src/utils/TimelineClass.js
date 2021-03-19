@@ -1,5 +1,12 @@
-import { FX_TYPES, PARAMS_TYPES, CLIP_TYPES, FX_DESC } from "./Global";
+import {
+  FX_TYPES,
+  PARAMS_TYPES,
+  CLIP_TYPES,
+  FX_DESC,
+  TRANSFORM2D_KEYS
+} from "./Global";
 import store from "../store";
+import { HexToRGBA, RGBAToNvsColor } from "./common";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
 export default class TimelineClass {
@@ -76,6 +83,7 @@ export default class TimelineClass {
     this.clearStickers();
     this.buildVideoTrack();
     this.buildAudioTrack();
+    this.buildModule();
     this.captions.map(c => this.addCaption(c));
     this.stickers.map(s => this.addSticker(s));
   }
@@ -124,6 +132,74 @@ export default class TimelineClass {
   }
   getCurrentPosition() {
     return this.streamingContext.getTimelineCurrentPosition(this.timeline);
+  }
+  buildModule() {
+    const { module, videos } = store.state.clip;
+    if (!module) return;
+    let intro;
+    let end;
+    const defaultScenes = module.scenes.filter(scene => {
+      if (scene.temporal === "end") end = scene;
+      else if (scene.temporal === "intro") intro = scene;
+      return true;
+    });
+    console.log("解析出的模板", intro, defaultScenes, end);
+    videos.reduce((j, video, index) => {
+      video.splitList.map((item, i, arr) => {
+        const v = {
+          inPoint: video.inPoint,
+          duration: item.captureOut - item.captureIn,
+          raw: item.raw,
+          videoType: video.videoType
+        };
+        if (j === 0) {
+          console.log("应用模板，片头，使用0");
+          this.applyModuleScene(v, intro || defaultScenes[0]);
+        } else if (index === videos.length - 1 && arr.length - 1 === i) {
+          const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
+          console.log("应用模板，片尾，使用", index);
+          this.applyModuleScene(v, end || defaultScenes[index]);
+        } else {
+          const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
+          console.log("应用模板，中间，使用", index);
+          this.applyModuleScene(v, defaultScenes[index]);
+        }
+        j += 1;
+      });
+      return j;
+    }, 0);
+  }
+  // 再视频上应用模板scene
+  applyModuleScene(video, scene) {
+    if (!scene) return;
+    const { raw, inPoint, duration, videoType } = video;
+    const rawLayer = scene.layers.find(l => l.type === "raw");
+    const moduleLayer = scene.layers.find(l => l.type === "module");
+    const { scaleX, scaleY, translationX, translationY } = rawLayer[videoType];
+    const transform2DFx = raw.appendBuiltinFx(FX_DESC.TRANSFORM2D);
+    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_X, scaleX);
+    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY);
+    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX);
+    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY);
+    console.log("模板 视频特效添加完成", rawLayer[videoType]);
+    // 添加模板字幕
+    const { text, image } = moduleLayer;
+    text.map(item => {
+      // TODO: 还未考虑字体，以及frameHeight、frameWidth
+      this.addCaption({
+        text: item.value,
+        inPoint: inPoint,
+        duration: duration || video.duration,
+        z: item.zValue,
+        color: item.fontColor,
+        fontSize: item.fontSize,
+        align: item.textXAlignment,
+        translationY: item.translationY,
+        translationX: item.translationX
+      });
+    });
+    console.log("模板 字幕添加完成", text);
+    // 添加图片
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
@@ -250,15 +326,18 @@ export default class TimelineClass {
       styleDesc,
       fontSize,
       scale,
+      align,
       rotation,
       translationX,
-      translationY
+      color,
+      translationY,
+      z
     } = caption;
     const captionRaw = this.timeline.addCaption(
       text,
       inPoint,
       duration,
-      styleDesc,
+      styleDesc || "",
       false
     );
     if (!captionRaw) {
@@ -277,6 +356,20 @@ export default class TimelineClass {
       );
     }
     fontSize !== undefined && captionRaw.setFontSize(fontSize);
+    if (color) {
+      const rgba = color[0] === "#" ? HexToRGBA(color) : color;
+      const nvsColor = RGBAToNvsColor(rgba);
+      captionRaw.setTextColor(nvsColor);
+    }
+    if (align) {
+      const temp = {
+        left: 0,
+        center: 1,
+        right: 2
+      };
+      captionRaw.setTextAlignment(temp[align]);
+    }
+    if (z) captionRaw.setZValue(z);
     return captionRaw;
   }
   static setCaption(caption) {

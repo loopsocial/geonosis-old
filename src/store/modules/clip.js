@@ -10,6 +10,7 @@ export default {
     audios: [],
     captions: [],
     stickers: [],
+    module: null, // 使用的module
     currentVideoUuid: null,
     videoWidth: 540,
     videoHeight: 960,
@@ -70,6 +71,9 @@ export default {
           break;
       }
     },
+    setModule(state, module) {
+      state.module = cloneDeep(module);
+    },
     updateClipToVuex(state, value) {
       let index = -1;
       const type = value.type;
@@ -77,6 +81,7 @@ export default {
         case CLIP_TYPES.VIDEO:
           index = state.videos.findIndex(item => item.uuid === value.uuid);
           Vue.set(state.videos, index, value);
+          computedInPoint(state.videos);
           break;
         case CLIP_TYPES.AUDIO:
           index = state.audios.findIndex(item => item.uuid === value.uuid);
@@ -101,7 +106,6 @@ export default {
           break;
         case CLIP_TYPES.AUDIO:
           Vue.delete(state.audios, index);
-
           break;
         case CLIP_TYPES.CAPTION:
           Vue.delete(state.captions, index);
@@ -118,3 +122,15 @@ export default {
     }
   }
 };
+// 重新计算视频的inPoint
+function computedInPoint(clips) {
+  clips.reduce((inPoint, video) => {
+    video.inPoint = inPoint;
+    inPoint += video.splitList.reduce((duration, item) => {
+      const d = item.captureOut - item.captureIn;
+      duration += d;
+      return d;
+    }, 0);
+    return inPoint;
+  }, 0);
+}

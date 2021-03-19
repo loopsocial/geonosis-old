@@ -980,7 +980,6 @@ export default {
           0
         ).videoStreamInfo
       );
-      window.tt = this.trimTimeline;
       await this.trimTimeline.stopEngin();
       await this.trimTimeline.buildTimeline([videoClip]);
       this.setContextEvent();
@@ -989,7 +988,15 @@ export default {
     selected(item, i) {
       this.currentVideoUuid = item.uuid + `_${i}`;
       this.currentSplitedIdx = i;
-      this.$bus.$emit(this.$keys.seek, item.inPoint);
+      this.$bus.$emit(this.$keys.getTimeline, timeline => {
+        const currentTime = timeline.getCurrentPosition();
+        if (
+          currentTime < item.inPoint ||
+          currentTime >= item.inPoint + item.duration
+        ) {
+          this.$bus.$emit(this.$keys.seek, item.inPoint);
+        }
+      });
     },
     format(ms, hm = false) {
       return hm ? us2hm(ms) : us2time(ms);
