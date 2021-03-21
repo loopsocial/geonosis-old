@@ -17,7 +17,7 @@
     <el-image
       class="media-cover"
       ref="image"
-      :src="media.coverUrl"
+      :src="media.thumbnail_url"
       fit="cover"
       v-if="playingId !== media.id"
     ></el-image>

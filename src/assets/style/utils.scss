@@ -4,6 +4,9 @@
   align-items: center;
   justify-content: center;
 }
+.flex-column {
+  flex-direction: column;
+}
 .text-center-h {
   width: 100%;
   text-align: center;

@@ -2,6 +2,7 @@
   <div class="create">
     <Project
       @open-media="openMedia"
+      :videoProjects="videoProjects"
       v-if="status === statusMap.media"
     ></Project>
     <Edit
@@ -27,6 +28,7 @@
 import Project from "../components/create/Project";
 import Medias from "../components/create/Medias";
 import Edit from "../components/create/Edit";
+import { mapActions } from "vuex";
 const statusMap = {
   media: "media",
   edit: "edit"
@@ -39,11 +41,17 @@ export default {
   },
   data() {
     return {
+      videoProjects: [],
       mediaDialog: false,
+      loading: false,
       medias: [], // 已选择的素材
       status: statusMap.media,
       statusMap
     };
+  },
+  async created() {
+    console.log("Project created");
+    await this.getMediaLibrary();
   },
   methods: {
     openMedia() {
@@ -53,10 +61,20 @@ export default {
       this.mediaDialog = false;
     },
     selectedFinish(list) {
+      console.log("Selected Finish - Create", list);
       this.$router.push({ name: "Scenes" });
-      this.medias = list;
+      this.medias = list.media_asset_ids;
       this.mediaDialog = false;
       this.status = this.statusMap.edit;
+    },
+    getMediaLibrary() {
+      if (this.loading) return;
+      this.loading = true;
+      return this.axios.get(this.$api.videoProjects).then(res => {
+        this.loading = false;
+        const { video_projects } = res;
+        this.videoProjects = video_projects;
+      });
     }
   }
 };

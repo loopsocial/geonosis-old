@@ -14,11 +14,32 @@
         {{ $t("addMedia") }}
       </el-button>
     </div>
+    <div class="content project-list-wrapper">
+      <h2 class="title">{{ $t("Previous project") }}</h2>
+      <div class="projects-list">
+        <div
+          :class="['project-wrapper']"
+          v-for="project in videoProjects"
+          :key="project.id"
+        >
+          <ProjectItem :project="project" />
+          <div class="project-title">
+            {{ project.title || "Untitle" }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
+import ProjectItem from "./ProjectItem";
 export default {
+  components: {
+    ProjectItem
+  },
+  props: {
+    videoProjects: Array
+  },
   methods: {}
 };
 </script>
@@ -27,7 +48,7 @@ export default {
 .project {
   height: 100%;
   position: relative;
-  justify-content: space-around;
+  justify-content: space-evenly;
   align-items: center;
   .title {
     color: #fff;
@@ -37,6 +58,9 @@ export default {
   .project-icon {
     width: 195px;
     height: 176px;
+  }
+  .project-title {
+    color: #bdbdbd;
   }
   .content {
     height: 74.2vh;
@@ -92,6 +116,23 @@ export default {
       height: calc(100% - 90px);
       overflow: auto;
     }
+  }
+
+  .content.project-list-wrapper {
+    color: white;
+    height: 74.2vh;
+    width: calc(74.2vh * 1.3625);
+    border: none;
+    position: relative;
+    .title {
+      top: -9.5%;
+      left: 0;
+    }
+  }
+  .projects-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 8px;
   }
 
   @media screen and (max-width: 1600px) {

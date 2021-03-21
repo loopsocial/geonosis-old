@@ -8,7 +8,13 @@
       accept="image/*, video/*"
       :before-upload="beforeUpload"
     >
-      <el-button round size="small" type="text" class="upload-btn">
+      <el-button
+        round
+        size="small"
+        type="text"
+        class="upload-btn"
+        ref="uploadBtn"
+      >
         <svg-icon icon-class="camera" class="icon-camera"></svg-icon>
         <span>{{ $t("upload") }}</span>
       </el-button>
@@ -19,6 +25,7 @@
           {{ $t("msg") }}
         </div>
         <div class="media-list">
+          <UploadItem @openUploader="openUploader"> </UploadItem>
           <MediaItem
             v-for="media in uploadList"
             :key="media.id"
@@ -107,6 +114,7 @@
 </template>
 
 <script>
+import UploadItem from "./UploadItem";
 import MediaItem from "./MediaItem";
 import { MEDIA_TYPES } from "@/utils/Global";
 import { installAsset } from "@/utils/AssetsUtils";
@@ -117,7 +125,8 @@ const cloneDeep = require("clone-deep");
 const pageSize = 20;
 export default {
   components: {
-    MediaItem
+    MediaItem,
+    UploadItem
   },
   data() {
     return {
@@ -205,8 +214,15 @@ export default {
         }
       }
     },
-    beforeUpload(file) {
+    async beforeUpload(file) {
       console.log(file);
+      // Upload to S3
+      const uploadToS3Res = await this.uploadToS3(file);
+      console.log(uploadToS3Res.media_asset_id);
+      // Notity server that upload is completed
+      await this.axios.put(
+        this.$api.mediaAssetsUploadComplete(uploadToS3Res.media_asset_id)
+      );
       return false;
     },
     selectedMedia(media) {
@@ -221,22 +237,27 @@ export default {
     async next() {
       this.playingId = null;
       const videos = [];
-      let inPoint = 0;
+      // let inPoint = 0;
       this.addMediaLoading = true;
-      for (let i = 0; i < this.selectedList.length; i++) {
-        const v = this.selectedList[i];
-        const path = await installAsset(v.m3u8Url); // 函数内部有处理, 防止重复安装
-        const video = new VideoClip({
-          ...v,
-          m3u8Path: path,
-          inPoint
-        });
-        inPoint += v.duration;
-        console.log("push video");
-        videos.push(video);
-      }
+      // for (let i = 0; i < this.selectedList.length; i++) {
+      //   const v = this.selectedList[i];
+      //   const path = await installAsset(v.m3u8Url); // 函数内部有处理, 防止重复安装
+      //   const video = new VideoClip({
+      //     ...v,
+      //     m3u8Path: path,
+      //     inPoint
+      //   });
+      //   inPoint += v.duration;
+      //   console.log("push video");
+      //   videos.push(video);
+      // }
+      videos.push(...this.selectedList.map(media => media.id));
+      const res = await this.axios.post(this.$api.videoProjects, {
+        media_asset_ids: videos
+      });
       this.addMediaLoading = false;
-      this.$emit("selected-finish", videos);
+      console.log(res);
+      this.$emit("selected-finish", res);
     },
     cancel() {
       this.uploadList.map(item => {
@@ -254,26 +275,18 @@ export default {
     getMediaFromUpload() {
       if (this.loading) return;
       this.loading = true;
-      return this.axios
-        .get(this.$api.resources, {
-          params: {
-            page: this.uploadPage,
-            pageSize,
-            isPublic: 1
-          }
-        })
-        .then(res => {
-          const { resourceCount, resourceList } = res.data;
-          this.uploadTotal = resourceCount;
-          resourceList.map(item => {
-            item.selected = false;
-            item.type = MEDIA_TYPES[item.mediaType];
-            item.duration = item.duration * 1000;
-            item.orgDuration = item.duration * 1000;
-          });
-          this.uploadList.push(...resourceList);
-          this.loading = false;
+      return this.axios.get(this.$api.mediaAssets).then(res => {
+        const { media_assets } = res;
+        this.uploadTotal = media_assets.length;
+        media_assets.map(item => {
+          item.selected = false;
+          item.type = MEDIA_TYPES[item.mediaType];
+          item.duration = item.duration * 1000;
+          item.orgDuration = item.duration * 1000;
         });
+        this.uploadList.push(...media_assets);
+        this.loading = false;
+      });
     },
     getMediaFromLibrary() {
       if (this.loading) return;
@@ -297,6 +310,62 @@ export default {
           this.libraryTotal = total;
           this.libraryList.push(...rows);
         });
+    },
+    openUploader() {
+      this.$refs.uploadBtn.$el.click();
+    },
+    isFileTypeImage(file) {
+      return file.type.startsWith("image");
+    },
+    isFileTypeVideo(file) {
+      return file.type.startsWith("video");
+    },
+    async getSignature(file) {
+      const payload = {};
+      if (this.isFileTypeImage(file)) {
+        payload.image = { filename: file.name, mime_type: file.type };
+      }
+      if (this.isFileTypeVideo(file)) {
+        payload.video = { filename: file.name, mime_type: file.type };
+      }
+      return await this.axios.post(this.$api.mediaAssets, payload);
+    },
+    async uploadToS3(file, onProgress = () => {}) {
+      return new Promise((resolve, reject) => {
+        try {
+          this.getSignature(file).then(response => {
+            let signature = null;
+            if (response.image_signature !== null) {
+              signature = response.image_signature;
+            } else if (response.video_signature !== null) {
+              signature = response.video_signature;
+            }
+            const xhr = new global.XMLHttpRequest();
+            xhr.open("PUT", signature.put_url);
+            xhr.setRequestHeader("Content-Type", file.type);
+
+            xhr.upload.onprogress = event => {
+              const progress = Math.round((event.loaded * 100) / event.total);
+              onProgress(progress);
+            };
+
+            xhr.onload = () => {
+              if (xhr.status !== 200) {
+                return reject(xhr);
+              }
+              resolve({
+                media_asset_id: response.media_asset.id,
+                key: signature.key,
+                url: `${signature.action}/${signature.key}`
+              });
+            };
+            xhr.onerror = () => reject(xhr);
+            xhr.send(file);
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
     }
   }
 };
