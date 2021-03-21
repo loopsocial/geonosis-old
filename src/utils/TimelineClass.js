@@ -143,9 +143,9 @@ export default class TimelineClass {
     const defaultScenes = module.scenes.filter(scene => {
       if (scene.temporal === "end") end = scene;
       else if (scene.temporal === "intro") intro = scene;
-      return true;
+      else return true;
     });
-    console.log("解析出的模板", intro, defaultScenes, end);
+    console.log("解析出的模板", "片头:", intro, "中间通用:",  defaultScenes, "片尾：", end);
     let j = 0;
     for (let index = 0; index < videos.length; index++) {
       const video = videos[index];
@@ -159,15 +159,12 @@ export default class TimelineClass {
           videoType: video.videoType
         };
         if (j === 0) {
-          console.log("应用模板，片头，使用0");
           await this.applyModuleScene(v, intro || defaultScenes[0]);
         } else if (index === videos.length - 1 && arr.length - 1 === i) {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          console.log("应用模板，片尾，使用", index);
           await this.applyModuleScene(v, end || defaultScenes[index]);
         } else {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          console.log("应用模板，中间，使用", index);
           await this.applyModuleScene(v, defaultScenes[index]);
         }
         j += 1;
@@ -186,7 +183,6 @@ export default class TimelineClass {
     transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY);
     transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX);
     transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY);
-    console.log("模板 视频特效添加完成", rawLayer[videoType]);
     // 添加模板字幕
     const { text, image } = moduleLayer;
     text.map(item => {
@@ -205,7 +201,6 @@ export default class TimelineClass {
         frameHeight: item.frameHeight
       });
     });
-    console.log("模板 字幕添加完成", text);
     // 添加图片
     if (image && image.source) {
       const { m3u8Url } = image.source;

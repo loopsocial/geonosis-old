@@ -1,5 +1,5 @@
 import store from "../store";
-import { RGBAToHex } from "./common";
+import { HexToRGBA, RGBAToHex } from "./common";
 import { FX_DESC, TRANSFORM2D_KEYS } from "./Global";
 import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
 
@@ -12,7 +12,8 @@ function transformation() {
     stickers,
     videoWidth,
     videoHeight,
-    alias
+    alias,
+    module // vuex 中的模板信息以及经过转换，transformX、Y，fontSize都是直接给SDK的值
   } = store.state.clip;
   const creation = {
     scenes: [],
@@ -40,11 +41,11 @@ function transformation() {
         });
       }
       videoList.push({
+        videoType: video.videoType,
         inPoint: video.inPoint + item.captureIn,
         duration: item.captureOut - item.captureIn,
         trimIn: item.captureIn,
         trimOut: item.captureOut,
-        videoType: item.videoType,
         scaleX,
         scaleY,
         translationX,
@@ -59,8 +60,17 @@ function transformation() {
       });
     });
   });
-  creation.scenes = videoList.map(v => {
-    // 将字幕按照 视频槽的方式进行规整
+
+  let intro; // module 片头的scene
+  let end; // module 片尾的scene
+  const defaultScenes = module.scenes.filter(scene => {
+    if (scene.temporal === "end") end = scene;
+    else if (scene.temporal === "intro") intro = scene;
+    else return true;
+  });
+  const moduleCaptions = []; // 使用的模板字幕
+  creation.scenes = videoList.map((v, index) => {
+    // 将用户添加的字幕按照 视频槽的方式进行规整
     const c = captions.reduce((res, caption) => {
       const { inPoint, duration } = caption;
       if (
@@ -68,6 +78,7 @@ function transformation() {
         (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
       ) {
         res.push({
+          type: "user-added",
           zValue: caption.z || 1,
           fontColor: caption.color,
           translationX: caption.translationX,
@@ -86,13 +97,57 @@ function transformation() {
       }
       return res;
     }, []);
-
+    // 将模板内容应用过去
+    let curModuleScene;
+    if (index === 0) {
+      curModuleScene = intro || defaultScenes[index];
+    } else if (index === videoList.length - 1) {
+      const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
+      curModuleScene = end || defaultScenes[index];
+    } else {
+      const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
+      curModuleScene = defaultScenes[index];
+    }
+    if (curModuleScene) {
+      curModuleScene.layers.map(item => {
+        if (item.type === "raw") {
+          // video.videoType = video/image
+          v.scaleX *= item[v.videoType].scaleX;
+          v.scaleY *= item[v.videoType].scaleY;
+          v.translationX += item[v.videoType].translationX;
+          v.translationY += item[v.videoType].translationY;
+        } else if (item.type === "module") {
+          item.text.map(text => {
+            moduleCaptions.push({
+              type: "module",
+              zValue: text.zValue || 1,
+              fontColor: text.fontColor,
+              translationX: text.translationX,
+              translationY: text.translationY,
+              scaleX: text.scaleX,
+              scaleY: text.scaleY,
+              fontSize: text.fontSize, // todo -----
+              frameWidth: text.frameWidth,
+              frameHeight: text.frameHeight,
+              value: text.value,
+              textXAlignment: text.textXAlignment,
+              font: text.font,
+            })
+          })
+          if (item.image && item.image.source && item.image.source.src) {
+            moduleCaptions[moduleCaptions.length - 1].backgroundImage = item.image.source.src
+          }
+        }
+      })
+    }
     return {
       video: v,
-      captions: c
+      captions: c,
+      moduleCaptions
       // stickers: s
     };
   });
+  console.log("合并module后的json", creation);
   return creation;
 }
 
@@ -112,7 +167,6 @@ export function writeXml(xmlPath) {
 }
 function writeCreation(stream) {
   const creation = transformation();
-  console.log(JSON.stringify(creation));
   stream.writeStartElement("fw-creation");
   stream.writeAttribute("video-width", "" + creation.videoWidth);
   stream.writeAttribute("video-height", "" + creation.videoHeight);
@@ -123,10 +177,12 @@ function writeCreation(stream) {
   });
   stream.writeEndElement();
 }
+
 function writeScene(stream, scene) {
   stream.writeStartElement("fw-scene");
   writeVideoLayer(stream, scene.video);
-  writeCaptionLayer(stream, scene.captions);
+  writeCaptionLayer(stream, scene.captions, "user-add");
+  writeCaptionLayer(stream, scene.moduleCaptions, "module");
   stream.writeEndElement();
 }
 function writeVideoLayer(stream, video) {
@@ -155,10 +211,10 @@ function writeVideoLayer(stream, video) {
   stream.writeEndElement(); // fw-scene-layer
 }
 
-function writeCaptionLayer(stream, captions) {
+function writeCaptionLayer(stream, captions, type) {
   if (!captions.length) return;
   stream.writeStartElement("fw-scene-layer");
-  stream.writeAttribute("type", "user-added");
+  stream.writeAttribute("type", type || "user-added");
   for (let i = 0; i < captions.length; i++) {
     writeCaption(stream, captions[i]);
   }
@@ -178,15 +234,15 @@ function writeCaption(stream, caption) {
   );
   stream.writeAttribute("translation-x", "" + translationX);
   stream.writeAttribute("translation-y", "" + translationY);
-  stream.writeAttribute("font-size", "" + fontSize);
+  fontSize && stream.writeAttribute("font-size", "" + fontSize);
   stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
   stream.writeAttribute("font", "" + caption.font);
-  // stream.writeAttribute("frame-width", "" + 0);
-  // stream.writeAttribute("frame-height", "" + 0);
+  caption.frameWidth && stream.writeAttribute("frame-width", "" + caption.frameWidth);
+  caption.frameHeight && stream.writeAttribute("frame-height", "" + caption.frameHeight);
   stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
-  stream.writeAttribute("scale-x", "" + caption.scaleX);
-  stream.writeAttribute("scale-y", "" + caption.scaleY);
+  caption.scaleX && stream.writeAttribute("scale-x", "" + caption.scaleX);
+  caption.scaleY && stream.writeAttribute("scale-y", "" + caption.scaleY);
   stream.writeAttribute("value", "" + caption.value);
   stream.writeEndElement();
   if (caption.backgroundImage) {
@@ -457,18 +513,22 @@ function readLayer(stream) {
       // layer.image.source = readSource(stream);
     } else if (stream.name() === "fw-text" && stream.isStartElement()) {
       if (!Array.isArray(layer.text)) layer.text = [];
-      layer.text.push({
+      const caption = {
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
         font: stream.getAttributeValue("font"),
         fontSize: (stream.getAttributeValue("font-size") * videoLength) / 720,
-        fontColor: stream.getAttributeValue("font-color"),
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
         translationX: stream.getAttributeValue("translation-x") * videoLength,
         translationY: stream.getAttributeValue("translation-y") * videoLength,
         zValue: stream.getAttributeValue("z-value") * 1,
         value: stream.getAttributeValue("value")
-      });
+      }
+      let color = stream.getAttributeValue("font-color");
+      if (color) {
+        caption.fontColor = HexToRGBA(color);
+      }
+      layer.text.push(caption);
     }
     stream.readNext();
   }

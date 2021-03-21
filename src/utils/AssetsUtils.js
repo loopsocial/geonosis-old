@@ -128,7 +128,7 @@ export function getAssetFromFS(packageUrl, isCustom) {
     const m3u8List = FS.readdir(`/${isCustom ? RESOURCE : "m3u8"}/`);
     const m = m3u8List.find(item => item.includes(id));
     if (m) {
-      console.log("已安装过了", key, m);
+      console.log("已安装过了", key);
       resolve(`/${isCustom ? RESOURCE : "m3u8"}/${m}`);
     }
     resolve();
