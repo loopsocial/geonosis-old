@@ -1,6 +1,6 @@
 import store from "../store";
 import { HexToRGBA, RGBAToHex } from "./common";
-import { FX_DESC, TRANSFORM2D_KEYS } from "./Global";
+import { CLIP_TYPES, FX_DESC, TRANSFORM2D_KEYS } from "./Global";
 import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
 
 // 将vuex中的数据转换格式，方便写入xml  TODO: 要合并module
@@ -40,7 +40,7 @@ function transformation() {
           if (p.key === TRANSFORM2D_KEYS.TRANS_Y) translationY = p.value;
         });
       }
-      videoList.push({
+      const vItem = {
         videoType: video.videoType,
         inPoint: video.inPoint + item.captureIn,
         duration: item.captureOut - item.captureIn,
@@ -57,17 +57,22 @@ function transformation() {
           aspectRatio: video.aspectRatio,
           m3u8Url: video.m3u8Url
         }
-      });
+      };
+      if (vItem.videoType) vItem.motion = video.motion;
+      videoList.push(vItem);
     });
   });
 
   let intro; // module 片头的scene
   let end; // module 片尾的scene
-  const defaultScenes = module.scenes.filter(scene => {
-    if (scene.temporal === "end") end = scene;
-    else if (scene.temporal === "intro") intro = scene;
-    else return true;
-  });
+  let defaultScenes = []; // module 中间部分的scene
+  if (module) {
+    defaultScenes = module.scenes.filter(scene => {
+      if (scene.temporal === "end") end = scene;
+      else if (scene.temporal === "intro") intro = scene;
+      else return true;
+    });
+  }
   const moduleCaptions = []; // 使用的模板字幕
   creation.scenes = videoList.map((v, index) => {
     // 将用户添加的字幕按照 视频槽的方式进行规整
@@ -131,14 +136,15 @@ function transformation() {
               frameHeight: text.frameHeight,
               value: text.value,
               textXAlignment: text.textXAlignment,
-              font: text.font,
-            })
-          })
+              font: text.font
+            });
+          });
           if (item.image && item.image.source && item.image.source.src) {
-            moduleCaptions[moduleCaptions.length - 1].backgroundImage = item.image.source.src
+            moduleCaptions[moduleCaptions.length - 1].backgroundImage =
+              item.image.source.src;
           }
         }
-      })
+      });
     }
     return {
       video: v,
@@ -189,7 +195,10 @@ function writeVideoLayer(stream, video) {
   stream.writeStartElement("fw-scene-layer");
   stream.writeAttribute("type", "raw");
   // 写video标签
-  stream.writeStartElement("fw-video");
+  stream.writeStartElement(`fw-${video.videoType}`);
+  if (video.videoType === CLIP_TYPES.IMAGE) {
+    stream.writeAttribute("motion-on", "" + !!video.motion);
+  }
   stream.writeAttribute("duration", "" + video.duration);
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
@@ -237,8 +246,10 @@ function writeCaption(stream, caption) {
   fontSize && stream.writeAttribute("font-size", "" + fontSize);
   stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
   stream.writeAttribute("font", "" + caption.font);
-  caption.frameWidth && stream.writeAttribute("frame-width", "" + caption.frameWidth);
-  caption.frameHeight && stream.writeAttribute("frame-height", "" + caption.frameHeight);
+  caption.frameWidth &&
+    stream.writeAttribute("frame-width", "" + caption.frameWidth);
+  caption.frameHeight &&
+    stream.writeAttribute("frame-height", "" + caption.frameHeight);
   stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
   caption.scaleX && stream.writeAttribute("scale-x", "" + caption.scaleX);
@@ -523,7 +534,7 @@ function readLayer(stream) {
         translationY: stream.getAttributeValue("translation-y") * videoLength,
         zValue: stream.getAttributeValue("z-value") * 1,
         value: stream.getAttributeValue("value")
-      }
+      };
       let color = stream.getAttributeValue("font-color");
       if (color) {
         caption.fontColor = HexToRGBA(color);

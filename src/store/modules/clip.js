@@ -129,7 +129,7 @@ function computedInPoint(clips) {
     inPoint += video.splitList.reduce((duration, item) => {
       const d = item.captureOut - item.captureIn;
       duration += d;
-      return d;
+      return duration;
     }, 0);
     return inPoint;
   }, 0);

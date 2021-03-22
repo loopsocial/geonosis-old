@@ -43,7 +43,7 @@ function verifySdkLicenseFile(authUrl) {
       resolve(streamingContext);
     };
     streamingContext.verifySdkLicenseFile(
-      authUrl || "https://eapi.meishesdk.com:7443/app/auth"
+      authUrl || "https://testeditor.meishesdk.com:7443/app/auth"
     );
   });
 }

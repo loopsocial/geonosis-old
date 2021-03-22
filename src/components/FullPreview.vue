@@ -22,7 +22,7 @@
         ></span>
         <div
           :class="['play-item', index === activeIndex ? 'active' : '']"
-          v-for="(item, index) in videos"
+          v-for="(item, index) in clipList"
           :key="item.uuid"
           :style="getStyle(item)"
         ></div>
@@ -43,7 +43,10 @@ export default {
   computed: {
     duration() {
       return this.videos.reduce((res, item) => {
-        res += item.duration;
+        res += item.splitList.reduce((sum, clip) => {
+          sum += clip.captureOut - clip.captureIn;
+          return sum;
+        }, 0);
         return res;
       }, 0);
     },
@@ -53,10 +56,26 @@ export default {
       };
     },
     activeIndex() {
-      return this.videos.findIndex(
+      return this.clipList.findIndex(
         ({ inPoint, duration }) =>
           inPoint <= this.seekVal && this.seekVal < inPoint + duration
       );
+    },
+    clipList() {
+      return this.videos.reduce((res, item) => {
+        let inPoint = item.inPoint;
+        const clips = item.splitList.map((clip, index) => {
+          const c = {
+            duration: clip.captureOut - clip.captureIn,
+            inPoint: inPoint,
+            uuid: item.uuid + `_${index}`
+          };
+          inPoint += clip.captureOut - clip.captureIn;
+          return c;
+        });
+        res.push(...clips);
+        return res;
+      }, []);
     }
   },
   mounted() {

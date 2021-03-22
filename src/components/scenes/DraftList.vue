@@ -744,17 +744,17 @@ export default {
             {
               raw: cur.raw,
               videoFxs: cur.videoFxs || [],
-              trimIn: cur.trimIn,
-              trimOut: splitPoint,
-              captureIn: cur.trimIn,
-              captureOut: splitPoint
+              trimIn: Math.round(cur.trimIn),
+              trimOut: Math.round(splitPoint),
+              captureIn: Math.round(cur.trimIn),
+              captureOut: Math.round(splitPoint)
             },
             {
               videoFxs: cur.videoFxs || [],
-              trimIn: splitPoint,
-              trimOut: cur.trimOut,
-              captureIn: splitPoint,
-              captureOut: cur.trimOut
+              trimIn: Math.round(splitPoint),
+              trimOut: Math.round(cur.trimOut),
+              captureIn: Math.round(splitPoint),
+              captureOut: Math.round(cur.trimOut)
             }
           ];
           arr.splice(curIdx, 1, ...splitedArr);

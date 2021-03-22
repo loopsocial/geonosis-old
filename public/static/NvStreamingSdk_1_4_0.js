@@ -297,7 +297,7 @@ class NvsStreamingContext {
     constructor() {
         this.onWebRequestWaitStatusChange = function(isVideo, waiting) {
         }
-        this.onWebRequestAuthFinish = function(success) {
+        this.onWebRequestAuthFinish = function(success, uuid) {
         }
         this.onPlaybackTimelinePosition = function(timeline, position) {
         }
@@ -1920,6 +1920,14 @@ class NvsTimelineCaption extends NvsFx {
 
     isLyrics() {
         return Module.nvs_caption_isLyrics(this.internalObj);
+    }
+
+    setFrameCaptionMaxFontSize(maxFontSize) {
+        Module.nvs_caption_setFrameCaptionMaxFontSize(this.internalObj, maxFontSize);
+    }
+
+    setTextFrameOriginRect(rect) {
+        Module.nvs_caption_setTextFrameOriginRect(this.internalObj, rect);
     }
 }
 

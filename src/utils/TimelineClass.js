@@ -145,7 +145,14 @@ export default class TimelineClass {
       else if (scene.temporal === "intro") intro = scene;
       else return true;
     });
-    console.log("解析出的模板", "片头:", intro, "中间通用:",  defaultScenes, "片尾：", end);
+    console.log(
+      "解析出的模板.片头:",
+      intro,
+      "中间通用:",
+      defaultScenes,
+      "片尾：",
+      end
+    );
     let j = 0;
     for (let index = 0; index < videos.length; index++) {
       const video = videos[index];
@@ -229,7 +236,7 @@ export default class TimelineClass {
       this.videoTrack.clips.map(clip => {
         clip.splitList.reduce((res, item) => {
           const clipInfo = {
-            ...clip,
+            m3u8Path: clip.m3u8Path,
             inPoint: res,
             trimIn: item.captureIn,
             trimOut: item.captureOut
@@ -401,8 +408,8 @@ export default class TimelineClass {
         bottom: -0.5 * y
       };
       // TODO: 暂时没有以下的接口，需要更新SDK
-      // captionRaw.setTextOriginFrameRectForFrameCaption(rect);
-      // fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
+      captionRaw.setTextFrameOriginRect(rect);
+      fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
     } else {
       fontSize !== undefined && captionRaw.setFontSize(fontSize);
     }
