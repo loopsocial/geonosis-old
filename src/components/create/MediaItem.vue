@@ -6,9 +6,9 @@
       v-if="media.selected"
     ></svg-icon>
     <span class="duration">{{
-      (media.type === "video" ? media.duration / 1000 : 3000) | msFormat
+      (isMediaTypeVideo ? media.duration : 3000) | msFormat
     }}</span>
-    <div class="play flex" v-if="media.type === 'video'" @click.stop="play">
+    <div class="play flex" v-if="isMediaTypeVideo" @click.stop="play">
       <svg-icon
         :class="playingId !== media.id ? 'icon-play' : 'icon-pause'"
         :icon-class="playingId !== media.id ? 'play' : 'pause'"
@@ -33,7 +33,8 @@ export default {
   },
   data() {
     return {
-      videoUrl: ""
+      videoUrl: "",
+      isMediaTypeVideo: this.media.media_type === "video"
     };
   },
   watch: {

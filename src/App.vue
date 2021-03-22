@@ -75,7 +75,7 @@ export default {
       return this.$store.state.draggable.isDragging;
     },
     isLoading() {
-      if (this.$route.name === "Branding") return false;
+      if (["Branding", "Create"].includes(this.$route.name)) return false;
       return !this.isFinishNvs;
     }
   },
