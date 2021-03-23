@@ -184,14 +184,14 @@ export default {
   computed: {
     durationTotal() {
       const duration = this.selectedList.reduce((res, item) => {
-        if (item.type === "image") {
-          res += 3000000;
+        if (item.media_type === "image") {
+          res += 3000;
         } else {
           res += item.duration;
         }
         return res;
       }, 0);
-      return parseInt(duration / 1000000);
+      return parseInt(duration / 1000);
     }
   },
   methods: {
