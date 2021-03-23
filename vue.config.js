@@ -3,12 +3,23 @@ function resolve(dir) {
   return path.join(__dirname, ".", dir);
 }
 const msToken =
-  "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNjM3ODgwNywiZXhwIjoxNjE2OTgzNjA3fQ.uIB-WokqS96Bf3AAmOr34Zoy1Byh4H-VYDwAjOYERzm22r99rg7lMqVcveRJjLOijixCHAvUaOySiCCWRSDoeA";
+  "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNjQwNDExMCwiZXhwIjoxNjE3MDA4OTEwfQ.Zqis4qg0ZSy0baoOdnNU6qhL1k0c823TwQj3RyTeX5TGtzoLpFvQQp-T_wAQE0Vgum3zf7cwD7VkgsXvDHB5RA";
 const fwToken =
   "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJGaXJld29yayIsImV4cCI6MTY0Njc5NTk5OCwiaWF0IjoxNjE1MzQ2Mzk4LCJpc3MiOiJGaXJld29yayIsImp0aSI6ImFhNzA3MDY0LTkzMjAtNGNkZC1iYWRhLWRmZmE2ZjY2MDA4ZCIsIm5iZiI6MTYxNTM0NjM5NywicGVtIjp7InVzZXIiOlsiYmFzaWMiXX0sInN1YiI6InU6MTA4OTQ2MDk4IiwidHlwIjoiYWNjZXNzIn0.zYbI2255W9sOJQYNjTD349JUbxLaTl0iFgKcPC8V2TVUUwCwyjsqBbDh15zda7XRD_d-XOsTvVb3DDBkgNvz0w";
 module.exports = {
   devServer: {
     proxy: {
+      "/fwServe": {
+        target: "http://meishe.fireworktv.net/",
+        secure: false,
+        changeOrigin: true,
+        pathRewrite: {
+          "^/fwServe": "/"
+        },
+        onProxyReq: req => {
+          req.setHeader("Authorization", msToken);
+        }
+      },
       "/fw": {
         target: "https://staging.fireworktv.com",
         secure: false,

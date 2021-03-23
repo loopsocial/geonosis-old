@@ -2,7 +2,7 @@ import store from "../store";
 import { HexToRGBA, RGBAToHex } from "./common";
 import { CLIP_TYPES, FX_DESC, TRANSFORM2D_KEYS } from "./Global";
 import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
-
+import { installAsset } from "./AssetsUtils";
 // 将vuex中的数据转换格式，方便写入xml  TODO: 要合并module
 function transformation() {
   const {
@@ -153,7 +153,7 @@ function transformation() {
       // stickers: s
     };
   });
-  console.log("合并module后的json", creation);
+  // console.log("合并module后的json", creation);
   return creation;
 }
 
@@ -423,21 +423,14 @@ function readProjectCaptions(stream, video) {
   return captions;
 }
 // 读取module的xml
-export function readModuleXml(xmlPath) {
+export async function readModuleXml(xmlPath) {
   let result;
   const stream = new NvsXmlStreamReader(xmlPath || "t.xml");
   if (!stream.open()) {
     console.error("stream open failed!");
     return;
   }
-  while (!stream.atEnd() && !stream.hasError()) {
-    if (stream.isStartElement() && stream.name() === "modules") {
-      result = readModules(stream);
-      console.log("模板结果", result);
-      break;
-    }
-    stream.readNext();
-  }
+  result = await readModules(stream);
   if (stream.hasError()) {
     console.error("stream has error");
   }
@@ -445,45 +438,46 @@ export function readModuleXml(xmlPath) {
   stream.close();
   return result;
 }
-function readModules(stream) {
-  const creations = [];
-  while (!(stream.isEndElement() && stream.name() === "modules")) {
+async function readModules(stream) {
+  let creation;
+  while (!stream.atEnd()) {
     if (stream.name() === "fw-creation" && stream.isStartElement()) {
-      const creation = {};
+      creation = {};
       creation.alias = stream.getAttributeValue("alias");
       creation.id = stream.getAttributeValue("id");
-      creation.scenes = readSceneList(stream);
-      creations.push(creation);
+      creation.scenes = await readSceneList(stream);
     }
     stream.readNext();
   }
-  return creations;
+  return creation;
 }
-function readSceneList(stream) {
+async function readSceneList(stream) {
   const scenes = [];
   while (!(stream.isEndElement() && stream.name() === "fw-creation")) {
     if (stream.name() === "fw-scene" && stream.isStartElement()) {
-      scenes.push(readScene(stream));
+      const scene = await readScene(stream);
+      scenes.push(scene);
     }
     stream.readNext();
   }
   return scenes;
 }
-function readScene(stream) {
+async function readScene(stream) {
   const scene = {};
   while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
     if (stream.name() === "fw-scene" && stream.isStartElement()) {
       scene.temporal = stream.getAttributeValue("temporal") || "default";
       scene.layers = [];
     } else if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
-      scene.layers.push(readLayer(stream));
+      const layer = await readLayer(stream);
+      scene.layers.push(layer);
     }
     stream.readNext();
   }
   return scene;
 }
 
-function readLayer(stream) {
+async function readLayer(stream) {
   const layer = {};
   const { videoWidth, videoHeight } = store.state.clip;
   const videoLength = Math.max(videoHeight, videoWidth);
@@ -526,7 +520,6 @@ function readLayer(stream) {
       if (!Array.isArray(layer.text)) layer.text = [];
       const caption = {
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
-        font: stream.getAttributeValue("font"),
         fontSize: (stream.getAttributeValue("font-size") * videoLength) / 720,
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
@@ -535,6 +528,25 @@ function readLayer(stream) {
         zValue: stream.getAttributeValue("z-value") * 1,
         value: stream.getAttributeValue("value")
       };
+      const captionStyle = stream.getAttributeValue("caption-style-uuid");
+      if (captionStyle) {
+        try {
+          const captionPath = await installAsset(captionStyle);
+          caption.styleDesc = captionPath.split("/").pop();
+        } catch (error) {
+          console.error("字幕安装失败");
+        }
+      }
+      const fontUrl = stream.getAttributeValue("font");
+      if (fontUrl) {
+        try {
+          console.log("尝试安装字体");
+          caption.font = await installAsset(fontUrl);
+          console.log(caption);
+        } catch (error) {
+          console.error("字体安装失败");
+        }
+      }
       let color = stream.getAttributeValue("font-color");
       if (color) {
         caption.fontColor = HexToRGBA(color);

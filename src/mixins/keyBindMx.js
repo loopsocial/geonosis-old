@@ -1,7 +1,7 @@
 import KeyMap from "@/utils/KeyMap";
 import { writeXml } from "@/utils/XmlUtils";
 import Mousetrap from "mousetrap";
-import upload from "@/utils/Uploader";
+import { uploadToMS } from "@/utils/Uploader";
 export default {
   data() {
     return {
@@ -18,7 +18,7 @@ export default {
           writeXml("project.xml");
           const file = FS.readFile("project.xml", { encoding: "utf8" });
           console.log(file);
-          upload(file)
+          uploadToMS(file)
             .then(url => {
               localStorage.projectUrl = url;
               this.$message({

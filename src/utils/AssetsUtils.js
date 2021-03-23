@@ -213,6 +213,9 @@ export async function installAsset(packageUrl, options) {
           }
         }
       })
-      .catch(reject);
+      .catch(err => {
+        console.error(`${packageUrl}\n资源安装失败`, err);
+        reject(err);
+      });
   });
 }

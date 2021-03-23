@@ -15,6 +15,7 @@
         @click="userModule(style)"
       >
         <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
+        <img :src="style.thumbnail_url" alt="" class="content" />
         <img class="cover" :src="coverData" alt="" v-if="coverData" />
       </li>
     </ul>
@@ -25,7 +26,10 @@
 
 <script>
 import SvgIcon from "../SvgIcon.vue";
-import { getModule } from "../../test/module";
+import videoModules from "@/mock/videoModules";
+import { base64ToString } from "@/utils/common";
+import { readModuleXml } from "@/utils/XmlUtils";
+
 export default {
   components: { SvgIcon },
   props: {
@@ -33,7 +37,7 @@ export default {
   },
   data() {
     return {
-      styleList: [1, 2, 2, 2, 2, 22, 21, 132, 312, 123, 312, 2],
+      styleList: videoModules.modules,
       isLoading: false,
       isNoMore: false,
       page: 0
@@ -45,6 +49,15 @@ export default {
     }
   },
   methods: {
+    async getModule(encodedXml) {
+      const string = base64ToString(encodedXml);
+      FS.writeFile("module.xml", string);
+      console.log("模板xml", string);
+      const moduleDate = await readModuleXml("module.xml");
+      console.log("模板数据", moduleDate);
+      this.setModule(moduleDate);
+      this.$bus.$emit(this.$keys.rebuildTimeline);
+    },
     load() {
       this.isLoading = true;
       setTimeout(() => {
@@ -53,11 +66,24 @@ export default {
         this.isLoading = false;
       }, 1999);
     },
-    userModule(style) {
-      const data = getModule();
-      console.log("使用的模板", data);
-      this.setModule(data);
-      this.$bus.$emit(this.$keys.rebuildTimeline);
+    async userModule(style) {
+      const loading = this.$loading({
+        lock: true,
+        text: "Loading",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
+      try {
+        await this.getModule(style.encoded_dom_xml);
+      } catch (error) {
+        this.$message({
+          type: "error",
+          message: this.$t("error")
+        });
+        console.error("模板应用失败", error);
+      } finally {
+        loading.close();
+      }
     }
   }
 };
@@ -87,6 +113,8 @@ export default {
       box-sizing: border-box;
       border: 2px solid transparent;
       transition: color 0.3s;
+      aspect-ratio: 9/16;
+      position: relative;
       &.active {
         border-color: $white;
       }
@@ -94,12 +122,19 @@ export default {
         position: absolute;
         left: 10px;
         top: 10px;
-        z-index: 10;
+        z-index: 20;
       }
       .cover {
         width: 100%;
         height: 100%;
-        aspect-ratio: 9/16;
+        z-index: 1;
+      }
+      .content {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 10;
+        object-fit: contain;
       }
     }
   }
@@ -108,3 +143,11 @@ export default {
   }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "error": "Apply Module Failed"
+  }
+}
+</i18n>

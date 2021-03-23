@@ -77,7 +77,6 @@ export default class WorkFlow {
           this.stickerDrag(offsetPointF);
         }
         this.timelineClass.seekTimeline();
-        console.log(pos);
         const p = this.targetPos({ ...this.box, ...pos });
         this.deleteNode.x(p.x);
         this.deleteNode.y(p.y);

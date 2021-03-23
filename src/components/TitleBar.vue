@@ -60,7 +60,8 @@
                 round
                 class="round-btn"
                 size="medium"
-                @click="handlePublish"
+                :loading="commiting"
+                @click="publish"
               >
                 {{ $t("publish") }}
               </el-button>
@@ -79,11 +80,18 @@
 
 <script>
 import FullPreview from "./FullPreview";
+import { writeXml } from "@/utils/XmlUtils";
+import { uploadToMS, uploadToS3 } from "@/utils/Uploader";
+import { TaskItem } from "@/utils/Task";
+import videoModules from "@/mock/videoModules";
+import { base64ToString } from "@/utils/common";
+
 export default {
   data() {
     return {
       showPreview: false,
       dialogVisible: false,
+      commiting: false,
       infoForm: {
         caption: "",
         hashtags: "",
@@ -103,8 +111,81 @@ export default {
     close() {
       this.showPreview = false;
     },
-    handlePublish() {
-      this.dialogVisible = false;
+    async publish() {
+      this.commiting = true;
+      writeXml("project.xml");
+      let file = FS.readFile("project.xml", { encoding: "utf8" });
+      // let file = base64ToString(videoModules.modules[0].encoded_dom_xml);
+      console.log("file xml", file);
+      file = new File([file], "project.xml");
+      try {
+        const xmlUrl = await uploadToMS(file);
+        const { caption } = this.infoForm;
+        const params = {
+          projectId: "14399",
+          projectUrl: xmlUrl,
+          title: caption || "测试合成",
+          coverUrl: "",
+          sizeLevel: 480,
+          extension: "mp4"
+        };
+        const res = await axios.post(this.$api.videoCreate, params);
+        const { jobId } = res.data;
+        const options = {
+          jobId,
+          onSuccess: r => {
+            console.log("任务完成", r);
+            this.taskFinsh(r);
+          },
+          onError(e) {
+            console.error("任务失败", e);
+          }
+        };
+        const task = new TaskItem(options);
+        console.log("合成返回", res.data);
+        this.$message({
+          type: "info",
+          message: this.$t("running")
+        });
+      } catch (error) {
+        console.error("合成失败", error);
+        this.$message({
+          type: "error",
+          message: this.$t("failed")
+        });
+      } finally {
+        this.commiting = false;
+        this.dialogVisible = false;
+      }
+    },
+    // 测试 - 任务完成后的处理
+    taskFinsh(task) {
+      const h = this.$createElement;
+      this.sorketMsg = this.$message({
+        dangerouslyUseHTMLString: true,
+        duration: 0,
+        showClose: true,
+        center: true,
+        type: "success",
+        message: h("div", null, [
+          h("span", null, this.$t("finish")),
+          h(
+            "el-button",
+            {
+              on: {
+                click: () => {
+                  window.open(task.result);
+                }
+              },
+              props: {
+                type: "text"
+              },
+              class: "reconnection"
+            },
+            this.$t("see")
+          )
+        ])
+      });
     },
     handleBlur() {
       let strArr = this.infoForm.hashtags.split(",");
@@ -118,6 +199,14 @@ export default {
 </script>
 
 <style lang="scss">
+.reconnection {
+  padding: 0 !important;
+  margin-left: 10px;
+  color: #409EFF !important;
+  &:hover {
+    color: #66b1ff !important;
+  }
+}
 #title-bar {
   width: 100%;
   justify-content: space-between;
@@ -237,7 +326,11 @@ export default {
     "postTo":"Post To",
     "global":"Global",
     "private":"Private",
-    "hashtagHint":"Separate hashtag with commas (e.i Travel, Trip, Nomad)"
+    "hashtagHint":"Separate hashtag with commas (e.i Travel, Trip, Nomad)",
+    "see": "See",
+    "finish": "Video Compose Finish!",
+    "running": "Video Compose Be In Progress...",
+    "failed": "Video Compose Failed"
   }
 }
 </i18n>

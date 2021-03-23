@@ -60,8 +60,8 @@ export default {
     top: 30px;
     right: 0;
     color: $white;
-    border-radius: 16px;
-    padding: 4px 12px;
+    border-radius: 20px;
+    padding: 8px 16px;
     z-index: 10;
     transition: all 0.3s;
     cursor: pointer;

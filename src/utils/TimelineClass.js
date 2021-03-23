@@ -184,45 +184,52 @@ export default class TimelineClass {
     const { raw, inPoint, duration, videoType } = video;
     const rawLayer = scene.layers.find(l => l.type === "raw");
     const moduleLayer = scene.layers.find(l => l.type === "module");
-    const { scaleX, scaleY, translationX, translationY } = rawLayer[videoType];
-    const transform2DFx = raw.appendBuiltinFx(FX_DESC.TRANSFORM2D);
-    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_X, scaleX);
-    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY);
-    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX);
-    transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY);
+    const module = rawLayer[videoType];
+    if (module) {
+      const { scaleX, scaleY, translationX, translationY } = module;
+      const transform2DFx = raw.appendBuiltinFx(FX_DESC.TRANSFORM2D);
+      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_X, scaleX);
+      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY);
+      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX);
+      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY);
+    }
     // 添加模板字幕
-    const { text, image } = moduleLayer;
-    text.map(item => {
-      // TODO: 还未考虑字体，以及frameHeight、frameWidth
-      this.addCaption({
-        text: item.value,
-        inPoint: inPoint,
-        duration: duration || video.duration,
-        z: item.zValue,
-        color: item.fontColor,
-        fontSize: item.fontSize,
-        align: item.textXAlignment,
-        translationY: item.translationY,
-        translationX: item.translationX,
-        frameWidth: item.frameWidth,
-        frameHeight: item.frameHeight
+    if (moduleLayer) {
+      const { text, image } = moduleLayer;
+      text.map(item => {
+        // TODO: 还未考虑字体，以及frameHeight、frameWidth
+        this.addCaption({
+          styleDesc: item.styleDesc,
+          font: item.font,
+          text: item.value,
+          inPoint: inPoint,
+          duration: duration || video.duration,
+          z: item.zValue,
+          color: item.fontColor,
+          fontSize: item.fontSize,
+          align: item.textXAlignment,
+          translationY: item.translationY,
+          translationX: item.translationX,
+          frameWidth: item.frameWidth,
+          frameHeight: item.frameHeight
+        });
       });
-    });
-    // 添加图片
-    if (image && image.source) {
-      const { m3u8Url } = image.source;
-      if (!m3u8Url) {
-        console.warn("图片添加失败，缺少m3u8Url", image);
-        return;
+      // 添加图片
+      if (image && image.source) {
+        const { m3u8Url } = image.source;
+        if (!m3u8Url) {
+          console.warn("图片添加失败，缺少m3u8Url", image);
+          return;
+        }
+        const m3u8Path = await installAsset(m3u8Url);
+        const clip = this.otherTrackRaw.addClip2(m3u8Path, inPoint, 0, duration);
+        if (!clip) {
+          console.warn("图片添加失败", m3u8Path, image);
+          return;
+        }
+        clip.setImageMotionAnimationEnabled(false);
+        clip.setImageMotionMode(0);
       }
-      const m3u8Path = await installAsset(m3u8Url);
-      const clip = this.otherTrackRaw.addClip2(m3u8Path, inPoint, 0, duration);
-      if (!clip) {
-        console.warn("图片添加失败", m3u8Path, image);
-        return;
-      }
-      clip.setImageMotionAnimationEnabled(false);
-      clip.setImageMotionMode(0);
     }
   }
   buildVideoTrack() {
@@ -360,6 +367,7 @@ export default class TimelineClass {
       translationY,
       frameWidth,
       frameHeight,
+      font,
       z
     } = caption;
     const captionRaw = this.timeline.addCaption(
@@ -407,11 +415,13 @@ export default class TimelineClass {
         right: 0.5 * x,
         bottom: -0.5 * y
       };
-      // TODO: 暂时没有以下的接口，需要更新SDK
       captionRaw.setTextFrameOriginRect(rect);
       fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
     } else {
       fontSize !== undefined && captionRaw.setFontSize(fontSize);
+    }
+    if (font) {
+      captionRaw.setFontFamily(font);
     }
     if (z) captionRaw.setZValue(z);
     return captionRaw;
