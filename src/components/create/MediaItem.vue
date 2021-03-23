@@ -17,7 +17,7 @@
     <el-image
       class="media-cover"
       ref="image"
-      :src="media.thumbnail_url"
+      :src="getThumbnailUrl"
       fit="cover"
       v-if="playingId !== media.id"
     ></el-image>
@@ -49,6 +49,11 @@ export default {
     }
   },
   mounted() {},
+  computed: {
+    getThumbnailUrl() {
+      return this.media.thumbnail_url || this.media.coverUrl;
+    }
+  },
   methods: {
     play() {
       this.$emit(

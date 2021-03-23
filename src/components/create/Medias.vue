@@ -84,7 +84,7 @@
       <div class="selected-medias">
         <transition-group name="el-zoom-in-center">
           <img
-            :src="item.coverUrl"
+            :src="getThumbnailUrl(item)"
             v-for="item in selectedList"
             :key="item.id"
           />
@@ -366,6 +366,9 @@ export default {
           reject(error);
         }
       });
+    },
+    getThumbnailUrl(item) {
+      return item.thumbnail_url || item.coverUrl;
     }
   }
 };
