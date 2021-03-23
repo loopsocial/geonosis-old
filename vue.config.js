@@ -6,6 +6,9 @@ const msToken =
   "eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiIxMDAiLCJzdWIiOiJKV1RUb2tlbiIsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTYxNjQwNDExMCwiZXhwIjoxNjE3MDA4OTEwfQ.Zqis4qg0ZSy0baoOdnNU6qhL1k0c823TwQj3RyTeX5TGtzoLpFvQQp-T_wAQE0Vgum3zf7cwD7VkgsXvDHB5RA";
 const fwToken =
   "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJGaXJld29yayIsImV4cCI6MTY0Njc5NTk5OCwiaWF0IjoxNjE1MzQ2Mzk4LCJpc3MiOiJGaXJld29yayIsImp0aSI6ImFhNzA3MDY0LTkzMjAtNGNkZC1iYWRhLWRmZmE2ZjY2MDA4ZCIsIm5iZiI6MTYxNTM0NjM5NywicGVtIjp7InVzZXIiOlsiYmFzaWMiXX0sInN1YiI6InU6MTA4OTQ2MDk4IiwidHlwIjoiYWNjZXNzIn0.zYbI2255W9sOJQYNjTD349JUbxLaTl0iFgKcPC8V2TVUUwCwyjsqBbDh15zda7XRD_d-XOsTvVb3DDBkgNvz0w";
+const sandboxToken =
+  "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJGaXJld29yayIsImV4cCI6MTYyMTAwOTAzNiwiaWF0IjoxNjE1ODI1MDM2LCJpc3MiOiJGaXJld29yayIsImp0aSI6Ijc3YWY0MTAxLThlY2UtNDQ2YS05N2Q0LWU2NjNhZDNjNzMyMCIsIm5iZiI6MTYxNTgyNTAzNSwicGVtIjp7InVzZXIiOlsiYmFzaWMiXX0sInN1YiI6InU6MTczMTQzNCIsInR5cCI6ImFjY2VzcyJ9.rV-GSeUENpVSqgSN5DG8QPeBOFgIhrl7H0_-6pQCjJopV553SDDRZH8XBx4HlbFHfM1dKPFm46kp4XsgwMwaLg";
+
 module.exports = {
   devServer: {
     proxy: {
@@ -21,14 +24,15 @@ module.exports = {
         }
       },
       "/fw": {
-        target: "https://staging.fireworktv.com",
+        // target: "https://staging.fireworktv.com",
+        target: "https://studio.sandbox.fireworktv.com",
         secure: false,
         changeOrigin: true, //是否跨域
         pathRewrite: {
           "^/fw": "/"
         },
         onProxyReq: req => {
-          req.setHeader("Authorization", fwToken);
+          req.setHeader("Authorization", sandboxToken);
         }
       },
       "/ms": {

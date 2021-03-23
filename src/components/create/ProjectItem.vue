@@ -25,7 +25,7 @@ export default {
   mounted() {},
   methods: {
     openActionItems() {
-      console.log("openActionItems");
+      console.log("openActionItems", this.project);
     },
     selectProject() {
       this.$emit("selectProject", this.project);

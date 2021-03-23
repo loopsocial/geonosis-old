@@ -11,8 +11,8 @@ export default {
 
   soundTracks: `/fw/api/soundtracks`,
 
-  videoProjects: `https://studio.sandbox.fireworktv.com/studio/video_projects`,
-  mediaAssets: `https://studio.sandbox.fireworktv.com/studio/media_assets`,
+  videoProjects: `/fw/studio/video_projects`,
+  mediaAssets: `/fw/studio/media_assets`,
   mediaAssetsUploadComplete: id =>
-    `https://studio.sandbox.fireworktv.com/studio/media_assets/${id}/upload_completed`
+    `/fw/studio/media_assets/${id}/upload_completed`
 };
