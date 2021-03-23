@@ -39,11 +39,13 @@ export default {
   },
   watch: {
     playingId(id) {
-      if (id === this.media.id) {
-        this.videoUrl =
-          this.media.videoUrl ||
-          "https://alieasset.meishesdk.com/video/d91663cf-da3f-49e9-a7cd-64aa202d0660/d91663cf-da3f-49e9-a7cd-64aa202d0660.mp4";
-      }
+      if (id !== this.media.id) return;
+      // TODO: fallbackURL To be deleted
+      const fallbackURL =
+        "https://alieasset.meishesdk.com/video/d91663cf-da3f-49e9-a7cd-64aa202d0660/d91663cf-da3f-49e9-a7cd-64aa202d0660.mp4";
+      const mediaURL =
+        this.media.low_resolution_video_url || this.media.video_url;
+      this.videoUrl = mediaURL || fallbackURL;
     }
   },
   mounted() {},
