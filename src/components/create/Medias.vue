@@ -84,7 +84,7 @@
       <div class="selected-medias">
         <transition-group name="el-zoom-in-center">
           <img
-            :src="item.coverUrl"
+            :src="getThumbnailUrl(item)"
             v-for="item in selectedList"
             :key="item.id"
           />
@@ -184,14 +184,14 @@ export default {
   computed: {
     durationTotal() {
       const duration = this.selectedList.reduce((res, item) => {
-        if (item.type === "image") {
-          res += 3000000;
+        if (item.media_type === "image") {
+          res += 3000;
         } else {
           res += item.duration;
         }
         return res;
       }, 0);
-      return parseInt(duration / 1000000);
+      return parseInt(duration / 1000);
     }
   },
   methods: {
@@ -252,12 +252,11 @@ export default {
       //   videos.push(video);
       // }
       videos.push(...this.selectedList.map(media => media.id));
-      const res = await this.axios.post(this.$api.videoProjects, {
+      const videoProject = await this.axios.post(this.$api.videoProjects, {
         media_asset_ids: videos
       });
       this.addMediaLoading = false;
-      console.log(res);
-      this.$emit("selected-finish", res);
+      this.$emit("selected-finish", videoProject);
     },
     cancel() {
       this.uploadList.map(item => {
@@ -366,6 +365,9 @@ export default {
           reject(error);
         }
       });
+    },
+    getThumbnailUrl(item) {
+      return item.thumbnail_url || item.coverUrl;
     }
   }
 };

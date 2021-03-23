@@ -6,9 +6,9 @@
       v-if="media.selected"
     ></svg-icon>
     <span class="duration">{{
-      (media.type === "video" ? media.duration / 1000 : 3000) | msFormat
+      (isMediaTypeVideo ? media.duration : 3000) | msFormat
     }}</span>
-    <div class="play flex" v-if="media.type === 'video'" @click.stop="play">
+    <div class="play flex" v-if="isMediaTypeVideo" @click.stop="play">
       <svg-icon
         :class="playingId !== media.id ? 'icon-play' : 'icon-pause'"
         :icon-class="playingId !== media.id ? 'play' : 'pause'"
@@ -17,7 +17,7 @@
     <el-image
       class="media-cover"
       ref="image"
-      :src="media.thumbnail_url"
+      :src="getThumbnailUrl"
       fit="cover"
       v-if="playingId !== media.id"
     ></el-image>
@@ -33,19 +33,27 @@ export default {
   },
   data() {
     return {
-      videoUrl: ""
+      videoUrl: "",
+      isMediaTypeVideo: this.media.media_type === "video"
     };
   },
   watch: {
     playingId(id) {
-      if (id === this.media.id) {
-        this.videoUrl =
-          this.media.videoUrl ||
-          "https://alieasset.meishesdk.com/video/d91663cf-da3f-49e9-a7cd-64aa202d0660/d91663cf-da3f-49e9-a7cd-64aa202d0660.mp4";
-      }
+      if (id !== this.media.id) return;
+      // TODO: fallbackURL To be deleted
+      const fallbackURL =
+        "https://alieasset.meishesdk.com/video/d91663cf-da3f-49e9-a7cd-64aa202d0660/d91663cf-da3f-49e9-a7cd-64aa202d0660.mp4";
+      const mediaURL =
+        this.media.low_resolution_video_url || this.media.video_url;
+      this.videoUrl = mediaURL || fallbackURL;
     }
   },
   mounted() {},
+  computed: {
+    getThumbnailUrl() {
+      return this.media.thumbnail_url || this.media.coverUrl;
+    }
+  },
   methods: {
     play() {
       this.$emit(

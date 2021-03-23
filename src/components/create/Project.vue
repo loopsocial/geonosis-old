@@ -22,7 +22,7 @@
           v-for="project in videoProjects"
           :key="project.id"
         >
-          <ProjectItem :project="project" />
+          <ProjectItem :project="project" @selectProject="selectProject" />
           <div class="project-title">
             {{ project.title || "Untitle" }}
           </div>
@@ -40,7 +40,13 @@ export default {
   props: {
     videoProjects: Array
   },
-  methods: {}
+  methods: {
+    selectProject(project) {
+      const res = this.axios.get(`${this.$api.videoProjects}/${project.id}`);
+      this.medias = res.media_assets;
+      this.$router.push({ name: "Scenes" });
+    }
+  }
 };
 </script>
 

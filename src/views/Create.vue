@@ -28,7 +28,6 @@
 import Project from "../components/create/Project";
 import Medias from "../components/create/Medias";
 import Edit from "../components/create/Edit";
-import { mapActions } from "vuex";
 const statusMap = {
   media: "media",
   edit: "edit"
@@ -50,7 +49,6 @@ export default {
     };
   },
   async created() {
-    console.log("Project created");
     await this.getMediaLibrary();
   },
   methods: {
@@ -60,12 +58,11 @@ export default {
     cancel() {
       this.mediaDialog = false;
     },
-    selectedFinish(list) {
-      console.log("Selected Finish - Create", list);
-      this.$router.push({ name: "Scenes" });
-      this.medias = list.media_asset_ids;
+    selectedFinish(videoProject) {
       this.mediaDialog = false;
       this.status = this.statusMap.edit;
+      this.medias = videoProject.media_assets;
+      this.$router.push({ name: "Scenes" });
     },
     getMediaLibrary() {
       if (this.loading) return;

@@ -6,12 +6,14 @@
     <div class="flex project-action-items" @click="openActionItems(project)">
       <i class="el-icon-more"></i>
     </div>
-    <el-image
-      class="project-cover"
-      ref="image"
-      :src="project.thumbnail_url"
-      fit="cover"
-    ></el-image>
+    <div class="project-cover-wrapper" @click="selectProject">
+      <el-image
+        class="project-cover"
+        ref="image"
+        :src="project.thumbnail_url"
+        fit="cover"
+      ></el-image>
+    </div>
   </div>
 </template>
 
@@ -23,7 +25,10 @@ export default {
   mounted() {},
   methods: {
     openActionItems() {
-      console.log("openActionItems");
+      console.log("openActionItems", this.project);
+    },
+    selectProject() {
+      this.$emit("selectProject", this.project);
     }
   }
 };
@@ -43,8 +48,10 @@ export default {
     text-transform: capitalize;
     font-size: 12px;
     line-height: 14px;
+    user-select: none;
   }
   .project-action-items {
+    cursor: pointer;
     position: absolute;
     z-index: 10;
     top: 8px;
@@ -56,6 +63,9 @@ export default {
     font-size: 20px;
   }
 
+  .project-cover-wrapper {
+    cursor: pointer;
+  }
   .project-cover {
     filter: drop-shadow(0 0 10 rgba(0, 0, 0, 0.3));
     height: auto;
