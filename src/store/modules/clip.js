@@ -19,14 +19,14 @@ export default {
   },
   mutations: {
     init(state, data) {
-      state.videos = cloneDeep(data.videos);
-      state.audios = cloneDeep(data.audios);
-      state.captions = cloneDeep(data.captions);
-      state.stickers = cloneDeep(data.stickers);
-      state.videoHeight = data.videoHeighth;
-      state.videoWidth = data.videoWidth;
+      state.videos = cloneDeep(data.videos || []);
+      state.audios = cloneDeep(data.audios || []);
+      state.captions = cloneDeep(data.captions || []);
+      state.stickers = cloneDeep(data.stickers || []);
+      state.videoHeight = data.videoHeighth || 960;
+      state.videoWidth = data.videoWidth || 540;
       state.alias = data.alias;
-      state.version = data.version;
+      state.version = data.version || 1;
     },
     resetClips(state, { type, clips }) {
       switch (type) {
@@ -49,6 +49,7 @@ export default {
       }
     },
     addClipToVuex(state, clips) {
+      if (!clips) return;
       if (!Array.isArray(clips)) {
         clips = [clips];
       }

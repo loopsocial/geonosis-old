@@ -239,18 +239,6 @@ export default {
       const videos = [];
       // let inPoint = 0;
       this.addMediaLoading = true;
-      // for (let i = 0; i < this.selectedList.length; i++) {
-      //   const v = this.selectedList[i];
-      //   const path = await installAsset(v.m3u8Url); // 函数内部有处理, 防止重复安装
-      //   const video = new VideoClip({
-      //     ...v,
-      //     m3u8Path: path,
-      //     inPoint
-      //   });
-      //   inPoint += v.duration;
-      //   console.log("push video");
-      //   videos.push(video);
-      // }
       videos.push(...this.selectedList.map(media => media.id));
       const videoProject = await this.axios.post(this.$api.videoProjects, {
         media_asset_ids: videos

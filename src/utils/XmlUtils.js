@@ -237,6 +237,9 @@ function writeCaption(stream, caption) {
   const fontSize = (caption.fontSize * 720) / videoLength;
   stream.writeStartElement(`fw-text`);
   stream.writeAttribute("z-value", "" + caption.zValue);
+  if (caption.packageUrl) {
+    stream.writeAttribute("caption-style-uuid", "" + caption.packageUrl);
+  }
   stream.writeAttribute(
     "background-color",
     "" + RGBAToHex(caption.backgroundColor)

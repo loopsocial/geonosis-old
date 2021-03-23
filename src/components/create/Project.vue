@@ -44,7 +44,13 @@ export default {
     selectProject(project) {
       const res = this.axios.get(`${this.$api.videoProjects}/${project.id}`);
       this.medias = res.media_assets;
-      this.$router.push({ name: "Scenes" });
+      this.$router.push({
+        name: "Scenes",
+        query: { id: project.id },
+        params: {
+          mediaAssets: res.media_assets
+        }
+      });
     }
   }
 };

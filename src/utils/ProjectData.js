@@ -41,7 +41,7 @@ export class VideoClip extends Clip {
     this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
-    this.videoType = CLIP_TYPES[getType(option.mediaType)]; // videoType 是字符串，且只能是video、image、（audio）
+    this.videoType = option.videoType; // videoType是字符串，且只能是video、image
     // this.trimIn = option.trimIn || 0;
     // this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.duration;
@@ -110,6 +110,7 @@ export class CaptionClip extends Clip {
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0; // 角度
     this.uuid = generateUUID();
+    this.packageUrl = option.packageUrl;
     this.align = "center"; // string, left/center/right
     this.color = ""; // RGBA
     this.backgroundColor = "";
@@ -133,6 +134,7 @@ export class StickerClip extends Clip {
     this.desc = option.desc || option.id;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0;
+    this.packageUrl = option.packageUrl;
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;
     this.z = option.z || 0;

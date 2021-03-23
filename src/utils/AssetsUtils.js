@@ -140,6 +140,7 @@ export function getAssetFromFS(packageUrl, isCustom) {
  * @param {boolean} checkLic 是否验证授权
  */
 export async function installAsset(packageUrl, options) {
+  if (!packageUrl) return "";
   const { checkLic, isCustom } = options || {};
   return new Promise((resolve, reject) => {
     ensureMeisheModule()

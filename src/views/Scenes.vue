@@ -26,44 +26,14 @@ export default {
   },
   async created() {
     await this.installFont();
-    if (localStorage.projectUrl) {
-      const res = await this.axios.get(localStorage.projectUrl);
-      FS.writeFile("/project.xml", res);
-      const data = readProjectXml("/project.xml");
-      await this.installProjectAssets(data);
-      this.initVuex(data);
-      console.log(data);
-      this.$refs.preview.createTimeline();
-    } else {
-      await this.installM3u8();
-      this.$refs.preview.createTimeline();
-    }
+    console.log(this.$route.params);
+    const mediaAssets = await this.getMediaAssets();
+    console.log("media-assets", mediaAssets);
+    await this.applyAssets(mediaAssets);
+    this.$refs.preview.createTimeline();
   },
   methods: {
-    // todo 以下是测试代码
-    async installM3u8() {
-      if (this.videos.length) return;
-      let pos = 0;
-      const defaultDuration = 3000000;
-      const clips = [];
-      for (let i = 0; i < resource.resourceList.length; i++) {
-        const clip = resource.resourceList[i];
-        if (!clip.m3u8Path) {
-          clip.m3u8Path = await installAsset(clip.m3u8Url);
-        }
-        const videoClip = new VideoClip({
-          ...clip,
-          inPoint: pos,
-          trimIn: 0,
-          trimOut: clip.duration * 1000 || defaultDuration,
-          orgDuration: clip.duration * 1000 || defaultDuration,
-          duration: clip.duration * 1000 || defaultDuration
-        });
-        clips.push(videoClip);
-        pos += clip.duration * 1000 || defaultDuration;
-      }
-      this.addClipToVuex(clips);
-    },
+    // 安装字体
     async installFont() {
       const res = await this.axios.get(this.$api.materials, {
         params: {
@@ -76,17 +46,51 @@ export default {
       const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
       await installAsset(font.packageUrl);
     },
-    async installProjectAssets(data) {
-      const { videos, audios, captions, stickers } = data;
-      for (let i = 0; i < videos.length; i++) {
-        const video = videos[i];
-        video.m3u8Path = await installAsset(video.m3u8Url);
+    // 获取工程的mediaAssets
+    async getMediaAssets() {
+      let { mediaAssets } = this.$route.params;
+      const { id } = this.$route.query;
+      if (!Array.isArray(mediaAssets)) {
+        // 这不是create跳转过来的，通过id查询mediaAssets
+        if (id) {
+          const project = await this.axios.get(
+            `${this.$api.videoProjects}/${id}`
+          );
+          mediaAssets = project.media_assets;
+        } else {
+          mediaAssets = resource.resourceList; // 测试素材
+        }
+      } else {
+        // 没有素材 使用测试素材
+        mediaAssets = resource.resourceList; // 测试素材
       }
-      for (let i = 0; i < audios.length; i++) {
-        const audios = audios[i];
-        audios.m3u8Path = await installAsset(audios.m3u8Url);
+      return mediaAssets;
+    },
+    // 安装m3u8 并且更新到vuex
+    async applyAssets(mediaAssets) {
+      const videoList = [];
+      let inPoint = 0;
+      for (let i = 0; i < mediaAssets.length; i++) {
+        const v = mediaAssets[i];
+        const m3u8Path = await installAsset(v[`hls_${v.media_type}_url`]); // 函数内部有处理, 防止重复安装
+        const video = new VideoClip({
+          m3u8Path,
+          inPoint,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000000,
+          videoType: v.media_type,
+          coverUrl: v.thumbnail_url,
+          url: v[`${v.media_type}_url`],
+          m3u8Url: v[`hls_${v.media_type}_url`],
+          widht: v.width,
+          height: v.height,
+          aspectRatio: v.aspect_ratio,
+          id: v.id,
+          thumbnails: v.thumbnails
+        });
+        inPoint += video.duration;
+        videoList.push(video);
       }
-      // 字幕、贴纸还不确定用什么方式
+      this.initVuex({ videos: videoList }); // 将选择的video列表更新到vuex
     }
   }
 };

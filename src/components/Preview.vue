@@ -282,9 +282,26 @@ export default {
         }
       }
     },
+    getInPointAndDuration(t) {
+      let duration;
+      const v = this.videos.find(video => {
+        const s = video.splitList.find(split => {
+          return t >= split.captureIn && t <= split.captureOut;
+        });
+        if (s) {
+          duration = s.captureOut - s.captureIn;
+        }
+        return s;
+      });
+      return {
+        duration,
+        inPoint: v.inPoint
+      };
+    },
     async editClip(e, option) {
       const { type, target, raw } = option;
       const currentPosition = this.timelineClass.getCurrentPosition();
+      const { inPoint, duration } = this.getInPointAndDuration(currentPosition);
       if (!raw && !target) return;
       await this.timelineClass.stopEngin();
       if (raw) {
@@ -303,8 +320,8 @@ export default {
         if (type === CLIP_TYPES.STICKER) {
           const sticker = new StickerClip({
             ...target,
-            inPoint: currentPosition,
-            duration: this.calcMaterialDuration(currentPosition),
+            inPoint,
+            duration,
             desc: target.id,
             translationX: targetPoint && targetPoint.x,
             translationY: targetPoint && targetPoint.y
@@ -314,7 +331,8 @@ export default {
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
-            inPoint: currentPosition
+            inPoint,
+            duration
           });
           if (!e) {
             // 点击caption上轨

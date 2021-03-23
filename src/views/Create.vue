@@ -62,7 +62,14 @@ export default {
       this.mediaDialog = false;
       this.status = this.statusMap.edit;
       this.medias = videoProject.media_assets;
-      this.$router.push({ name: "Scenes" });
+      console.log("video", videoProject);
+      this.$router.push({
+        name: "Scenes",
+        query: { id: videoProject.id },
+        params: {
+          mediaAssets: videoProject.media_assets
+        }
+      });
     },
     getMediaLibrary() {
       if (this.loading) return;
