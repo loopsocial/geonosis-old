@@ -252,12 +252,11 @@ export default {
       //   videos.push(video);
       // }
       videos.push(...this.selectedList.map(media => media.id));
-      const res = await this.axios.post(this.$api.videoProjects, {
+      const videoProject = await this.axios.post(this.$api.videoProjects, {
         media_asset_ids: videos
       });
       this.addMediaLoading = false;
-      console.log(res);
-      this.$emit("selected-finish", res);
+      this.$emit("selected-finish", videoProject);
     },
     cancel() {
       this.uploadList.map(item => {
