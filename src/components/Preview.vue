@@ -75,6 +75,7 @@ export default {
     console.log("创建时间线");
     await this.createTimeline();
     document.body.addEventListener("mouseup", this.statusEvent);
+    this.$emit("on-loaded");
   },
   computed: {
     ...mapState({

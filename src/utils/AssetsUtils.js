@@ -100,6 +100,7 @@ export function getAssetFromIndexDB(packageUrl, isCustom) {
  * @param {boolean} isCustom 是否为自定义资源（自定义贴纸）
  */
 export function getAssetFromNetwork(packageUrl, isCustom) {
+  packageUrl = packageUrl.replace(/^http:\/\//, "https://"); // 强制改成https
   return new Promise((resolve, reject) => {
     axios
       .get(packageUrl, { responseType: "arraybuffer" })

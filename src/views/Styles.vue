@@ -20,7 +20,7 @@
         {{ $t("none") }}
       </div>
     </div>
-    <Preview ref="preview" />
+    <Preview ref="preview" @on-loaded="onLoaded" />
   </div>
 </template>
 
@@ -38,7 +38,6 @@ export default {
   async mounted() {
     // await this.$refs.preview.createTimeline();
     await this.$nextTick();
-    // this.coverData = await this.$refs.preview.getImgFromTimeline();
   },
   methods: {
     clearModule() {
@@ -46,6 +45,11 @@ export default {
         this.setModule(null);
         this.$bus.$emit(this.$keys.rebuildTimeline);
       }
+    },
+    async onLoaded() {
+      // 工程加载完成后，再获取封面
+      this.coverData = await this.$refs.preview.getImgFromTimeline();
+      console.log("获取封面", this.coverData);
     }
   }
 };
