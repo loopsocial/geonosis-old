@@ -12,8 +12,8 @@ export default {
     stickers: [],
     module: null, // 使用的module
     currentVideoUuid: null,
-    videoWidth: 540,
-    videoHeight: 960,
+    videoWidth: 1080,
+    videoHeight: 1920,
     alias: "",
     version: "1",
     loaded: false
@@ -24,8 +24,8 @@ export default {
       state.audios = cloneDeep(data.audios || []);
       state.captions = cloneDeep(data.captions || []);
       state.stickers = cloneDeep(data.stickers || []);
-      state.videoHeight = data.videoHeighth || 960;
-      state.videoWidth = data.videoWidth || 540;
+      state.videoHeight = data.videoHeighth || 1920;
+      state.videoWidth = data.videoWidth || 1080;
       state.alias = data.alias;
       state.version = data.version || 1;
       state.loaded = true;

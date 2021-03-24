@@ -73,7 +73,6 @@ function transformation() {
       else return true;
     });
   }
-  const moduleCaptions = []; // 使用的模板字幕
   creation.scenes = videoList.map((v, index) => {
     // 将用户添加的字幕按照 视频槽的方式进行规整
     const c = captions.reduce((res, caption) => {
@@ -105,6 +104,7 @@ function transformation() {
       return res;
     }, []);
     // 将模板内容应用过去
+    const moduleCaptions = []; // 使用的模板字幕
     let curModuleScene;
     if (index === 0) {
       curModuleScene = intro || defaultScenes[index];
@@ -119,10 +119,12 @@ function transformation() {
       curModuleScene.layers.map(item => {
         if (item.type === "raw") {
           // video.videoType = video/image
-          v.scaleX *= item[v.videoType].scaleX;
-          v.scaleY *= item[v.videoType].scaleY;
-          v.translationX += item[v.videoType].translationX;
-          v.translationY += item[v.videoType].translationY;
+          if (item[v.videoType]) {
+            v.scaleX *= item[v.videoType].scaleX;
+            v.scaleY *= item[v.videoType].scaleY;
+            v.translationX += item[v.videoType].translationX;
+            v.translationY += item[v.videoType].translationY;
+          }
         } else if (item.type === "module") {
           item.text.map(text => {
             const caption = {
@@ -159,12 +161,12 @@ function transformation() {
       // stickers: s
     };
   });
-  // console.log("合并module后的json", creation);
+  console.log("合并module后的json", creation);
   return creation;
 }
 
 export function writeXml(xmlPath) {
-  console.log(transformation());
+  // console.log(transformation());
   const stream = new NvsXmlStreamWriter(xmlPath);
   if (!stream.open()) {
     console.error("xmlStreamWriter open failed!");
@@ -243,7 +245,10 @@ function writeCaption(stream, caption) {
   const videoLength = Math.max(videoHeight, videoWidth);
   const fontSize = (caption.fontSize * 720) / videoLength;
   stream.writeStartElement(`fw-text`);
-  stream.writeAttribute("duration", "" + caption.duration);
+  if (caption.duration) {
+    // 从模板应用的字幕没有duration，用户添加的字幕有duration
+    stream.writeAttribute("duration", "" + caption.duration);
+  }
   stream.writeAttribute("z-value", "" + caption.zValue);
   if (caption.packageUrl) {
     stream.writeAttribute("caption-style-uuid", "" + caption.packageUrl);
@@ -549,10 +554,10 @@ async function readLayer(stream) {
       };
       const captionStyle = stream.getAttributeValue("caption-style-uuid");
       if (captionStyle) {
+        caption.packageUrl = captionStyle;
         try {
           const captionPath = await installAsset(captionStyle);
           caption.styleDesc = captionPath.split("/").pop();
-          caption.packageUrl = captionStyle;
         } catch (error) {
           console.error("字幕安装失败");
         }

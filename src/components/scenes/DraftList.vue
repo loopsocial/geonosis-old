@@ -655,11 +655,13 @@ export default {
         ({ id }) => !this.videos.find(v => v.id === id)
       );
       const assets = [];
-      const lastVideo = this.videos[this.videos.length - 1];
-      let inPoint = lastVideo.splitList.reduce((duration, item) => {
-        duration += item.captureOut - item.captureIn;
-        return duration;
-      }, lastVideo.inPoint || 0);
+      const lastVideo = this.videos[this.videos.length - 1]; // 用户可能是删除完所有的素材，然后再添加
+      let inPoint = lastVideo
+        ? lastVideo.splitList.reduce((duration, item) => {
+            duration += item.captureOut - item.captureIn;
+            return duration;
+          }, lastVideo.inPoint || 0)
+        : 0;
       for (let i = 0; i < medias.length; i++) {
         const v = medias[i];
         const m3u8Path = await installAsset();

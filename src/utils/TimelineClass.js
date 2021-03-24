@@ -16,8 +16,8 @@ export default class TimelineClass {
     this.timeline = null;
     this.canvasId = canvasId;
     const { width, height } = options || {};
-    this.width = width || 540;
-    this.height = height || 960;
+    this.width = width || 1080;
+    this.height = height || 1920;
     this.videoTrack = { raw: null, clips: [] };
     this.audioTrack = { raw: null, clips: [] };
     this.captions = [];
@@ -418,6 +418,7 @@ export default class TimelineClass {
       captionRaw.setTextFrameOriginRect(rect);
       fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
     } else {
+      console.log("字体大小", fontSize);
       fontSize !== undefined && captionRaw.setFontSize(fontSize);
     }
     if (font) {

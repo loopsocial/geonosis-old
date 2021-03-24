@@ -113,12 +113,12 @@ export default {
     },
     async publish() {
       this.commiting = true;
-      writeXml("project.xml");
-      let file = FS.readFile("project.xml", { encoding: "utf8" });
-      // let file = base64ToString(videoModules.modules[0].encoded_dom_xml);
-      console.log("file xml", file);
-      file = new File([file], "project.xml");
       try {
+        writeXml("project.xml");
+        let file = FS.readFile("project.xml", { encoding: "utf8" });
+        // let file = base64ToString(videoModules.modules[0].encoded_dom_xml);
+        console.log(file);
+        file = new File([file], "project.xml");
         const xmlUrl = await uploadToMS(file);
         const { caption } = this.infoForm;
         const params = {
@@ -130,6 +130,7 @@ export default {
           extension: "mp4"
         };
         const res = await axios.post(this.$api.videoCreate, params);
+        // let res = {}
         const { jobId } = res.data;
         const options = {
           jobId,
