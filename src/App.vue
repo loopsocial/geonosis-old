@@ -6,7 +6,7 @@
     <el-main class="app-main" v-if="isCreate">
       <Create />
     </el-main>
-    <el-main class="app-main" v-else>
+    <el-main class="app-main" v-if="isEditPages && !isCreate">
       <el-menu
         :default-active="defaultActive"
         class="el-menu-vertical"
@@ -76,7 +76,11 @@ export default {
     },
     isLoading() {
       if (["Branding", "Create"].includes(this.$route.name)) return false;
-      return !this.isFinishNvs;
+      return !this.isFinishNvs && this.isEditPages;
+    },
+    isEditPages() {
+      const pages = ["Branding", "Music", "Scenes", "Styles"];
+      return pages.includes(this.$route.name);
     }
   },
   methods: {

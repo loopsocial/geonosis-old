@@ -1,7 +1,8 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    <div class="btn">
+    {{ isEditPages}}
+    <div class="btn" v-if="isEditPages">
       <el-button type="text" size="medium" @click="preview">
         {{ $t("preview") }}
       </el-button>
@@ -103,7 +104,13 @@ export default {
   components: {
     FullPreview
   },
-  computed: {},
+  computed: {
+    isEditPages() {
+      const pages = ["Branding", "Music", "Scenes", "Styles"];
+      console.log(this.$route.name, pages);
+      return pages.includes(this.$route.name);
+    }
+  },
   methods: {
     preview() {
       this.showPreview = true;
