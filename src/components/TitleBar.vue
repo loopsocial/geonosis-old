@@ -107,7 +107,6 @@ export default {
   computed: {
     isEditPages() {
       const pages = ["Branding", "Music", "Scenes", "Styles"];
-      console.log(this.$route.name, pages);
       return pages.includes(this.$route.name);
     }
   },
