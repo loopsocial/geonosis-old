@@ -6,7 +6,8 @@ export default {
       audios: state => state.clip.audios,
       captions: state => state.clip.captions,
       stickers: state => state.clip.stickers,
-      videoModule: state => state.clip.module
+      videoModule: state => state.clip.module,
+      vuexLoaded: state => state.clip.loaded
     }),
     currentVideoUuid: {
       get() {

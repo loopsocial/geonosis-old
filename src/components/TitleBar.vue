@@ -139,6 +139,10 @@ export default {
           },
           onError(e) {
             console.error("任务失败", e);
+            this.$message({
+              type: "error",
+              message: this.$t("failed")
+            });
           }
         };
         const task = new TaskItem(options);

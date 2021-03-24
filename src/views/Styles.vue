@@ -36,8 +36,9 @@ export default {
     };
   },
   async mounted() {
-    await this.$refs.preview.createTimeline();
-    this.coverData = await this.$refs.preview.getImgFromTimeline();
+    // await this.$refs.preview.createTimeline();
+    await this.$nextTick();
+    // this.coverData = await this.$refs.preview.getImgFromTimeline();
   },
   methods: {
     clearModule() {

@@ -20,15 +20,15 @@ export default class WorkFlow {
     this.timelineClass = options.timelineClass || null;
     this.initStage();
   }
-  initStage() {
+  initStage(clip) {
     if (this.stage && this.stage instanceof Konva.Stage) {
       this.stage.destroy();
     }
-
     if (!this.containerId) {
       console.warn("缺少容器");
       return;
     }
+    this.clip = clip || this.clip;
     const container = document.getElementById(this.containerId);
     const { clientHeight, clientWidth } = container;
     this.stage = new Konva.Stage({

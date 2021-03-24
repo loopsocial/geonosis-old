@@ -82,6 +82,7 @@ function transformation() {
         inPoint === v.inPoint ||
         (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
       ) {
+        const diff = v.inPoint - inPoint; // 处理 一个字幕横跨两个视频的情况
         res.push({
           type: "user-added",
           zValue: caption.z || 1,
@@ -93,11 +94,12 @@ function transformation() {
           fontSize: caption.fontSize,
           frameWidth: "",
           frameHeight: "",
-          duration: Math.min(v.duration, duration),
+          duration: Math.min(v.duration, duration - diff),
           value: caption.text,
           textXAlignment: caption.align,
           font: caption.fontUrl,
-          backgroundImage: caption.backgroundImage
+          backgroundImage: caption.backgroundImage,
+          packageUrl: caption.packageUrl
         });
       }
       return res;
@@ -123,7 +125,7 @@ function transformation() {
           v.translationY += item[v.videoType].translationY;
         } else if (item.type === "module") {
           item.text.map(text => {
-            moduleCaptions.push({
+            const caption = {
               type: "module",
               zValue: text.zValue || 1,
               fontColor: text.fontColor,
@@ -137,7 +139,11 @@ function transformation() {
               value: text.value,
               textXAlignment: text.textXAlignment,
               font: text.font
-            });
+            };
+            if (text.packageUrl) {
+              caption.packageUrl = text.packageUrl;
+            }
+            moduleCaptions.push(caption);
           });
           if (item.image && item.image.source && item.image.source.src) {
             moduleCaptions[moduleCaptions.length - 1].backgroundImage =
@@ -208,11 +214,12 @@ function writeVideoLayer(stream, video) {
   stream.writeAttribute("translation-y", "" + video.translationY);
   // 写 source标签
   stream.writeStartElement("source");
-  stream.writeAttribute("src", "" + video.source.src);
-  stream.writeAttribute("width", "" + video.source.width);
-  stream.writeAttribute("height", "" + video.source.height);
-  stream.writeAttribute("aspect-ratio", "" + video.source.aspectRatio);
-  stream.writeAttribute("m3u8-url", "" + video.source.m3u8Url);
+  const { src, width, height, aspectRatio, m3u8Url } = video.source;
+  src && stream.writeAttribute("src", "" + src);
+  width && stream.writeAttribute("width", "" + width);
+  height && stream.writeAttribute("height", "" + height);
+  aspectRatio && stream.writeAttribute("aspect-ratio", "" + aspectRatio);
+  m3u8Url && stream.writeAttribute("m3u8-url", "" + m3u8Url);
   stream.writeEndElement(); // source
 
   stream.writeEndElement(); // fw-video
@@ -236,24 +243,33 @@ function writeCaption(stream, caption) {
   const videoLength = Math.max(videoHeight, videoWidth);
   const fontSize = (caption.fontSize * 720) / videoLength;
   stream.writeStartElement(`fw-text`);
+  stream.writeAttribute("duration", "" + caption.duration);
   stream.writeAttribute("z-value", "" + caption.zValue);
   if (caption.packageUrl) {
     stream.writeAttribute("caption-style-uuid", "" + caption.packageUrl);
   }
-  stream.writeAttribute(
-    "background-color",
-    "" + RGBAToHex(caption.backgroundColor)
-  );
+  if (caption.backgroundColor) {
+    stream.writeAttribute(
+      "background-color",
+      "" + RGBAToHex(caption.backgroundColor)
+    );
+  }
+  if (caption.fontColor) {
+    stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
+  }
   stream.writeAttribute("translation-x", "" + translationX);
   stream.writeAttribute("translation-y", "" + translationY);
   fontSize && stream.writeAttribute("font-size", "" + fontSize);
-  stream.writeAttribute("font-color", "" + RGBAToHex(caption.fontColor));
-  stream.writeAttribute("font", "" + caption.font);
-  caption.frameWidth &&
+  caption.font && stream.writeAttribute("font", "" + caption.font);
+  if (caption.frameWidth) {
     stream.writeAttribute("frame-width", "" + caption.frameWidth);
-  caption.frameHeight &&
+  }
+  if (caption.frameHeight) {
     stream.writeAttribute("frame-height", "" + caption.frameHeight);
-  stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
+  }
+  if (caption.textXAlignment) {
+    stream.writeAttribute("text-x-alignment", "" + caption.textXAlignment);
+  }
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
   caption.scaleX && stream.writeAttribute("scale-x", "" + caption.scaleX);
   caption.scaleY && stream.writeAttribute("scale-y", "" + caption.scaleY);
@@ -536,6 +552,7 @@ async function readLayer(stream) {
         try {
           const captionPath = await installAsset(captionStyle);
           caption.styleDesc = captionPath.split("/").pop();
+          caption.packageUrl = captionStyle;
         } catch (error) {
           console.error("字幕安装失败");
         }

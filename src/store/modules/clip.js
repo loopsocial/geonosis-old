@@ -15,7 +15,8 @@ export default {
     videoWidth: 540,
     videoHeight: 960,
     alias: "",
-    version: "1"
+    version: "1",
+    loaded: false
   },
   mutations: {
     init(state, data) {
@@ -27,6 +28,7 @@ export default {
       state.videoWidth = data.videoWidth || 540;
       state.alias = data.alias;
       state.version = data.version || 1;
+      state.loaded = true;
     },
     resetClips(state, { type, clips }) {
       switch (type) {

@@ -33,6 +33,10 @@ import dragMixin from "@/mixins/dragMixin";
 import keyBindMx from "@/mixins/keyBindMx";
 import WorkFlow from "@/utils/WorkFlow";
 import { mapActions, mapState } from "vuex";
+import resource from "../mock/resource.json";
+import { installAsset } from "../utils/AssetsUtils";
+import { VideoClip } from "@/utils/ProjectData";
+import { DEFAULT_FONT } from "@/utils/Global";
 export default {
   mixins: [dragMixin, keyBindMx],
   props: {},
@@ -59,7 +63,17 @@ export default {
         message: this.$t("loadModulesFailed")
       });
     }
-    window.test = this.test;
+    // 创建时间线
+    if (!this.vuexLoaded) {
+      await this.installFont();
+      const mediaAssets = await this.getMediaAssets();
+      await this.applyAssets(mediaAssets);
+      console.log("media-assets", mediaAssets);
+    } else {
+      await this.$nextTick();
+    }
+    console.log("创建时间线");
+    await this.createTimeline();
     document.body.addEventListener("mouseup", this.statusEvent);
   },
   computed: {
@@ -197,7 +211,7 @@ export default {
     },
     drawBox(clip) {
       if (this.flow) {
-        this.flow.initStage();
+        this.flow.initStage(clip);
       } else {
         this.flow = new WorkFlow({
           containerId: "work-flow",
@@ -388,6 +402,63 @@ export default {
       console.log("时间线创建完成", this.timelineClass);
       this.keyBind();
     },
+    // 安装字体
+    async installFont() {
+      const res = await this.axios.get(this.$api.materials, {
+        params: {
+          type: 6,
+          page: 0,
+          pageSize: 20
+        }
+      });
+      const fonts = res.data.materialList;
+      const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
+      console.log(font);
+      await installAsset(font.packageUrl);
+    },
+    // 获取工程的mediaAssets
+    async getMediaAssets() {
+      let { mediaAssets } = this.$route.params;
+      const { id } = this.$route.query;
+      if (!Array.isArray(mediaAssets)) {
+        // 这不是create跳转过来的，通过id查询mediaAssets
+        if (id) {
+          const project = await this.axios.get(
+            `${this.$api.videoProjects}/${id}`
+          );
+          mediaAssets = project.media_assets;
+        } else {
+          mediaAssets = resource.resourceList; // 测试素材
+        }
+      }
+      return mediaAssets;
+    },
+    // 安装m3u8 并且更新到vuex
+    async applyAssets(mediaAssets) {
+      const videoList = [];
+      let inPoint = 0;
+      for (let i = 0; i < mediaAssets.length; i++) {
+        const v = mediaAssets[i];
+        const m3u8Path = await installAsset(v[`hls_${v.media_type}_url`]); // 函数内部有处理, 防止重复安装
+        const video = new VideoClip({
+          m3u8Path,
+          inPoint,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000000,
+          videoType: v.media_type,
+          coverUrl: v.thumbnail_url,
+          url: v[`${v.media_type}_url`],
+          m3u8Url: v[`hls_${v.media_type}_url`],
+          widht: v.width,
+          height: v.height,
+          aspectRatio: v.aspect_ratio,
+          id: v.id,
+          thumbnails: v.thumbnails
+        });
+        inPoint += video.duration;
+        videoList.push(video);
+      }
+      this.initVuex({ videos: videoList }); // 将选择的video列表更新到vuex
+    },
     changeMonitor(canvasId) {
       canvasId = canvasId || "live-window";
       this.timelineClass.connectLiveWindow(canvasId);
@@ -452,8 +523,11 @@ export default {
           .getImgFromTimeline(t)
           .then(data => {
             const array = new Uint8Array(data);
-            const str = String.fromCharCode(...array);
-            resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
+            const blob = new Blob([array], { type: "image/png" });
+            const imageUrl = URL.createObjectURL(blob);
+            resolve(imageUrl);
+            // const str = String.fromCharCode(...array);
+            // resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
           })
           .catch(reject);
       });

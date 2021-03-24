@@ -83,11 +83,13 @@
     <div class="media-footage flex">
       <div class="selected-medias">
         <transition-group name="el-zoom-in-center">
-          <img
+          <el-image
             :src="getThumbnailUrl(item)"
-            v-for="item in selectedList"
+            fit="cover"
+            class="thumb"
             :key="item.id"
-          />
+            v-for="item in selectedList"
+          ></el-image>
         </transition-group>
       </div>
       <div class="duration-total" v-if="selectedList.length">
@@ -237,14 +239,22 @@ export default {
     async next() {
       this.playingId = null;
       const videos = [];
-      // let inPoint = 0;
       this.addMediaLoading = true;
       videos.push(...this.selectedList.map(media => media.id));
-      const videoProject = await this.axios.post(this.$api.videoProjects, {
-        media_asset_ids: videos
-      });
-      this.addMediaLoading = false;
-      this.$emit("selected-finish", videoProject);
+      try {
+        const videoProject = await this.axios.post(this.$api.videoProjects, {
+          media_asset_ids: videos
+        });
+        this.$emit("selected-finish", videoProject);
+      } catch (error) {
+        this.$message({
+          type: "error",
+          message: this.$t("failed")
+        });
+        console.error("操作失败", error);
+      } finally {
+        this.addMediaLoading = false;
+      }
     },
     cancel() {
       this.uploadList.map(item => {
@@ -484,13 +494,13 @@ export default {
       overflow: auto;
       @include scrollBarStyle;
       margin-right: 16px;
-      img {
+      .thumb {
         height: 100%;
         width: 42px;
         height: 42px;
         border-radius: 4px;
       }
-      img + img {
+      .thumb + .thumb {
         margin-left: 8px;
       }
     }
@@ -519,7 +529,8 @@ export default {
     "search": "Enter keyword search",
     "image": "Image",
     "video": "Video",
-    "gif": "Gif"
+    "gif": "Gif",
+    "failed": "Operation Failed"
   }
 }
 </i18n>

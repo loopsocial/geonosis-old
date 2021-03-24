@@ -39,7 +39,7 @@ export default {
     };
   },
   async mounted() {
-    await this.$refs.preview.createTimeline();
+    // await this.$refs.preview.createTimeline();
   },
   methods: {
     handleNone() {

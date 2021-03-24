@@ -10,7 +10,7 @@
       <el-menu
         :default-active="defaultActive"
         class="el-menu-vertical"
-        router
+        @select="selectRouter"
         :collapse-transition="false"
       >
         <el-menu-item index="Scenes">
@@ -79,7 +79,16 @@ export default {
       return !this.isFinishNvs;
     }
   },
-  methods: {}
+  methods: {
+    selectRouter(name) {
+      const { id } = this.$route.query;
+      const r = {
+        name,
+        query: { id }
+      };
+      this.$router.push(r);
+    }
+  }
 };
 </script>
 
