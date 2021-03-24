@@ -238,14 +238,24 @@ export default {
     },
     async next() {
       this.playingId = null;
-      const videos = [];
       this.addMediaLoading = true;
-      videos.push(...this.selectedList.map(media => media.id));
       try {
-        const videoProject = await this.axios.post(this.$api.videoProjects, {
-          media_asset_ids: videos
-        });
-        this.$emit("selected-finish", videoProject);
+        // TODO: 再scene页面的时候，再选择素材应该调用更新工程的接口
+        if (this.$route.name === "Create") {
+          const videos = this.selectedList.reduce((ids, media) => {
+            // 兼容测试素材，美摄的素材id是数字，fw库内没有
+            if (typeof media.id === "string") {
+              ids.push(media.id);
+            }
+            return ids;
+          }, []);
+          const videoProject = await this.axios.post(this.$api.videoProjects, {
+            media_asset_ids: videos
+          });
+          this.$emit("selected-finish", videoProject);
+        } else {
+          this.$emit("selected-finish", this.selectedList);
+        }
       } catch (error) {
         this.$message({
           type: "error",

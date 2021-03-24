@@ -82,44 +82,6 @@ export default {
     })
   },
   methods: {
-    test(point1, point2, point3, point4, raw) {
-      raw = raw ?? this.timelineClass.videoTrack.clips[0].splitList[0].raw;
-      const fx = raw.appendRawBuiltinFx("Transform 2D");
-      // fx.setFloatVal("Trans X", 100);
-      // fx.setFloatVal("Trans Y", 100);
-      console.log("吊");
-      window.fx = fx;
-      const mosaicFx = raw.appendRawBuiltinFx("Mosaic");
-      mosaicFx.setFloatVal("Unit Size", 0);
-      mosaicFx.setFilterIntensity(1);
-      mosaicFx.setRegional(true);
-      mosaicFx.setIgnoreBackground(true);
-      mosaicFx.setInverseRegion(false);
-      mosaicFx.setRegionalFeatherWidth(0);
-      const region = new NvsVectorFloat();
-      // pos1
-      region.push_back(point1.x);
-      region.push_back(point1.y);
-      region.push_back(point2.x);
-      region.push_back(point2.y);
-      region.push_back(point3.x);
-      region.push_back(point3.y);
-      region.push_back(point4.x);
-      region.push_back(point4.y);
-
-      // pos2
-      // region.push_back(-0.5);
-      // region.push_back(-0.5);
-      // // pos3
-      // region.push_back(0.5);
-      // region.push_back(-0.5);
-      // // pos4
-      // region.push_back(0.5);
-      // region.push_back(0.5);
-      mosaicFx.setRegion(region);
-
-      this.timelineClass.seekTimeline();
-    },
     statusEvent() {
       setTimeout(() => {
         this.setEditBoxstatus(false);

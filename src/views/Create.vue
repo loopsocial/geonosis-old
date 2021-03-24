@@ -62,7 +62,7 @@ export default {
       this.mediaDialog = false;
       this.status = this.statusMap.edit;
       this.medias = videoProject.media_assets;
-      console.log("video", videoProject);
+      this.resetLoaded();
       this.$router.push({
         name: "Scenes",
         query: { id: videoProject.id },

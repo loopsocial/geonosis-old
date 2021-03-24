@@ -30,6 +30,9 @@ export default {
       state.version = data.version || 1;
       state.loaded = true;
     },
+    resetLoaded(state) {
+      state.loaded = false;
+    },
     resetClips(state, { type, clips }) {
       switch (type) {
         case CLIP_TYPES.VIDEO:

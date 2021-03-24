@@ -193,7 +193,7 @@ function writeCreation(stream) {
 function writeScene(stream, scene) {
   stream.writeStartElement("fw-scene");
   writeVideoLayer(stream, scene.video);
-  writeCaptionLayer(stream, scene.captions, "user-add");
+  writeCaptionLayer(stream, scene.captions, "user-added");
   writeCaptionLayer(stream, scene.moduleCaptions, "module");
   stream.writeEndElement();
 }

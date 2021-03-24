@@ -274,6 +274,7 @@ import OperateStack from "@/utils/OperateStack";
 import Medias from "../create/Medias";
 import { RATIO } from "@/utils/Global";
 import WorkFlow from "@/utils/WorkFlow";
+import { installAsset } from "@/utils/AssetsUtils";
 
 export default {
   components: {
@@ -649,8 +650,37 @@ export default {
       }
       return sum + splitIndex;
     },
-    selectedFinish(videos) {
-      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: videos });
+    async selectedFinish(videos) {
+      let medias = videos.filter(
+        ({ id }) => !this.videos.find(v => v.id === id)
+      );
+      const assets = [];
+      const lastVideo = this.videos[this.videos.length - 1];
+      let inPoint = lastVideo.splitList.reduce((duration, item) => {
+        duration += item.captureOut - item.captureIn;
+        return duration;
+      }, lastVideo.inPoint || 0);
+      for (let i = 0; i < medias.length; i++) {
+        const v = medias[i];
+        const m3u8Path = await installAsset();
+        const video = new VideoClip({
+          m3u8Path,
+          inPoint,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000000,
+          videoType: v.media_type,
+          coverUrl: v.thumbnail_url,
+          url: v[`${v.media_type}_url`],
+          m3u8Url: v[`hls_${v.media_type}_url`],
+          widht: v.width,
+          height: v.height,
+          aspectRatio: v.aspect_ratio,
+          id: v.id,
+          thumbnails: v.thumbnails
+        });
+        inPoint += video.duration;
+        assets.push(video);
+      }
+      this.addClipToVuex(assets);
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.mediaDialog = false;
     },

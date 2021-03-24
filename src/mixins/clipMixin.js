@@ -25,7 +25,8 @@ export default {
       updateClipToVuex: "clip/updateClipToVuex",
       resetClips: "clip/resetClips",
       initVuex: "clip/init",
-      setModule: "clip/setModule"
+      setModule: "clip/setModule",
+      resetLoaded: "clip/resetLoaded"
     })
   }
 };
