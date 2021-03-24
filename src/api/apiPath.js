@@ -1,7 +1,9 @@
 import host from "./apiHost";
 // ^/ms为美摄测试用接口
 // ^/fw为fw接口
-// ^/fwServe 部署到loop now服务器的接口
+// ^/fwServe 部署到loop now  https://meishe.fireworktv.net 服务器的接口
+
+// 开发环境使用proxy代理，其他环境使用host[path]
 function isDev(path) {
   const isDevelopment = process.env.NODE_ENV === "development";
   return isDevelopment ? `/${path}` : host[path];

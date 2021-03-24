@@ -37,6 +37,8 @@ import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
+import { writeXml } from "@/utils/XmlUtils";
+
 export default {
   mixins: [dragMixin, keyBindMx],
   props: {},
@@ -65,14 +67,16 @@ export default {
     }
     // 创建时间线
     if (!this.vuexLoaded) {
-      await this.installFont();
-      const mediaAssets = await this.getMediaAssets();
-      await this.applyAssets(mediaAssets);
+      await this.installFont(); // 安装字体
+      const mediaAssets = await this.getMediaAssets(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
+      await this.applyAssets(mediaAssets); // 更新vuex 安装并应用素材
       console.log("media-assets", mediaAssets);
+      this.updateProject();
     } else {
       await this.$nextTick();
     }
     console.log("创建时间线");
+    this.setEventBus(); // 绑定eventBus相关事件
     await this.createTimeline();
     document.body.addEventListener("mouseup", this.statusEvent);
     this.$emit("on-loaded");
@@ -83,6 +87,30 @@ export default {
     })
   },
   methods: {
+    // 更新工程。初始化档案时；添加、删除素材时调用
+    updateProject() {
+      const { id: projectId } = this.$route.query;
+      if (!projectId) {
+        return;
+      }
+      const mediaIds = this.videos.reduce((ids, v) => {
+        if (typeof v.id === "string") ids.push(v.id);
+        return ids;
+      }, []);
+      writeXml("project.xml");
+      const xml = FS.readFile("project.xml", { encoding: "utf8" });
+      this.axios
+        .put(this.$api.videoProjects + `/${projectId}`, {
+          media_asset_ids: mediaIds,
+          dom_xml: xml
+        })
+        .then(r => {
+          console.log("project 更新成功", r);
+        })
+        .catch(e => {
+          console.error("project 更新失败", e);
+        });
+    },
     statusEvent() {
       setTimeout(() => {
         this.setEditBoxstatus(false);
@@ -166,6 +194,7 @@ export default {
       this.$bus.$on(this.$keys.closePanel, this.closePanel);
       this.$bus.$on(this.$keys.drawBox, this.drawBox);
       this.$bus.$on(this.$keys.rebuildTimeline, this.rebuildTimeline);
+      this.$bus.$on(this.$keys.updateProject, this.updateProject);
     },
     // 重新构建timeline
     async rebuildTimeline() {
@@ -360,7 +389,6 @@ export default {
       window.timelineClass = this.timelineClass; // 调试用
       await this.timelineClass.buildTimeline();
       this.setContextEvent(); // 绑定SDK相关事件
-      this.setEventBus(); // 绑定eventBus相关事件
       this.timelineClass.seekTimeline();
       console.log("时间线创建完成", this.timelineClass);
       this.keyBind();

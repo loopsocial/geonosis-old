@@ -240,7 +240,7 @@ export default {
       this.playingId = null;
       this.addMediaLoading = true;
       try {
-        // TODO: 再scene页面的时候，再选择素材应该调用更新工程的接口
+        // 第一次进入scenes页面时会自动更新project
         if (this.$route.name === "Create") {
           const videos = this.selectedList.reduce((ids, media) => {
             // 兼容测试素材，美摄的素材id是数字，fw库内没有

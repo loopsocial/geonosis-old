@@ -11,5 +11,6 @@ export default {
   seek: "seek",
   closePanel: "closePanel",
   drawBox: "drawBox",
-  rebuildTimeline: "rebuildTimeline"
+  rebuildTimeline: "rebuildTimeline",
+  updateProject: "updateProject"
 };

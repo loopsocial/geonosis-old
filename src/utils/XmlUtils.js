@@ -173,9 +173,9 @@ export function writeXml(xmlPath) {
     return;
   }
   stream.writeStartDocument();
-  stream.writeStartElement("dom");
+  // stream.writeStartElement("dom");
   writeCreation(stream);
-  stream.writeEndElement();
+  // stream.writeEndElement();
   stream.writeEndDocument();
   stream.close();
 }

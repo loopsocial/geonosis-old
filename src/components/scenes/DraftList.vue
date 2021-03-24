@@ -684,6 +684,7 @@ export default {
       }
       this.addClipToVuex(assets);
       this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
       this.mediaDialog = false;
     },
     calcSplittedItemWidth(startTime, endTime) {
@@ -995,6 +996,7 @@ export default {
       const i = Math.min(index, v.length);
       this.currentVideoUuid = v[i] && v[i].uuid + "_0";
       this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
     },
 
     // 计算出当前播放位置占总体百分比
