@@ -11,13 +11,11 @@ import api from "./api/apiPath";
 import EventBus from "./EventBus";
 import EventBusKeys from "./utils/EventBusKeys";
 import clipMixin from "@/mixins/clipMixin";
-// import { Task } from "./utils/Task";
 
 // require("./mock/index");
 Vue.config.productionTip = false;
 Vue.prototype.$api = api;
 Vue.prototype.$keys = EventBusKeys;
-// Vue.prototype.$Task = new Task();
 Object.defineProperties(Vue.prototype, {
   $bus: {
     get: function() {

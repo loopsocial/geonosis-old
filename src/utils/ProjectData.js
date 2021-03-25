@@ -1,4 +1,4 @@
-import { CLIP_TYPES } from "@/utils/Global";
+import { CLIP_TYPES, DEFAULT_CAPTION } from "@/utils/Global";
 import { generateUUID } from "@/utils/common";
 
 class Raw {
@@ -106,7 +106,8 @@ export class CaptionClip extends Clip {
       type: CLIP_TYPES.CAPTION,
       duration: option.duration || 3 * 1000000
     });
-    this.styleDesc = option.desc || option.id || option.styleDesc;
+    this.styleDesc =
+      option.desc || option.id || option.styleDesc || DEFAULT_CAPTION;
     this.text = option.text || CLIP_TYPES.CAPTION;
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;

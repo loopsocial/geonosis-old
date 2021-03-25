@@ -67,6 +67,15 @@ module.exports = {
     }
   },
   chainWebpack: config => {
+    config.module
+      .rule("caption-loader")
+      .test(/\.captionstyle$/i)
+      .use("arraybuffer-loader")
+      .loader("arraybuffer-loader")
+      .options({
+        esModule: false
+      })
+      .end();
     config.module.rules.delete("svg"); //重点:删除默认配置中处理svg,
     config.module
       .rule("svg-sprite-loader")

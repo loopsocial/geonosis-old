@@ -1,6 +1,11 @@
 import store from "../store";
 import { HexToRGBA, RGBAToHex } from "./common";
-import { CLIP_TYPES, FX_DESC, TRANSFORM2D_KEYS } from "./Global";
+import {
+  CLIP_TYPES,
+  FX_DESC,
+  TRANSFORM2D_KEYS,
+  DEFAULT_CAPTION
+} from "./Global";
 import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
 import { installAsset } from "./AssetsUtils";
 // 将vuex中的数据转换格式，方便写入xml  TODO: 要合并module
@@ -459,7 +464,7 @@ async function readProjectCaptions(stream, video) {
             .split(".")
             .shift();
         } catch (error) {
-          console.error("字幕安装失败");
+          console.error("字幕安装失败 使用默认字幕", captionStyle);
         }
       }
 
@@ -596,7 +601,8 @@ async function readLayer(stream) {
           const captionPath = await installAsset(captionStyle);
           caption.styleDesc = captionPath.split("/").pop();
         } catch (error) {
-          console.error("字幕安装失败");
+          console.error("字幕安装失败 使用默认字幕", captionStyle);
+          caption.styleDesc = DEFAULT_CAPTION;
         }
       }
       const fontUrl = stream.getAttributeValue("font");

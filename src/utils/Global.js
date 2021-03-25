@@ -59,6 +59,7 @@ export const TRACK_TYPES = {
   CAPTION: "captionTrack",
   STICKER: "stickerTrack"
 };
+export const DEFAULT_CAPTION = "4447104F-7377-478C-92A3-89FC98FDABF6"; // 默认字幕
 export const DEFAULT_FONT = "Noto Sans CJK JP";
 export const AUDIO_MIN_DURTAION = 1000 * 1000; // 音乐最小裁剪限制，单位微秒
 
