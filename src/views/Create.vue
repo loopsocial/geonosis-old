@@ -4,6 +4,7 @@
       @open-media="openMedia"
       :videoProjects="videoProjects"
       v-if="status === statusMap.media"
+      @refresh-videoproject="refreshVideoproject"
     ></Project>
     <Edit
       v-if="status === statusMap.edit"
@@ -76,6 +77,9 @@ export default {
         const { video_projects } = res;
         this.videoProjects = video_projects;
       });
+    },
+    refreshVideoproject() {
+      this.getMediaLibrary();
     }
   }
 };

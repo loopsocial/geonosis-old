@@ -22,7 +22,11 @@
           v-for="project in videoProjects"
           :key="project.id"
         >
-          <ProjectItem :project="project" @selectProject="selectProject" />
+          <ProjectItem
+            :project="project"
+            @select-project="selectProject"
+            @refresh-videoproject="refreshVideoproject"
+          />
           <div class="project-title">
             {{ project.title || "Untitle" }}
           </div>
@@ -51,6 +55,9 @@ export default {
           mediaAssets: res.media_assets
         }
       });
+    },
+    refreshVideoproject() {
+      this.$emit("refresh-videoproject");
     }
   }
 };

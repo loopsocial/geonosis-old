@@ -3,8 +3,31 @@
     <div class="project-state" v-if="project.state">
       {{ project.state }}
     </div>
-    <div class="flex project-action-items" @click="openActionItems(project)">
-      <i class="el-icon-more"></i>
+    <div class="project-action-items-wrapper">
+      <el-dropdown
+        trigger="click"
+        placement="bottom-start"
+        @command="handleCommand"
+      >
+        <div class="project-action-items flex">
+          <i class="el-icon-more"></i>
+        </div>
+        <el-dropdown-menu slot="dropdown">
+          <!-- <el-dropdown-item icon="el-icon-copy-document" command="duplicate">
+            Duplicate
+          </el-dropdown-item> -->
+          <!-- <el-dropdown-item
+            v-if="project.state === 'published'"
+            icon="el-icon-link"
+            command="share"
+          >
+            Share link
+          </el-dropdown-item> -->
+          <el-dropdown-item icon="el-icon-delete-solid" command="delete">
+            Delete
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
     </div>
     <div class="project-cover-wrapper" @click="selectProject">
       <el-image
@@ -24,11 +47,40 @@ export default {
   },
   mounted() {},
   methods: {
-    openActionItems() {
-      console.log("openActionItems", this.project);
+    handleCommand(command) {
+      console.log("handleCommand", command, this.project);
+      if (command === "delete") {
+        this.$confirm(
+          "This will permanently delete the video project. Continue?",
+          "",
+          {
+            confirmButtonText: "Delete",
+            cancelButtonText: "Cancel",
+            type: "warning"
+          }
+        )
+          .then(async () => {
+            await axios.delete(this.$api.videoProjectById(this.project.id));
+            this.$message({
+              type: "success",
+              message: "Delete completed"
+            });
+            this.$emit("refresh-videoproject");
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "Delete canceled"
+            });
+          });
+      }
+      // if (command === "share") {
+      // }
+      // if (command === "duplicate") {
+      // }
     },
     selectProject() {
-      this.$emit("selectProject", this.project);
+      this.$emit("select-project", this.project);
     }
   }
 };
@@ -50,17 +102,23 @@ export default {
     line-height: 14px;
     user-select: none;
   }
-  .project-action-items {
-    cursor: pointer;
+  .project-action-items-wrapper {
     position: absolute;
     z-index: 10;
     top: 8px;
     right: 8px;
-    width: 36px;
-    height: 36px;
-    border-radius: 36px;
-    background: rgba(0, 0, 0, 0.5);
-    font-size: 20px;
+    .project-action-items {
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 36px;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      font-size: 20px;
+      &:focus {
+        outline: none;
+      }
+    }
   }
 
   .project-cover-wrapper {

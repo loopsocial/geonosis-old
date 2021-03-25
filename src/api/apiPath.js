@@ -20,6 +20,7 @@ export default {
   soundTracks: `${isDev("fw")}/api/soundtracks`,
 
   videoProjects: `${isDev("fw")}/studio/video_projects`,
+  videoProjectById: id => `${isDev("fw")}/studio/video_projects/${id}`,
   mediaAssets: `${isDev("fw")}/studio/media_assets`,
 
   mediaAssetsUploadComplete: id =>
