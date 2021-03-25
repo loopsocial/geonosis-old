@@ -2,6 +2,7 @@
 export const objectStores = [
   "m3u8",
   "font",
+  "audio",
   "captionstyle",
   "animatedsticker",
   "compoundcaption",

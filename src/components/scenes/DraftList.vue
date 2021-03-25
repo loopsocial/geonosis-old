@@ -950,18 +950,17 @@ export default {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
           this.motion = this.activeClip.motion;
-          this.calcSelectRectSize();
           this.operateStack.pushSnapshot(this.splitList);
         } else {
           this.initSplit(); // 根据当前video的splitList分隔当前缩略图
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
-          this.calcDuration(); // 计算Duration
-          this.calcSelectRectSize();
+          this.calcDuration(); // 计算Duration（dialog底部展示）
           this.splittreLeft = 0;
           this.operateStack.pushSnapshot(this.splitList);
           addEventListener("resize", this.handleResize);
           document.body.addEventListener("mousedown", this.handleDocumentClick);
         }
+        this.calcSelectRectSize(); // 计算video部分选中框大小
       });
     },
     delMaterials(delItem) {

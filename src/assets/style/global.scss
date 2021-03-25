@@ -13,7 +13,7 @@ span.duration {
 }
 // 按钮, 渐变色
 body .el-button {
-  &.el-button--text {
+  &.el-button--text:not(.is-disabled) {
     color: white;
     font-weight: 500;
     font-size: 16px;

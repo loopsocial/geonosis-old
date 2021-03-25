@@ -95,6 +95,8 @@ export class AudioClip extends Clip {
     this.uuid = generateUUID();
     this.leftChannelUrl = option.leftChannelUrl || "";
     this.rightChannelUrl = option.rightChannelUrl || "";
+    this.name = option.name || "";
+    this.artist = option.artist || "";
   }
 }
 export class CaptionClip extends Clip {

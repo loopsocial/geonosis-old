@@ -51,6 +51,8 @@ function getStoreName(key) {
   let storeName;
   if (key.toLowerCase().search(/ttc|ttf|otf$/) > -1) {
     storeName = "font";
+  } else if (key.toLowerCase().search(/m4a|mp3|wav$/) > -1) {
+    storeName = "audio";
   } else {
     storeName = objectStores.find(item => key.toLowerCase().includes(item));
   }
@@ -213,6 +215,8 @@ export async function installAsset(packageUrl, options) {
           } else {
             resolve(filePath);
           }
+        } else {
+          resolve(filePath);
         }
       })
       .catch(err => {
