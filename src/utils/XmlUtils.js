@@ -55,7 +55,8 @@ function transformation() {
           width: video.width,
           height: video.height,
           aspectRatio: video.aspectRatio,
-          m3u8Url: video.m3u8Url
+          m3u8Url: video.m3u8Url,
+          id: video.id
         }
       };
       if (vItem.videoType) vItem.motion = video.motion;
@@ -216,12 +217,13 @@ function writeVideoLayer(stream, video) {
   stream.writeAttribute("translation-y", "" + video.translationY);
   // 写 source标签
   stream.writeStartElement("source");
-  const { src, width, height, aspectRatio, m3u8Url } = video.source;
+  const { src, width, height, aspectRatio, m3u8Url, id } = video.source;
   src && stream.writeAttribute("src", "" + src);
   width && stream.writeAttribute("width", "" + width);
   height && stream.writeAttribute("height", "" + height);
   aspectRatio && stream.writeAttribute("aspect-ratio", "" + aspectRatio);
   m3u8Url && stream.writeAttribute("m3u8-url", "" + m3u8Url);
+  id && stream.writeAttribute("id", "" + id);
   stream.writeEndElement(); // source
 
   stream.writeEndElement(); // fw-video
@@ -287,7 +289,7 @@ function writeCaption(stream, caption) {
   }
 }
 // 读取工程的XML
-export function readProjectXml(xmlPath) {
+export async function readProjectXml(xmlPath) {
   let result;
   const stream = new NvsXmlStreamReader(xmlPath || "p.xml");
   if (!stream.open()) {
@@ -295,8 +297,8 @@ export function readProjectXml(xmlPath) {
     return;
   }
   while (!stream.atEnd() && !stream.hasError()) {
-    if (stream.isStartElement() && stream.name() === "dom") {
-      result = readDom(stream);
+    if (stream.isStartElement() && stream.name() === "fw-creation") {
+      result = await readDom(stream);
     }
     stream.readNext();
   }
@@ -306,7 +308,7 @@ export function readProjectXml(xmlPath) {
   stream.close();
   return result;
 }
-function readDom(stream) {
+async function readDom(stream) {
   const res = {};
   while (!(stream.isEndElement() && stream.name() === "fw-creation")) {
     if (stream.isStartElement() && stream.name() === "fw-creation") {
@@ -317,17 +319,19 @@ function readDom(stream) {
       res.videos = [];
       res.audios = [];
       res.captions = [];
+      res.modules = [];
       res.stickers = [];
     } else if (stream.isStartElement() && stream.name() === "fw-scene") {
-      const { video, captions } = readProjectScene(stream, res);
+      const { video, captions, module } = await readProjectScene(stream, res);
       res.videos.push(video);
       res.captions.push(...captions);
+      res.modules.push(module);
     }
     stream.readNext();
   }
   return res;
 }
-function readProjectScene(stream, res) {
+async function readProjectScene(stream, res) {
   // TODO: 估计还好拖拽sticker
   const scene = {
     video: null,
@@ -343,11 +347,11 @@ function readProjectScene(stream, res) {
         scene.video = readProjectVideo(stream, res.videos);
       } else if (type === "module") {
         // TODO: 用户使用的模板（字幕、贴纸）
-        const captions = readProjectCaptions(stream, scene.video);
+        const captions = await readProjectCaptions(stream, scene.video);
         scene.module.captions.push(...captions);
       } else if (type === "user-added") {
         // TODO: 用户添加的字幕、贴纸等
-        const captions = readProjectCaptions(stream, scene.video);
+        const captions = await readProjectCaptions(stream, scene.video);
         scene.captions.push(...captions);
       }
     }
@@ -405,34 +409,65 @@ function readProjectVideo(stream, videos) {
       video.width = stream.getAttributeValue("width");
       video.height = stream.getAttributeValue("height");
       video.aspectRatio = stream.getAttributeValue("aspect-ratio");
-      video.m3u8Url = stream.getAttributeValue("m3u8-url");
+      video.id = stream.getAttributeValue("id");
     }
     stream.readNext();
   }
   return new VideoClip(video);
 }
 // 读取 fw-text/fw-image
-function readProjectCaptions(stream, video) {
+async function readProjectCaptions(stream, video) {
   const captions = [];
   const { videoWidth, videoHeight } = store.state.clip;
   const videoLength = Math.max(videoHeight, videoWidth);
   while (!(stream.isEndElement() && stream.name() === "fw-scene-layer")) {
     if (stream.isStartElement() && stream.name() === "fw-text") {
-      const caption = new CaptionClip({
+      const caption = {
         inPoint: video.inPoint,
-        duration: stream.getAttributeValue("duration") || video.duration,
+        duration: (stream.getAttributeValue("duration") || video.duration) * 1,
         z: stream.getAttributeValue("z-value") * 1,
-        color: stream.getAttributeValue("font-color"),
+        text: stream.getAttributeValue("value"),
         translationX: stream.getAttributeValue("translation-x") * videoLength,
         translationY: stream.getAttributeValue("translation-y") * videoLength,
-        fontSize: stream.getAttributeValue("font-size") * videoLength,
-        frameWidth: stream.getAttributeValue("frame-width"),
-        frameHeight: stream.getAttributeValue("frame-height"),
-        align: stream.getAttributeValue("text-x-alignment"),
-        text: stream.getAttributeValue("value"),
-        scale: stream.getAttributeValue("scale-x") * 1
-      });
-      captions.push(caption);
+        scale: stream.getAttributeValue("scale-x") * 1,
+        align: stream.getAttributeValue("text-x-alignment") || "center"
+      };
+      const fontUrl = stream.getAttributeValue("font-color");
+      if (fontUrl) {
+        caption.fontUrl = fontUrl;
+        try {
+          console.log("尝试安装字体");
+          caption.font = await installAsset(fontUrl);
+        } catch (error) {
+          console.error("字体安装失败");
+        }
+      }
+      const fontColor = stream.getAttributeValue("font-color");
+      if (fontColor) caption.color = fontColor;
+      const fontSize = stream.getAttributeValue("font-size");
+      if (fontSize) {
+        caption.fontSize = stream.getAttributeValue("font-size") * videoLength;
+      }
+      const captionStyle = stream.getAttributeValue("caption-style-uuid");
+      if (captionStyle) {
+        caption.packageUrl = captionStyle;
+        try {
+          const captionPath = await installAsset(captionStyle);
+          caption.desc = captionPath
+            .split("/")
+            .pop()
+            .split(".")
+            .shift();
+        } catch (error) {
+          console.error("字幕安装失败");
+        }
+      }
+
+      const frameWidth = stream.getAttributeValue("frame-width");
+      if (frameWidth) caption.frameWidth = frameWidth;
+      const frameHeight = stream.getAttributeValue("frame-height");
+      if (frameHeight) caption.frameHeight = frameHeight;
+      captions.push(new CaptionClip(caption));
     } else if (stream.isStartElement() && stream.name() === "fw-image") {
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
         if (stream.isStartElement() && stream.name() === "source") {
@@ -530,11 +565,13 @@ async function readLayer(stream) {
           const height = stream.getAttributeValue("height") * 1;
           const aspectRatio = stream.getAttributeValue("aspect-ratio");
           const m3u8Url = stream.getAttributeValue("m3u8-url");
+          const id = stream.getAttributeValue("id");
           if (src) source.src = src;
           if (width) source.width = width;
           if (height) source.height = height;
           if (aspectRatio) source.aspectRatio = aspectRatio;
           if (m3u8Url) source.m3u8Url = m3u8Url;
+          if (id) source.id = id;
         }
         stream.readNext();
       }

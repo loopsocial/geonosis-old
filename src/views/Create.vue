@@ -65,10 +65,7 @@ export default {
       this.resetLoaded();
       this.$router.push({
         name: "Scenes",
-        query: { id: videoProject.id },
-        params: {
-          mediaAssets: videoProject.media_assets
-        }
+        query: { id: videoProject.id }
       });
     },
     getMediaLibrary() {

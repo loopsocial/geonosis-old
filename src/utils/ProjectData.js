@@ -35,12 +35,12 @@ export class VideoClip extends Clip {
     super({ ...option, type: CLIP_TYPES.VIDEO });
     this.id = option.id;
     this.m3u8Path = option.m3u8Path;
-    this.alphaM3u8Path = option.alphaM3u8Path;
+    // this.alphaM3u8Path = option.alphaM3u8Path;
     this.coverUrl = option.coverUrl;
     this.url = option.url;
-    this.alphaPath = "";
+    // this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
-    this.alphaM3u8Url = "";
+    // this.alphaM3u8Url = "";
     this.videoType = option.videoType; // videoType是字符串，且只能是video、image
     // this.trimIn = option.trimIn || 0;
     // this.trimOut = option.trimOut || option.duration;
@@ -104,7 +104,7 @@ export class CaptionClip extends Clip {
       type: CLIP_TYPES.CAPTION,
       duration: option.duration || 3 * 1000000
     });
-    this.styleDesc = option.desc || option.id;
+    this.styleDesc = option.desc || option.id || option.styleDesc;
     this.text = option.text || CLIP_TYPES.CAPTION;
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;

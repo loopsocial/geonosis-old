@@ -32,12 +32,12 @@ import { CaptionClip, StickerClip, AudioClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
 import keyBindMx from "@/mixins/keyBindMx";
 import WorkFlow from "@/utils/WorkFlow";
-import { mapActions, mapState } from "vuex";
+import { install, mapActions, mapState } from "vuex";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
-import { writeXml } from "@/utils/XmlUtils";
+import { writeXml, readProjectXml } from "@/utils/XmlUtils";
 
 export default {
   mixins: [dragMixin, keyBindMx],
@@ -68,9 +68,9 @@ export default {
     // 创建时间线
     if (!this.vuexLoaded) {
       await this.installFont(); // 安装字体
-      const mediaAssets = await this.getMediaAssets(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
-      await this.applyAssets(mediaAssets); // 更新vuex 安装并应用素材
+      const { mediaAssets, xml } = await this.getProjectInfo(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
       console.log("media-assets", mediaAssets);
+      await this.applyAssetsXml(mediaAssets, xml); // 更新vuex 安装并应用素材
       this.updateProject();
     } else {
       await this.$nextTick();
@@ -88,28 +88,32 @@ export default {
   },
   methods: {
     // 更新工程。初始化档案时；添加、删除素材时调用
-    updateProject() {
+    async updateProject(callback) {
       const { id: projectId } = this.$route.query;
-      if (!projectId) {
-        return;
+      // if (!projectId) {
+      //   if (typeof callback === "function") callback(false);
+      //   return;
+      // }
+      try {
+        const mediaIds = this.videos.reduce((ids, v) => {
+          if (typeof v.id === "string") ids.push(v.id);
+          return ids;
+        }, []);
+        writeXml("project.xml");
+        const xml = FS.readFile("project.xml", { encoding: "utf8" });
+        const r = await this.axios.put(
+          this.$api.videoProjects + `/${projectId}`,
+          {
+            media_asset_ids: mediaIds,
+            dom_xml: xml
+          }
+        );
+        if (typeof callback === "function") callback(true);
+        console.log("保存成功", r);
+      } catch (error) {
+        if (typeof callback === "function") callback(false);
+        console.error("保存失败", error);
       }
-      const mediaIds = this.videos.reduce((ids, v) => {
-        if (typeof v.id === "string") ids.push(v.id);
-        return ids;
-      }, []);
-      writeXml("project.xml");
-      const xml = FS.readFile("project.xml", { encoding: "utf8" });
-      this.axios
-        .put(this.$api.videoProjects + `/${projectId}`, {
-          media_asset_ids: mediaIds,
-          dom_xml: xml
-        })
-        .then(r => {
-          console.log("project 更新成功", r);
-        })
-        .catch(e => {
-          console.error("project 更新失败", e);
-        });
     },
     statusEvent() {
       setTimeout(() => {
@@ -404,27 +408,62 @@ export default {
       });
       const fonts = res.data.materialList;
       const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
-      console.log(font);
       await installAsset(font.packageUrl);
     },
     // 获取工程的mediaAssets
-    async getMediaAssets() {
-      let { mediaAssets } = this.$route.params;
+    async getProjectInfo() {
       const { id } = this.$route.query;
-      if (!Array.isArray(mediaAssets)) {
-        // 这不是create跳转过来的，通过id查询mediaAssets
+      let mediaAssets;
+      let xml;
+      // 这不是create跳转过来的，通过id查询mediaAssets
+      try {
         if (id) {
           const project = await this.axios.get(
             `${this.$api.videoProjects}/${id}`
           );
           mediaAssets = project.media_assets;
+          xml = project.dom_xml;
         } else {
           mediaAssets = resource.resourceList; // 测试素材
         }
+      } catch (error) {
+        console.error("获取工程信息失败, 使用测试素材", error);
+        mediaAssets = resource.resourceList; // 测试素材
       }
-      return mediaAssets;
+      return { mediaAssets, xml };
     },
     // 安装m3u8 并且更新到vuex
+    async applyAssetsXml(mediaAssets, xml) {
+      let timelineData = {};
+      if (xml) {
+        FS.writeFile("project.xml", xml);
+        const data = await readProjectXml("project.xml");
+        timelineData = await this.installMedia(mediaAssets, data);
+        console.log("工程解析后数据", timelineData);
+      } else {
+        // 没有xml的时候，表示新选择的素材创建工程
+        timelineData.videos = await this.applyAssets(mediaAssets);
+      }
+      this.initVuex(timelineData); // 将选择的video列表更新到vuex
+    },
+    // 安装音视频的m3u8，并且更新封面、缩率图、原始视频等
+    async installMedia(mediaAssets, data) {
+      for (let i = 0; i < data.videos.length; i++) {
+        const video = data.videos[i];
+        const media = mediaAssets.find(item => `${item.id}` == `${video.id}`);
+        if (media) {
+          video.url = media[`${media.media_type}_url`];
+          video.videoType = media.media_type;
+          video.m3u8Url = media[`hls_${media.media_type}_url`];
+          video.coverUrl = media.thumbnail_url || media.coverUrl;
+          video.thumbnails = media.thumbnails;
+          video.m3u8Path = await installAsset(video.m3u8Url);
+        } else {
+          console.log("工程内没有这个素材", video.id);
+        }
+      }
+      return data;
+    },
     async applyAssets(mediaAssets) {
       const videoList = [];
       let inPoint = 0;
@@ -448,7 +487,7 @@ export default {
         inPoint += video.duration;
         videoList.push(video);
       }
-      this.initVuex({ videos: videoList }); // 将选择的video列表更新到vuex
+      return videoList;
     },
     changeMonitor(canvasId) {
       canvasId = canvasId || "live-window";

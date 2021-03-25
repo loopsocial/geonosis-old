@@ -15,7 +15,7 @@
       </el-button>
     </div>
     <div class="content project-list-wrapper">
-      <h2 class="title">{{ $t("Previous project") }}</h2>
+      <h2 class="title">{{ $t("previous") }}</h2>
       <div class="projects-list">
         <div
           :class="['project-wrapper']"

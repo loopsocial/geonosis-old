@@ -24,7 +24,7 @@ module.exports = {
         }
       },
       "/fw": {
-        // target: "https://staging.fireworktv.com",
+        // target: "https://api.fw.tv",
         target: "https://studio.sandbox.fireworktv.com",
         secure: false,
         changeOrigin: true, //是否跨域

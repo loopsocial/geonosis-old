@@ -5,7 +5,7 @@
         <svg-icon icon-class="upload" class="icon-upload"></svg-icon>
       </div>
       <div class="upload-item-text">
-        {{ $t("Upload Media") }}
+        {{ $t("upload") }}
       </div>
     </div>
   </div>
@@ -23,6 +23,8 @@ export default {
 
 <style lang="scss" scoped>
 .upload-item {
+  aspect-ratio: 9/16;
+  width: 100%;
   cursor: pointer;
   position: relative;
   background-color: #2b2b2b;
@@ -41,3 +43,11 @@ export default {
   }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "upload":"Upload Media"
+  }
+}
+</i18n>

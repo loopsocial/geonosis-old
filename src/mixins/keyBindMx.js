@@ -1,7 +1,5 @@
 import KeyMap from "@/utils/KeyMap";
-import { writeXml } from "@/utils/XmlUtils";
 import Mousetrap from "mousetrap";
-import { uploadToMS } from "@/utils/Uploader";
 export default {
   data() {
     return {
@@ -12,30 +10,12 @@ export default {
     keyBind() {
       Mousetrap.bind(KeyMap.play, this.play);
       Mousetrap.bind(KeyMap.save, () => {
-        if (this.saving) return;
-        try {
-          this.saving = true;
-          writeXml("project.xml");
-          const file = FS.readFile("project.xml", { encoding: "utf8" });
-          console.log(file);
-          uploadToMS(file)
-            .then(url => {
-              localStorage.projectUrl = url;
-              this.$message({
-                type: "success",
-                message: "保存成功"
-              });
-            })
-            .finally(() => {
-              this.saving = false;
-            });
-        } catch (error) {
-          console.error("保存失败", error);
-          this.$message({
-            type: "error",
-            message: "保存失败"
-          });
-        }
+        console.log("保存", this.saving);
+        if (this.saving) return false;
+        this.saving = true;
+        this.$bus.$emit(this.$keys.updateProject, () => {
+          this.saving = false;
+        });
         return false;
       });
       Mousetrap.bind(KeyMap.revoke, () => {

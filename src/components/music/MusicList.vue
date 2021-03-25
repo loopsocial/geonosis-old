@@ -228,7 +228,7 @@ export default {
   height: 100%;
   overflow: auto;
   padding: 0 20px;
-  color: #fff;
+  color: $white;
   @include scrollBarStyle();
   .list {
     .list-item {
@@ -283,7 +283,7 @@ export default {
           position: absolute;
           width: 154px;
           height: 40px;
-          border: 2px solid #fff;
+          border: 2px solid $white;
           background: linear-gradient(
             219.63deg,
             #f78361 16.24%,
@@ -315,7 +315,7 @@ export default {
         }
         .singer {
           font-size: 14px;
-          color: #9b9b98;
+          color: $msg-font-color;
         }
       }
     }
