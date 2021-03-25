@@ -1,5 +1,8 @@
 <template>
-  <div class="music-list infinite-list-wrapper">
+  <div
+    class="music-list infinite-list-wrapper"
+    v-loading.fullscreen.lock="isLoading"
+  >
     <ul
       class="list"
       v-infinite-scroll="load"
@@ -8,62 +11,61 @@
       :infinite-scroll-disabled="disabled"
       ref="list"
     >
-      <li
-        class="list-item"
-        v-for="(music, idx) of musicList"
-        :key="music.uuid"
-        v-loading="!music.m3u8Path"
-      >
+      <li class="list-item" v-for="(music, idx) of musicList" :key="music.uuid">
         <div class="music-info">
           <div class="cover">
-            <img :src="music.coverUrl" alt="" srcset="" v-if="music.coverUrl" />
+            <img
+              :src="music.thumbnail_url"
+              alt=""
+              srcset=""
+              v-if="music.thumbnail_url"
+            />
           </div>
           <div class="info">
             <div class="name">{{ music.name }}</div>
-            <div class="singer">Icarus</div>
+            <div class="artist">{{ music.artist }}</div>
           </div>
           <div class="btns">
             <el-button @click="handleTrim($event, idx)" type="text">{{
               $t(`${music.timelineVisible ? "cancel" : "trim"}`)
             }}</el-button>
-            <el-button type="text" @click="applyAudio(music)">{{
-              $t("use")
-            }}</el-button>
+            <el-button
+              :disabled="idx !== activeIndex"
+              type="text"
+              @click="applyAudio(music)"
+              :title="idx !== activeIndex ? 'Trim First' : 'Use Audio'"
+              >{{ usingMusicId === music.id ? "using" : "use" }}</el-button
+            >
           </div>
         </div>
         <div
           :class="{ 'timeline-wrapper': true, hidden: !music.timelineVisible }"
+          ref="timelineWrapper"
         >
-          <div
-            class="slider-wrapper"
-            :style="{
-              left: sliderLeft * 100 + '%',
-              width: sliderWidth * 100 + '%'
-            }"
-            @mousedown="handleSliderMouseDown"
-            ref="slider"
-          >
+          <div class="timeline-cover"></div>
+          <div class="slider-wrapper" ref="slider">
             <div
-              class="slider"
-              :style="{ backgroundPosition: sliderBgPos + '%' }"
-            >
-              <!-- <div class="arrow left" @mousedown="handleLeftMouseDown"></div>
-              <div class="arrow right" @mousedown="handleRightMouseDown"></div> -->
-            </div>
+              class="slider-timeline"
+              :style="{
+                left: timelineLeft * 100 + '%',
+                width: videoTimelineWidth * 100 + '%'
+              }"
+              ref="timeline"
+              @mousedown="handleSliderMouseDown"
+            ></div>
           </div>
-
-          <div class="timeline" ref="timeline"></div>
         </div>
-        <!-- <img :src="style.coverUrl" alt="" /> -->
       </li>
     </ul>
-    <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-else-if="isNoMore">{{ $t("noMore") }}</p>
+    <p v-show="isLoading">{{ $t("loading") }}</p>
+    <p v-show="isNoMore">{{ $t("noMore") }}</p>
   </div>
 </template>
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
+import { AudioClip } from "@/utils/ProjectData";
+import { CLIP_TYPES } from "@/utils/Global";
 export default {
   data() {
     return {
@@ -74,20 +76,40 @@ export default {
       page: 0,
       timelineVisible: false,
       timelineWidth: 0,
-      sliderLeft: 0,
-      sliderWidth: 120,
+      timelineLeft: 0,
       mousePos: 0, // 鼠标相对于滑块最左边的位置
       sliderBgPos: 0,
-      activeIndex: 0,
-      sliderPos: {
-        // 滑块位置，占比表示
-        start: 0,
-        end: 0
-      },
+      activeIndex: -1,
       trimTimeline: null,
       timelineHeight: 0,
-      sliderEndPercentage: 0
+      fixedSliderLeft: 0, // 中间彩色固定滑块距左侧父div距离（百分比显示）
+      sliderEndPercentage: 0,
+      videoTimelineWidth: 0,
+      nextPage: "",
+      usingMusicId: ""
     };
+  },
+  watch: {
+    audios: {
+      handler(newVal) {
+        if (newVal.length) {
+          this.$emit("useMusic", {
+            isShow: true,
+            name: newVal[0].name,
+            artist: newVal[0].artist
+          });
+          this.usingMusicId = newVal[0].id;
+        } else {
+          this.$emit("useMusic", {
+            isShow: false,
+            name: "",
+            artist: ""
+          });
+          this.usingMusicId = "";
+        }
+      },
+      deep: true
+    }
   },
   computed: {
     disabled() {
@@ -98,13 +120,45 @@ export default {
       return this.musicList[this.activeIndex];
     }
   },
-  created() {
-    this.getMusic();
+  async created() {
+    await this.getMusic();
+    this.getUsingMusicId();
   },
-  mounted() {},
   methods: {
     applyAudio(audioClip) {
-      this.$bus.$emit(this.$keys.addAudioClip, audioClip);
+      this.$emit("clearAudio");
+      const packageUrl =
+        "https://alieasset.meishesdk.com/test/material/music/BFDA5A01-1AEA-48A5-B5B2-50FF7249AE45/BFDA5A01-1AEA-48A5-B5B2-50FF7249AE45.mp3";
+      this.calcAudioTime(audioClip);
+      this.isLoading = true;
+      installAsset(packageUrl)
+        .then(r => {
+          audioClip.m3u8Path = r;
+          this.$bus.$emit(this.$keys.addAudioClip, audioClip);
+        })
+        .finally(() => (this.isLoading = false));
+    },
+    calcAudioTime(audioClip) {
+      const fixedSlider = this.$refs.slider[this.activeIndex];
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+
+      if (this.timelineLeft > this.fixedSliderLeft) {
+        // 只需计算 audio裁剪开始时间trimIn
+        const audioTrimInPos =
+          (this.timelineLeft - this.fixedSliderLeft) *
+          timelineWrapper.offsetWidth;
+
+        audioClip.trimIn =
+          (audioTrimInPos / fixedSlider.offsetWidth) * audioClip.orgDuration;
+        audioClip.inPoint = 0;
+      } else {
+        // 只需计算 audio在video入场时间inPoint
+        const audioInPointPercentage = this.fixedSliderLeft - this.timelineLeft;
+
+        audioClip.inPoint =
+          (audioInPointPercentage / this.videoTimelineWidth) *
+          this.getVideoDuration();
+      }
     },
     handleTrim(e, idx) {
       this.musicList[idx].timelineVisible ||
@@ -118,7 +172,6 @@ export default {
         if (this.musicList[idx].timelineVisible) {
           this.activeIndex = idx;
           this.calcSliderStyle();
-          // this.markSliderInitPos();
           addEventListener("resize", this.handleTimelineResize);
         } else {
           this.activeIndex = -1;
@@ -137,19 +190,25 @@ export default {
     },
     calcSliderStyle() {
       const videoDuration = this.getVideoDuration();
-      const { trimIn, trimOut } = this.activeAudioClip;
-      this.sliderLeft = trimIn / videoDuration;
-      this.sliderWidth = (trimOut - trimIn) / videoDuration;
-      if (this.sliderLeft + this.sliderWidth > 1) {
-        this.sliderWidth = 1 - this.sliderLeft;
-      }
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+      const fixedSlider = this.$refs.slider[this.activeIndex];
+      const { duration: audioDuration } = this.activeAudioClip;
+
+      this.videoTimelineWidth =
+        ((videoDuration / audioDuration) * fixedSlider.offsetWidth) /
+        timelineWrapper.offsetWidth; // 计算灰色时间线长度
+      this.fixedSliderLeft =
+        fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
+
+      this.timelineLeft = fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
     },
     handleSliderMouseDown(e) {
-      const timeline = this.$refs.timeline[this.activeIndex];
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+
       this.mousePos =
         e.clientX -
-        this.sliderLeft * timeline.offsetWidth -
-        timeline.getBoundingClientRect().left;
+        this.timelineLeft * timelineWrapper.offsetWidth -
+        timelineWrapper.getBoundingClientRect().left;
 
       addEventListener("mousemove", this.handleSliderMouseMove);
       addEventListener("mouseup", this.handleSliderMouseUp, { once: true });
@@ -161,59 +220,76 @@ export default {
 
     handleSliderMouseMove(e) {
       const timeline = this.$refs.timeline[this.activeIndex];
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+      const fixedSlider = this.$refs.slider[this.activeIndex];
 
       e.preventDefault();
-      this.sliderLeft =
-        (e.clientX - this.mousePos - timeline.getBoundingClientRect().left) /
-        timeline.offsetWidth;
-      this.sliderBgPos = -this.sliderLeft * timeline.offsetWidth;
+      this.timelineLeft =
+        (e.clientX -
+          this.mousePos -
+          timelineWrapper.getBoundingClientRect().left) /
+        timelineWrapper.offsetWidth;
 
-      if (this.sliderLeft < 0) {
-        this.sliderLeft = 0;
-        this.sliderBgPos = 0;
+      if (
+        this.timelineLeft * timelineWrapper.offsetWidth >
+        fixedSlider.offsetLeft + fixedSlider.offsetWidth
+      ) {
+        this.timelineLeft =
+          (fixedSlider.offsetLeft + fixedSlider.offsetWidth) /
+          timelineWrapper.offsetWidth;
       }
 
-      if (this.sliderLeft + this.sliderWidth > 1) {
-        this.sliderLeft = 1 - this.sliderWidth;
-        this.sliderBgPos = -this.sliderLeft * timeline.offsetWidth;
+      if (
+        this.timelineLeft * timelineWrapper.offsetWidth + timeline.offsetWidth <
+        fixedSlider.offsetLeft
+      ) {
+        this.timelineLeft =
+          (fixedSlider.offsetLeft - timeline.offsetWidth) /
+          timelineWrapper.offsetWidth;
       }
     },
 
     async load() {
-      this.isLoading = true;
-      await this.getMusic();
-      this.isLoading = false;
+      await this.getMusic({}, true);
     },
 
-    async getMusic() {
-      const res = await this.axios.get(this.$api.soundTracks, {
-        // params: {
-        //   type: 7,
-        //   page: this.page,
-        //   pageSize: 40,
-        //   category: 1
-        // }
-      });
-      console.log(res)
-      const { materialCount, materialList } = res.data;
-      this.musicCount = materialCount;
-      for (let i = 0; i < materialList.length; i++) {
-        const music = {
-          ...materialList[i],
-          name: materialList[i].displayName,
-          trimIn: 0,
-          trimOut: materialList[i].duration * 1000,
-          orgDuration: materialList[i].duration * 1000,
-          duration: materialList[i].duration * 1000
-        };
-        this.musicList.push(music);
-        installAsset(materialList[i].m3u8Url).then(r => {
-          this.$set(music, "m3u8Path", r);
+    async getMusic(params = {}, isLoadNew) {
+      if (!isLoadNew) {
+        this.musicList = [];
+      }
+
+      this.isLoading = true;
+      const url = isLoadNew ? "/fw" + this.nextPage : this.$api.soundTracks;
+      try {
+        const res = await this.axios.get(url, {
+          params
         });
+        const { paging, soundtracks: materialList } = res;
+        this.nextPage = paging.next;
+        for (let i = 0; i < materialList.length; i++) {
+          const music = {
+            ...materialList[i],
+            type: CLIP_TYPES.AUDIO,
+            trimIn: 0,
+            trimOut: materialList[i].duration * 1000 * 1000,
+            orgDuration: materialList[i].duration * 1000 * 1000,
+            duration: materialList[i].duration * 1000 * 1000
+          };
+          this.musicList.push(music);
+        }
+
+        if (Object.keys(paging) === 0) {
+          this.isNoMore = true;
+        }
+      } catch (e) {
+        console.warn(e);
+        this.$message({ type: "warning", message: e.message });
+      } finally {
+        this.isLoading = false;
       }
-      if (this.musicList.length >= this.musicCount) {
-        this.isNoMore = true;
-      }
+    },
+    getUsingMusicId() {
+      this.usingMusicId = (this.audios.length && this.audios[0].id) || "";
     }
   },
   beforeDestroy() {
@@ -225,7 +301,7 @@ export default {
 
 <style lang="scss" scoped>
 .music-list {
-  height: 100%;
+  height: calc(100% - 55px);
   overflow: auto;
   padding: 0 20px;
   color: $white;
@@ -240,6 +316,25 @@ export default {
         border-radius: 6px;
       }
       .timeline-wrapper {
+        .timeline-cover {
+          position: absolute;
+          z-index: 999;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            to right,
+            rgba(0, 0, 0, 0.5) 0,
+            rgba(0, 0, 0, 0.5) 39.8%,
+            transparent 39.5%,
+            transparent 60.2%,
+            rgba(0, 0, 0, 0.5) 60.2%,
+            rgba(0, 0, 0, 0.5) 100%
+          );
+          pointer-events: none;
+        }
+        display: flex;
+        justify-content: center;
+        align-items: center;
         position: relative;
         flex-direction: column;
         width: 100%;
@@ -247,41 +342,13 @@ export default {
         box-sizing: border-box;
         transition: all 0.2s;
         overflow: hidden;
+        margin-bottom: 20px;
         &.hidden {
           height: 0;
         }
-        .timeline {
-          width: 100%;
-          height: 100%;
-          z-index: 999;
-          background: url("../../assets/images/timeline.png") 0 center/auto 24px
-            repeat-x;
-        }
-        .slider {
-          position: absolute;
-          z-index: 999;
-          height: 36px;
-          width: 100%;
-
-          background: url("../../assets/images/timeline-white.png") center/auto
-            24px repeat-x;
-          .arrow {
-            position: absolute;
-            width: 20px;
-            height: 100%;
-          }
-          .left {
-            left: 0;
-          }
-          .right {
-            right: 0;
-          }
-        }
 
         .slider-wrapper {
-          z-index: 666;
-          position: absolute;
-          width: 154px;
+          width: 20%;
           height: 40px;
           border: 2px solid $white;
           background: linear-gradient(
@@ -290,7 +357,17 @@ export default {
             #f54b64 86.68%
           );
           border-radius: 6px;
-          box-sizing: border-box;
+          box-sizing: content-box;
+          z-index: 0;
+          .slider-timeline {
+            position: absolute;
+            height: 100%;
+            background: url("../../assets/images/timeline-white.png") 0
+              center/auto 24px repeat-x;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            transform: translateY(-1px);
+          }
         }
       }
       .cover {
@@ -313,9 +390,26 @@ export default {
         .name {
           font-size: 16px;
         }
-        .singer {
+        .artist {
           font-size: 14px;
           color: $msg-font-color;
+        }
+      }
+      .btns .el-button {
+        color: $white;
+        border-radius: 20px;
+        padding: 8px 16px;
+        z-index: 10;
+        transition: all 0.3s;
+        cursor: pointer;
+        &.is-disabled {
+          color: rgba($color: $white, $alpha: 0.5);
+          cursor: default;
+        }
+        &:not(.is-disabled) {
+          &:hover {
+            background-color: rgba($color: $white, $alpha: 0.1);
+          }
         }
       }
     }
@@ -332,7 +426,8 @@ export default {
     "trim":"Trim",
     "use":"Use",
     "noMore": "No More",
-    "cancel":"Cancel"
+    "cancel":"Cancel",
+    "loading":"Loading..."
   }
 }
 </i18n>

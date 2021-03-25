@@ -3,7 +3,30 @@
     <div class="material">
       <el-tabs v-model="active" class="ln-tabs-body ln-template-tabs">
         <el-tab-pane :label="$t('styles')" name="styles">
-          <MusicList />
+          <div class="search-bar">
+            <svg-icon class="search-icon" icon-class="search"></svg-icon>
+            <el-input
+              v-model="searchKeywords"
+              @keypress.enter.native="handleSearch"
+              placeholder="search"
+            >
+            </el-input>
+          </div>
+          <div class="using-music" v-if="usingMusic.isShow">
+            <span class="name">{{ usingMusic.name }}</span>
+            <span class="artist">{{ usingMusic.artist }}</span>
+            <svg-icon
+              class="close"
+              icon-class="close"
+              @click="handleNone"
+            ></svg-icon>
+          </div>
+          <hr />
+          <MusicList
+            ref="musicList"
+            @useMusic="handleUse"
+            @clearAudio="handleNone"
+          />
         </el-tab-pane>
         <el-tab-pane name="likes">
           <svg-icon
@@ -35,19 +58,38 @@ export default {
   components: { Preview, MusicList },
   data() {
     return {
-      active: "styles"
+      active: "styles",
+      searchKeywords: "",
+      usingMusic: {
+        name: "",
+        artist: "",
+        isShow: false
+      }
     };
   },
   async mounted() {
     // await this.$refs.preview.createTimeline();
   },
   methods: {
+    handleUse(music) {
+      this.usingMusic = music;
+    },
+    async handleSearch() {
+      if (
+        typeof this.searchKeywords != "string" ||
+        !(this.searchKeywords = this.searchKeywords.trim())
+      ) {
+        return null;
+      }
+      this.$refs.musicList.getMusic({ q: this.searchKeywords });
+    },
     handleNone() {
       if (this.audios.length === 0) {
         // 本来就没有音频 不用清空
         console.log("本就没有音频, 不用清空");
         return;
       }
+      this.usingMusic.isShow = false;
       this.$bus.$emit(this.$keys.clearAudioTrack);
       this.resetClips({ type: CLIP_TYPES.AUDIO, clips: [] });
     }
@@ -65,11 +107,19 @@ export default {
     top: 30px;
     right: 0;
     color: $white;
-    z-index: 999;
+    border-radius: 20px;
+    padding: 8px 16px;
+    z-index: 10;
+    transition: all 0.3s;
     cursor: pointer;
     &.disabled {
       color: rgba($color: $white, $alpha: 0.5);
       cursor: default;
+    }
+    &:not(.disabled) {
+      &:hover {
+        background-color: rgba($color: $white, $alpha: 0.1);
+      }
     }
   }
   .material {
@@ -78,6 +128,55 @@ export default {
 
     position: relative;
     flex: 1;
+
+    hr {
+      clear: both;
+      border-bottom: 1px;
+    }
+    .search-bar {
+      margin-bottom: 8px;
+      float: left;
+      display: flex;
+      width: 40%;
+      height: 36px;
+      background-color: #4a4a4a;
+      border-radius: 18px;
+      .search-icon {
+        margin: 0 10px;
+        height: 36px;
+        width: 20px;
+      }
+      .el-input {
+        ::v-deep .el-input__inner {
+          height: 36px;
+          padding-left: 0;
+          background-color: transparent;
+          border: none;
+          color: #fff;
+        }
+      }
+    }
+
+    .using-music {
+      float: right;
+      width: 40%;
+      line-height: 36px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .name {
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .artist {
+        font-size: 14px;
+        color: #9b9b98;
+      }
+      .close {
+        cursor: pointer;
+      }
+    }
   }
   .preview {
     margin: 20px 9% 20px 7%;

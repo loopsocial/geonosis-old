@@ -261,20 +261,84 @@ export default {
       this.timelineClass.seekTimeline(0);
     },
     async addAudioClip(clip) {
-      let durationCumulate = 0;
       const clipOptions = { ...clip };
-      const clipDuration = clipOptions.trimOut - clipOptions.trimIn;
-      const timelineDuration = this.timelineClass.timeline.getDuration();
-      const count = Math.ceil(timelineDuration / clipDuration);
       let audios = [];
-      for (let index = 0; index < count; index++) {
-        durationCumulate += clipDuration;
-        clipOptions.inPoint = index * clipDuration;
-        if (durationCumulate > timelineDuration) {
-          clipOptions.trimOut =
-            clipDuration - (durationCumulate - timelineDuration);
+      const timelineDuration = this.timelineClass.timeline.getDuration();
+      const clipDuration = clipOptions.orgDuration;
+
+      if (clipOptions.inPoint > 0) {
+        /**
+         *                      \---------------\
+         **      \--------------\---------------\----------------\
+         *                      \---------------\
+         *   视频起始点      音频起始点       音频结束点       视频结束点
+         *
+         *   如果第一段音频入点在视频内，此时 起始音频 inPoint 非 0
+         */
+        let durationCumulate = clipOptions.inPoint;
+        const count = Math.ceil(
+          (timelineDuration - clipOptions.inPoint) / clipDuration
+        );
+        for (let index = 0; index < count; index++) {
+          durationCumulate += clipDuration;
+          index >= 1 && (clipOptions.inPoint = durationCumulate);
+          if (durationCumulate > timelineDuration) {
+            /**
+             *                      \------------------\
+             **      \--------------\--------\         \
+             *                      \------------------\
+             *   视频起始点      音频起始点   视频结束点  音频结束点
+             *
+             */
+            clipOptions.trimOut =
+              clipDuration - (durationCumulate - timelineDuration);
+          }
+
+          clipOptions.duration = clipOptions.trimOut - clipOptions.trimIn;
+          audios.push(new AudioClip(clipOptions));
         }
-        audios.push(new AudioClip(clipOptions));
+      } else {
+        /**
+         *       \------------------------------\
+         **      \              \---------------\----------------\
+         *       \------------------------------\
+         *   音频起始点      视频起始点        音频结束点         视频结束点
+         *
+         *    如果视频起点在音频内，此时起始段音频 trimIn 非 0
+         *
+         */
+        let durationCumulate = 0;
+        while (durationCumulate < timelineDuration) {
+          if (durationCumulate === 0) {
+            // 起始段音频 trimIn 非 0 需要单独处理
+            durationCumulate = clipOptions.trimOut - clipOptions.trimIn;
+            if (durationCumulate > timelineDuration) {
+              /**
+               *       \----------------------------------\
+               **      \         \---------------\        \
+               *       \----------------------------------\
+               *   音频起始点   视频起始点    视频结束点    音频结束点
+               *
+               *  如果起始段音频 裁剪后duration 超过视频长度，即说明音频只播放一次（音频为被截取部分），需修改 trimOut 使其和视频结尾时长相符
+               *
+               */
+              clipOptions.trimOut = timelineDuration + clipOptions.trimIn;
+            }
+          } else {
+            // 后面音频循环部分处理
+            clipOptions.trimIn = 0;
+            clipOptions.inPoint = durationCumulate;
+            durationCumulate += clipDuration;
+
+            if (durationCumulate > timelineDuration) {
+              clipOptions.trimOut =
+                clipDuration - (durationCumulate - timelineDuration);
+            }
+          }
+
+          clipOptions.duration = clipOptions.trimOut - clipOptions.trimIn;
+          audios.push(new AudioClip(clipOptions));
+        }
       }
       this.addClipToVuex(audios);
       await this.timelineClass.stopEngin();
