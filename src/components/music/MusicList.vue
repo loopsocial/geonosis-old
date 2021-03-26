@@ -126,9 +126,10 @@ export default {
   },
   methods: {
     applyAudio(audioClip) {
-      this.$emit("clearAudio");
-      this.calcAudioTime(audioClip);
       this.isLoading = true;
+      this.$emit("clearAudio");
+      this.$bus.$emit(this.$keys.clearAudioTrack);
+      this.calcAudioTime(audioClip);
       installAsset(audioClip.file_url)
         .then(r => {
           audioClip.m3u8Path = r;
@@ -258,7 +259,8 @@ export default {
       if (!isLoadNew) {
         this.musicList = [];
       }
-
+      const isNoMore = this.isNoMore;
+      this.isNoMore = false;
       this.isLoading = true;
       const url = isLoadNew ? "/fw" + this.nextPage : this.$api.soundTracks;
       try {
@@ -278,8 +280,8 @@ export default {
           };
           this.musicList.push(music);
         }
-
-        if (Object.keys(paging) === 0) {
+        this.isNoMore = isNoMore;
+        if (Object.keys(paging).length === 0) {
           this.isNoMore = true;
         }
       } catch (e) {

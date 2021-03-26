@@ -75,12 +75,7 @@ export default {
       this.usingMusic = music;
     },
     async handleSearch() {
-      if (
-        typeof this.searchKeywords != "string" ||
-        !(this.searchKeywords = this.searchKeywords.trim())
-      ) {
-        return null;
-      }
+      this.searchKeywords = this.searchKeywords.trim();
       this.$refs.musicList.getMusic({ q: this.searchKeywords });
     },
     handleNone() {
