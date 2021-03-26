@@ -16,12 +16,15 @@
           :key="i"
           @click="selected(item, i)"
           :style="{
-            background: `linear-gradient(
+            background:
+              `linear-gradient(
               180deg,
               rgba(0, 0, 0, 0) 0%,
               rgba(0, 0, 0, 0.3) 100%
             ),
-            url('${getCover(item, i)}') no-repeat center center/auto 100%`
+            url( ` +
+              getCover(item, i) +
+              `) no-repeat center center/auto 100%`
           }"
         >
           <div class="order-number">{{ getNum(index, i) + 1 }}</div>
@@ -664,11 +667,11 @@ export default {
         : 0;
       for (let i = 0; i < medias.length; i++) {
         const v = medias[i];
-        const m3u8Path = await installAsset();
+        const m3u8Path = await installAsset(v[`hls_${v.media_type}_url`]);
         const video = new VideoClip({
           m3u8Path,
           inPoint,
-          duration: v.media_type === "image" ? 3000000 : v.duration * 1000000,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000,
           videoType: v.media_type,
           coverUrl: v.thumbnail_url,
           url: v[`${v.media_type}_url`],
