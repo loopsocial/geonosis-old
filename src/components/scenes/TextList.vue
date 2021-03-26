@@ -16,7 +16,7 @@
         @click="addCaption(caption)"
       >
         <img
-          :src="caption.coverUrl"
+          :src="caption.thumbnail_url"
           :alt="caption.displayName || ''"
           draggable="true"
           @dragstart="drag($event, caption)"
@@ -127,6 +127,8 @@ export default {
       // this.$emit('onLoad')
     },
     async getStickers() {
+      this.getMockCaption();
+      return;
       const res = await this.axios.get(this.$api.materials, {
         params: {
           type: 3,
@@ -150,6 +152,21 @@ export default {
       if (this.captionList.length >= this.captionCount) {
         this.isNoMore = true;
       }
+    },
+    getMockCaption() {
+      const captions = require("../../mock/caption.json");
+      for (let i = 0; i < captions.length; i++) {
+        const caption = {
+          coverUrl: "",
+          ...captions[i],
+          isInstalling: true
+        };
+        this.captionList.push(caption);
+        installAsset(captions[i].packageUrl).then(() => {
+          caption.isInstalling = false;
+        });
+      }
+      this.isNoMore = true;
     }
   }
 };
@@ -167,6 +184,11 @@ export default {
     display: grid;
     padding: 0;
     list-style: none;
+    grid-auto-rows: 1fr;
+  }
+  .list-item {
+    display: flex;
+    align-items: center;
   }
   img {
     width: 100%;

@@ -1,42 +1,53 @@
 [
   {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/0E87C0C9-9588-493C-8D88-AA7C9DD0ACA3.1.captionstyle",
-    "id": "0E87C0C9-9588-493C-8D88-AA7C9DD0ACA3"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/3CBA3A84-D093-42B5-A11C-4A772FBC71C0.1.captionstyle",
-    "id": "3CBA3A84-D093-42B5-A11C-4A772FBC71C0"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/48F10ED1-633C-4BD5-B04E-05D0607454C6.1.captionstyle",
-    "id": "48F10ED1-633C-4BD5-B04E-05D0607454C6"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/984EEF2F-204D-4183-BAB2-6DAE9E468ECD.1.captionstyle",
-    "id": "984EEF2F-204D-4183-BAB2-6DAE9E468ECD"
-  },
-  {
     "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/A54EE79B-8E00-4D8D-B11D-F4F098FEB255.1.captionstyle",
-    "id": "A54EE79B-8E00-4D8D-B11D-F4F098FEB255"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/A84C5002-ECFB-4137-A2D2-0BE04AA8A1D7.1.captionstyle",
-    "id": "A84C5002-ECFB-4137-A2D2-0BE04AA8A1D7"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/AB3E99F6-702C-4DA6-90E2-10BD403520DE.1.captionstyle",
-    "id": "AB3E99F6-702C-4DA6-90E2-10BD403520DE"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/D6C02230-6149-4DC8-9FA1-2ED2C7B4A3B7.1.captionstyle",
-    "id": "D6C02230-6149-4DC8-9FA1-2ED2C7B4A3B7"
-  },
-  {
-    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/E40966E3-BDE6-4C0C-8301-41526D44F079.1.captionstyle",
-    "id": "E40966E3-BDE6-4C0C-8301-41526D44F079"
+    "id": "A54EE79B-8E00-4D8D-B11D-F4F098FEB255",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/heading_w_background.png"
   },
   {
     "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/F66DAA39-59F7-483D-8A03-96EDBA264888.1.captionstyle",
-    "id": "F66DAA39-59F7-483D-8A03-96EDBA264888"
+    "id": "F66DAA39-59F7-483D-8A03-96EDBA264888",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/big_heading_wo_background.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/A84C5002-ECFB-4137-A2D2-0BE04AA8A1D7.1.captionstyle",
+    "id": "A84C5002-ECFB-4137-A2D2-0BE04AA8A1D7",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/subheading.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/984EEF2F-204D-4183-BAB2-6DAE9E468ECD.1.captionstyle",
+    "id": "984EEF2F-204D-4183-BAB2-6DAE9E468ECD",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/body_text.png"
+  },
+
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/AB3E99F6-702C-4DA6-90E2-10BD403520DE.1.captionstyle",
+    "id": "AB3E99F6-702C-4DA6-90E2-10BD403520DE",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/box_with_quotation.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/15209ECC-2BFA-4B1E-BD73-1A3FE07876B0.1.captionstyle",
+    "id": "15209ECC-2BFA-4B1E-BD73-1A3FE07876B0",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/large_quotation.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/D17ACE9B-A8A6-4372-8A27-8E6C0C07327E.1.captionstyle",
+    "id": "D17ACE9B-A8A6-4372-8A27-8E6C0C07327E",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/rectangle_broken_line_an_idea_is_all.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/6F43B0A4-A237-46C7-A72B-F3776777CA88.1.captionstyle",
+    "caption-style-uuid": "6F43B0A4-A237-46C7-A72B-F3776777CA88",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/san_francisco_phosphate.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/E40966E3-BDE6-4C0C-8301-41526D44F079.1.captionstyle",
+    "id": "E40966E3-BDE6-4C0C-8301-41526D44F079",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/single_line_many_controllers.png"
+  },
+  {
+    "packageUrl": "https://bseditor.oss-cn-beijing.aliyuncs.com/loopnow/AA2B6943-C78D-4C4C-BA98-9D4D76635A8B.1.captionstyle",
+    "id": "AA2B6943-C78D-4C4C-BA98-9D4D76635A8B",
+    "thumbnail_url": "http://cdn1-staging.fireworktv.com/medias/2021/2/24/1614201163-nwhrdcax/assets/img/heading_w_background.png"
   }
 ]
