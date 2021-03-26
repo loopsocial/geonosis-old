@@ -127,14 +127,15 @@ export default {
   methods: {
     applyAudio(audioClip) {
       this.$emit("clearAudio");
-      const packageUrl =
-        "https://alieasset.meishesdk.com/test/material/music/BFDA5A01-1AEA-48A5-B5B2-50FF7249AE45/BFDA5A01-1AEA-48A5-B5B2-50FF7249AE45.mp3";
       this.calcAudioTime(audioClip);
       this.isLoading = true;
-      installAsset(packageUrl)
+      installAsset(audioClip.file_url)
         .then(r => {
           audioClip.m3u8Path = r;
           this.$bus.$emit(this.$keys.addAudioClip, audioClip);
+        })
+        .catch(err => {
+          this.$message({ type: "error", message: err });
         })
         .finally(() => (this.isLoading = false));
     },
