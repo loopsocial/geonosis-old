@@ -14,6 +14,11 @@
         :icon-class="playingId !== media.id ? 'play' : 'pause'"
       ></svg-icon>
     </div>
+    <div class="delete-asset-wrapper">
+      <div class="delete-asset flex" @click.stop="deleteAsset">
+        <i class="el-icon-delete"></i>
+      </div>
+    </div>
     <el-image
       class="media-cover"
       ref="image"
@@ -60,6 +65,9 @@ export default {
         "play",
         this.media.id !== this.playingId ? this.media.id : null
       );
+    },
+    deleteAsset() {
+      this.$emit("delete-asset", this.media);
     }
   }
 };
@@ -89,6 +97,34 @@ export default {
     border-radius: 4px;
     font-size: 14px;
     padding: 4px 8px;
+  }
+  .delete-asset-wrapper {
+    position: absolute;
+    z-index: 1;
+    bottom: 8px;
+    right: 0px;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 4px 8px;
+    width: 40%;
+    height: 30%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    opacity: 0;
+    .delete-asset {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    &:hover {
+      opacity: 1;
+      .delete-asset:hover {
+        background: rgba(0, 0, 0, 0.5);
+      }
+    }
   }
   .play {
     position: absolute;

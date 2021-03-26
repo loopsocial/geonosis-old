@@ -22,7 +22,7 @@ export default {
   videoProjects: `${isDev("fw")}/studio/video_projects`,
   videoProjectById: id => `${isDev("fw")}/studio/video_projects/${id}`,
   mediaAssets: `${isDev("fw")}/studio/media_assets`,
-
+  mediaAssetsById: id => `${isDev("fw")}/studio/media_assets/${id}`,
   mediaAssetsUploadComplete: id =>
     `${isDev("fw")}/studio/media_assets/${id}/upload_completed`
 };

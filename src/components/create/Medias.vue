@@ -34,6 +34,7 @@
             :playing-id="playingId"
             @click.native="selectedMedia(media)"
             @play="play"
+            @delete-asset="deleteAsset"
           ></MediaItem>
         </div>
       </el-tab-pane>
@@ -83,13 +84,12 @@
     <div class="media-footage flex">
       <div class="selected-medias">
         <transition-group name="el-zoom-in-center">
-          <el-image
-            :src="getThumbnailUrl(item)"
-            fit="cover"
-            class="thumb"
+          <SelectedMediaItem
             :key="item.id"
+            :item="item"
             v-for="item in selectedList"
-          ></el-image>
+            @remove-media="removeMedia"
+          ></SelectedMediaItem>
         </transition-group>
       </div>
       <div class="duration-total" v-if="selectedList.length">
@@ -118,6 +118,7 @@
 <script>
 import UploadItem from "./UploadItem";
 import MediaItem from "./MediaItem";
+import SelectedMediaItem from "./SelectedMedia";
 import { MEDIA_TYPES } from "@/utils/Global";
 import { installAsset } from "@/utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
@@ -128,7 +129,8 @@ const pageSize = 20;
 export default {
   components: {
     MediaItem,
-    UploadItem
+    UploadItem,
+    SelectedMediaItem
   },
   data() {
     return {
@@ -152,19 +154,8 @@ export default {
       playingId: null // 正在播放的素材id
     };
   },
-  async created() {
-    try {
-      await this.getMediaFromUpload();
-      // await this.getMediaFromLibrary();
-      this.selectedList = cloneDeep(this.videos);
-      this.uploadList.map(item => {
-        if (this.videos.find(i => i.id === item.id)) {
-          item.selected = true;
-        }
-      });
-    } catch (error) {
-      console.error("请求数据失败", error);
-    }
+  created() {
+    this.initMediaAssets();
   },
   mounted() {
     // 无线滚动
@@ -197,6 +188,21 @@ export default {
     }
   },
   methods: {
+    async initMediaAssets() {
+      try {
+        this.uploadList = [];
+        await this.getMediaFromUpload();
+        // await this.getMediaFromLibrary();
+        this.selectedList = cloneDeep(this.videos);
+        this.uploadList.map(item => {
+          if (this.videos.find(i => i.id === item.id)) {
+            item.selected = true;
+          }
+        });
+      } catch (error) {
+        console.error("请求数据失败", error);
+      }
+    },
     play(id) {
       this.playingId = id;
     },
@@ -227,8 +233,12 @@ export default {
       );
       return false;
     },
-    selectedMedia(media) {
-      media.selected = !media.selected;
+    selectedMedia(media, forceSelect) {
+      if (forceSelect === undefined) {
+        media.selected = !media.selected;
+      } else {
+        media.selected = forceSelect;
+      }
       if (media.selected) {
         this.selectedList.push(media);
       } else {
@@ -374,8 +384,29 @@ export default {
         }
       });
     },
-    getThumbnailUrl(item) {
-      return item.thumbnail_url || item.coverUrl;
+    removeMedia(item) {
+      this.selectedMedia(item, false);
+    },
+    deleteAsset(asset) {
+      // TODO: multiple delete
+      this.$confirm(
+        "This will permanently delete the media asset. Continue?",
+        "Delete media",
+        {
+          confirmButtonText: "Delete",
+          cancelButtonText: "Cancel",
+          type: "warning"
+        }
+      )
+        .then(async () => {
+          await axios.delete(this.$api.mediaAssetsById(asset.id));
+          this.initMediaAssets();
+          this.$message({
+            type: "success",
+            message: "Delete completed"
+          });
+        })
+        .catch(() => {});
     }
   }
 };
@@ -504,15 +535,6 @@ export default {
       overflow: auto;
       @include scrollBarStyle;
       margin-right: 16px;
-      .thumb {
-        height: 100%;
-        width: 42px;
-        height: 42px;
-        border-radius: 4px;
-      }
-      .thumb + .thumb {
-        margin-left: 8px;
-      }
     }
     .duration-total {
       color: white;
