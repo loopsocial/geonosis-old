@@ -73,7 +73,15 @@ function getStoreName(key) {
 export function saveAssetToIndexDB(packageUrl, value, isCustom) {
   const key = getNameFromUrl(packageUrl); // E6AD8162-1394-44F5-BA22-6402C828B12F.2.captionstyle
   const storeName = isCustom ? RESOURCE : getStoreName(key); // captionstyle
-  const uuid = key.split(".").shift(); // E6AD8162-1394-44F5-BA22-6402C828B12F
+  let uuid = "";
+  if (storeName === "m3u8") {
+    uuid = key
+      .split(".")
+      .slice(0, 3)
+      .join(".");
+  } else {
+    uuid = key.split(".").shift(); // E6AD8162-1394-44F5-BA22-6402C828B12F
+  }
   if (db !== undefined && db.objectStoreNames.contains(storeName)) {
     var transaction = db.transaction(storeName, "readwrite");
     var store = transaction.objectStore(storeName);
@@ -90,7 +98,15 @@ export function getAssetFromIndexDB(packageUrl, isCustom) {
   const key = getNameFromUrl(packageUrl);
   return new Promise(resolve => {
     const storeName = isCustom ? RESOURCE : getStoreName(key);
-    const id = key.split(".").shift();
+    let id = "";
+    if (storeName === "m3u8") {
+      id = key
+        .split(".")
+        .slice(0, 3)
+        .join(".");
+    } else {
+      id = key.split(".").shift();
+    }
     let transaction = db.transaction(storeName, "readwrite");
     let store = transaction.objectStore(storeName);
     let request = store.get(id);
@@ -141,7 +157,10 @@ export function getAssetFromFS(packageUrl, isCustom) {
     if (storeName !== "m3u8" && !isCustom) {
       resolve();
     }
-    const id = key.split(".").shift();
+    let id = key
+      .split(".")
+      .slice(0, 3)
+      .join(".");
     const m3u8List = FS.readdir(`/${isCustom ? RESOURCE : "m3u8"}/`);
     const m = m3u8List.find(item => item.includes(id));
     if (m) {
