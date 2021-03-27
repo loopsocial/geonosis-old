@@ -1072,6 +1072,9 @@ export default {
     },
     // 拼出缩略图
     getClipListImages() {
+      if (!this.item.thumbnails.length) {
+        return this.$message({ type: "warning", message: "No thumbnails!" });
+      }
       const { offsetWidth } = this.$refs.clipList;
       const { width, height } = this.videoInfo.videoStreamInfo;
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
@@ -1079,7 +1082,6 @@ export default {
         (clipItemWidth / offsetWidth) * this.activeClip.orgDuration;
 
       const containableItemNum = Math.floor(offsetWidth / clipItemWidth);
-
       const step = Math.floor(this.item.thumbnails.length / containableItemNum);
 
       let bg = "";
