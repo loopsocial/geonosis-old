@@ -25,7 +25,12 @@
           {{ $t("msg") }}
         </div>
         <div class="media-list">
-          <UploadItem @openUploader="openUploader"> </UploadItem>
+          <UploadItem @openUploader="openUploader"></UploadItem>
+          <UploadingItem
+            :progress="uploading.progress"
+            :key="uploading.id"
+            v-for="uploading in uploadingList"
+          ></UploadingItem>
           <MediaItem
             v-for="media in uploadList"
             :key="media.id"
@@ -116,8 +121,9 @@
 </template>
 
 <script>
-import UploadItem from "./UploadItem";
 import MediaItem from "./MediaItem";
+import UploadItem from "./UploadItem";
+import UploadingItem from "./UploadingItem";
 import SelectedMediaItem from "./SelectedMedia";
 import { MEDIA_TYPES } from "@/utils/Global";
 import { installAsset } from "@/utils/AssetsUtils";
@@ -130,6 +136,7 @@ export default {
   components: {
     MediaItem,
     UploadItem,
+    UploadingItem,
     SelectedMediaItem
   },
   data() {
@@ -137,6 +144,7 @@ export default {
       activeName: "upload",
       addMediaLoading: false,
       uploadList: [], // 已上传的列表
+      uploadingList: [],
       uploadTotal: 0,
       uploadPage: 0,
       libraryTotal: 0,
@@ -190,7 +198,6 @@ export default {
   methods: {
     async initMediaAssets() {
       try {
-        this.uploadList = [];
         await this.getMediaFromUpload();
         // await this.getMediaFromLibrary();
         this.selectedList = cloneDeep(this.videos);
@@ -223,14 +230,29 @@ export default {
       }
     },
     async beforeUpload(file) {
-      console.log(file);
+      const randomId = Math.random()
+        .toString(36)
+        .substr(2, 9);
+      const fileProgress = {
+        id: randomId,
+        progress: 0
+      };
+      this.uploadingList.push(fileProgress);
+      const onProgress = progress => {
+        fileProgress.progress = progress;
+      };
       // Upload to S3
-      const uploadToS3Res = await this.uploadToS3(file);
-      console.log(uploadToS3Res.media_asset_id);
+      const uploadToS3Res = await this.uploadToS3(file, onProgress);
       // Notity server that upload is completed
       await this.axios.put(
         this.$api.mediaAssetsUploadComplete(uploadToS3Res.media_asset_id)
       );
+      // Refresh file list
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Remove uploading item
+      const index = this.uploadingList.findIndex(i => i.id === randomId);
+      this.uploadingList.splice(index, 1);
+      this.initMediaAssets();
       return false;
     },
     selectedMedia(media, forceSelect) {
@@ -301,7 +323,8 @@ export default {
           item.duration = item.duration * 1000;
           item.orgDuration = item.duration * 1000;
         });
-        this.uploadList.push(...media_assets);
+        // this.uploadList.push(...media_assets);
+        this.uploadList = [...media_assets];
         this.loading = false;
       });
     },
