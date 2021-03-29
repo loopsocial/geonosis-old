@@ -25,7 +25,7 @@ Object.defineProperties(Vue.prototype, {
 });
 // 毫秒格式化
 Vue.filter("msFormat", val => {
-  const s = parseInt(val / 1000);
+  const s = parseInt(val / 1000 / 1000);
   const min = parseInt(s / 60);
   const h = parseInt(min / 60);
   const fix = v => (v > 9 ? v : "0" + v);
