@@ -59,10 +59,17 @@ export default {
   },
   methods: {
     addCaption(caption) {
+      if (this.isAdding) {
+        return null;
+      }
+      this.isAdding = true;
       this.$bus.$emit(this.$keys.editClip, null, {
         target: caption,
         type: CLIP_TYPES.CAPTION
       });
+      setTimeout(() => {
+        this.isAdding = false;
+      }, 2000);
     },
     drag(e, caption) {
       const data = JSON.stringify({
