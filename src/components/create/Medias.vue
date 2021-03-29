@@ -186,13 +186,13 @@ export default {
     durationTotal() {
       const duration = this.selectedList.reduce((res, item) => {
         if (item.media_type === "image") {
-          res += 3000;
+          res += 3000000;
         } else {
           res += item.duration;
         }
         return res;
       }, 0);
-      return parseInt(duration / 1000);
+      return parseInt(duration / 1000000);
     }
   },
   methods: {
@@ -320,8 +320,8 @@ export default {
         media_assets.map(item => {
           item.selected = false;
           item.type = MEDIA_TYPES[item.mediaType];
-          item.duration = item.duration * 1000;
-          item.orgDuration = item.duration * 1000;
+          item.duration = item.duration * 1000 * 1000;
+          item.orgDuration = item.duration * 1000 * 1000;
         });
         // this.uploadList.push(...media_assets);
         this.uploadList = [...media_assets];

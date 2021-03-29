@@ -542,6 +542,7 @@ export default {
     },
     // 安装音视频的m3u8，并且更新封面、缩率图、原始视频等
     async installMedia(mediaAssets, data) {
+      const videos = [];
       for (let i = 0; i < data.videos.length; i++) {
         const video = data.videos[i];
         const media = mediaAssets.find(item => `${item.id}` == `${video.id}`);
@@ -552,11 +553,16 @@ export default {
           video.coverUrl = media.thumbnail_url || media.coverUrl;
           video.thumbnails = media.thumbnails;
           video.m3u8Path = await installAsset(video.m3u8Url);
+          video.duration =
+            media.media_type === "image" ? 3000000 : media.duration * 1000000;
+          video.orgDuration =
+            media.media_type === "image" ? 3000000 : media.duration * 1000000;
+          videos.push(new VideoClip(video));
         } else {
           console.log("工程内没有这个素材", video.id);
         }
       }
-      return data;
+      return { ...data, videos };
     },
     async applyAssets(mediaAssets) {
       const videoList = [];
@@ -567,7 +573,7 @@ export default {
         const video = new VideoClip({
           m3u8Path,
           inPoint,
-          duration: v.media_type === "image" ? 3000000 : v.duration * 1000,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000000,
           videoType: v.media_type,
           coverUrl: v.thumbnail_url,
           url: v[`${v.media_type}_url`],
