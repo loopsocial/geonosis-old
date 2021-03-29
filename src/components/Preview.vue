@@ -567,7 +567,7 @@ export default {
         const video = new VideoClip({
           m3u8Path,
           inPoint,
-          duration: v.media_type === "image" ? 3000000 : v.duration,
+          duration: v.media_type === "image" ? 3000000 : v.duration * 1000,
           videoType: v.media_type,
           coverUrl: v.thumbnail_url,
           url: v[`${v.media_type}_url`],
