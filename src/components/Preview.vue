@@ -95,8 +95,11 @@ export default {
   },
   methods: {
     calcLivewindowStyle() {
-      this.liveWindowStyle.width = this.$refs.liveWindowContainer.offsetWidth;
-      this.liveWindowStyle.height = this.$refs.liveWindowContainer.offsetHeight;
+      const liveWindowContainer = document.body.querySelector(
+        ".live-window-container"
+      );
+      this.liveWindowStyle.width = liveWindowContainer.offsetWidth;
+      this.liveWindowStyle.height = liveWindowContainer.offsetHeight;
       const bWidth =
         -WorkFlow.aTob(new NvsPointF(0, 0), this.timelineClass.liveWindow).x *
         2;
@@ -419,6 +422,11 @@ export default {
           });
           result = this.timelineClass.addSticker(sticker);
           this.addClipToVuex(sticker);
+          this.flow = new WorkFlow({
+            containerId: "work-flow",
+            clip: sticker,
+            timelineClass: this.timelineClass
+          });
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
@@ -445,6 +453,11 @@ export default {
             TimelineClass.setCaption(caption);
           }
           this.addClipToVuex(caption);
+          this.flow = new WorkFlow({
+            containerId: "work-flow",
+            clip: caption,
+            timelineClass: this.timelineClass
+          });
         }
         if (result) {
           this.draggingClip = null;
@@ -656,6 +669,7 @@ export default {
     }
     this.setNvsStatus(false);
     document.body.removeEventListener("mouseup", this.statusEvent);
+    removeEventListener("resize", this.calcLivewindowStyle);
     window.streamingContext.removeEventListener(
       "onPlaybackStopped",
       this.stopEvent

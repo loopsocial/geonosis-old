@@ -9,14 +9,14 @@
     >
       <li
         class="list-item"
-        v-for="style of styleList"
+        v-for="style of compounds"
         :key="style.uuid"
         v-loading="style.isInstalling"
         @click="userModule(style)"
       >
         <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
         <img :src="style.thumbnail_url" alt="" class="content" />
-        <img class="cover" :src="coverData" alt="" v-if="coverData" />
+        <!-- <img class="cover" :src="coverData" alt="" v-if="coverData" /> -->
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -40,7 +40,8 @@ export default {
       styleList: videoModules.modules,
       isLoading: false,
       isNoMore: false,
-      page: 0
+      page: 0,
+      compounds: []
     };
   },
   computed: {
@@ -48,7 +49,17 @@ export default {
       return this.isLoading || this.isNoMore;
     }
   },
+  mounted() {
+    this.getStyleList();
+  },
+
   methods: {
+    async getStyleList() {
+      const { compounds } = await this.axios.get(
+        this.$api.compounds(this.$route.query.id)
+      );
+      this.compounds = compounds;
+    },
     async getModule(encodedXml) {
       const string = base64ToString(encodedXml);
       FS.writeFile("module.xml", string);
@@ -61,8 +72,6 @@ export default {
     load() {
       this.isLoading = true;
       setTimeout(() => {
-        this.styleList.push(1, 2, 3);
-
         this.isLoading = false;
       }, 1999);
     },

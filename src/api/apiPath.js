@@ -18,7 +18,7 @@ export default {
   jobInfo: `${isDev("fwServe")}/bs/job/info`, // 查询任务
 
   soundTracks: `${isDev("fw")}/api/soundtracks`,
-
+  compounds: id => `${isDev("fw")}/studio/video_projects/${id}/compounds`,
   videoProjects: `${isDev("fw")}/studio/video_projects`,
   videoProjectById: id => `${isDev("fw")}/studio/video_projects/${id}`,
   mediaAssets: `${isDev("fw")}/studio/media_assets`,
