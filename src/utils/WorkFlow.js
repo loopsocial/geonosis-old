@@ -324,8 +324,7 @@ export default class WorkFlow {
     const captionColor = captionClipRaw.getTextColor();
     captionClipRaw.setTextColor(new NvsColor(0, 0, 0, 0));
     this.timelineClass.seekTimeline();
-
-    let input = document.createElement("input");
+    let input = document.createElement("textarea");
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const container = document.getElementById(this.containerId);
@@ -333,11 +332,15 @@ export default class WorkFlow {
     const originWidth = this.rectTransform.width();
     const originX = this.rectTransform.x();
     const originY = this.rectTransform.y();
+    input.style.boxSizing = "content-box";
     input.style.position = "absolute";
     input.style.width = originWidth + "px";
     input.style.height = originHeight + "px";
-    input.style.lineHeight = originHeight + "px";
-    input.style.fontSize = originHeight - 8 + "px";
+    input.style.lineHeight = 1;
+    input.style.verticalAlign = "middle";
+    input.style.fontSize = captionClipRaw.getFontSize() * window.ABTimes + "px";
+    input.style.fontFamily = captionClipRaw.getFontFamily() || "sans-serif";
+    input.style.fontWeight = captionClipRaw.getBold() ? "500" : "300";
     input.style.left = originX + "px";
     input.style.top = originY + "px";
     input.style.zIndex = 1000;
@@ -383,8 +386,8 @@ export default class WorkFlow {
       //   this.rectTransform.y(this.rectTransform.y() - translateY);
       //   input.style.top = this.rectTransform.y() + "px";
       // }
-      this.node.width(width);
-      input.style.width = width + "px";
+      this.node.width(this.rectTransform.width());
+      input.style.width = this.rectTransform.width() + "px";
     };
 
     calculateRect(originWidth, text);

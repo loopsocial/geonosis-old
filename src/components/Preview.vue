@@ -3,14 +3,15 @@
     <div
       class="live-window-container"
       v-loading="waiting"
+      ref="liveWindowContainer"
       element-loading-background="rgba(0, 0, 0, 0.5)"
     >
       <canvas
         ref="liveWindow"
         class="live-window"
         id="live-window"
-        width="540"
-        height="960"
+        :width="liveWindowStyle.width"
+        :height="liveWindowStyle.height"
       ></canvas>
       <div id="work-flow" @click="clickLiveWindow"></div>
     </div>
@@ -50,10 +51,15 @@ export default {
       waiting: false,
       timelineClass: null,
       seekVal: 0,
-      flow: null
+      flow: null,
+      liveWindowStyle: {
+        width: 0,
+        height: 0
+      }
     };
   },
   async mounted() {
+    addEventListener("resize", this.calcLivewindowStyle);
     try {
       await initSDK();
       this.setNvsStatus(true); // 设置状态. 表示SDK已加载完成
@@ -80,6 +86,7 @@ export default {
     await this.createTimeline();
     document.body.addEventListener("mouseup", this.statusEvent);
     this.$emit("on-loaded");
+    this.calcLivewindowStyle(); // 计算a/b倍数
   },
   computed: {
     ...mapState({
@@ -87,6 +94,16 @@ export default {
     })
   },
   methods: {
+    calcLivewindowStyle() {
+      this.liveWindowStyle.width = this.$refs.liveWindowContainer.offsetWidth;
+      this.liveWindowStyle.height = this.$refs.liveWindowContainer.offsetHeight;
+      const bWidth =
+        -WorkFlow.aTob(new NvsPointF(0, 0), this.timelineClass.liveWindow).x *
+        2;
+      const ABTimes = this.liveWindowStyle.width / bWidth;
+      console.log(ABTimes);
+      window.ABTimes = ABTimes;
+    },
     // 更新工程。初始化档案时；添加、删除素材时调用
     async updateProject(callback) {
       const { id: projectId } = this.$route.query;
