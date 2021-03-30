@@ -19,6 +19,7 @@ export default class WorkFlow {
     this.box = {};
     this.timelineClass = options.timelineClass || null;
     this.initStage();
+    this.dom = document.getElementById(containerId);
   }
   initStage(clip) {
     if (this.stage && this.stage instanceof Konva.Stage) {
@@ -123,13 +124,11 @@ export default class WorkFlow {
       anchorStroke: "white",
       anchorCornerRadius: 4,
       rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
-      centeredScaling: true,
-      keepRatio: true,
+      centeredScaling: this.clip.type === CLIP_TYPES.STICKER,
+      keepRatio: this.clip.type === CLIP_TYPES.STICKER,
       rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
-        // const { x, y, width, height } = oldBox;
-        // const rectCenter = { x: x + width / 2, y: y + height / 2 }; // 旋转之后的缩放中心不对
         const box = this.node.getClientRect();
         const x = box.x + box.width / 2;
         const y = box.y + box.height / 2;
@@ -140,6 +139,7 @@ export default class WorkFlow {
           this.stickerTransformer(oldBox, newBox, rectCenter);
         }
         this.timelineClass.seekTimeline();
+        // 缩放、旋转时设置删除按钮位置
         const tarPos = this.targetPos(newBox);
         this.deleteNode.x(tarPos.x);
         this.deleteNode.y(tarPos.y);
@@ -184,16 +184,44 @@ export default class WorkFlow {
       point.y <= y + height
     );
   }
-  static getCoordinateFromPoint(clip, liveWindow) {
+  static getCoordinateFromPoint(clip, liveWindow, type = 3) {
     const rotation = parseInt(clip.raw.getRotationZ());
     let vertices;
     if (clip.type === CLIP_TYPES.CAPTION) {
-      vertices = clip.raw.getCaptionBoundingVertices(2); // 2 表示字幕的实际边框, 0 表示字幕中的文字边框
+      // if (isRectangle) {
+      //   vertices = clip.raw.getBoundingRectangleVertices();
+      // }
+      // if (!vertices) {
+      vertices = clip.raw.getCaptionBoundingVertices(type);
+      // }
     } else if (clip.type === CLIP_TYPES.STICKER) {
       vertices = clip.raw.getBoundingRectangleVertices();
     }
-    const { i1, i2, i3, i4 } = WorkFlow.getVerticesPoint(vertices, liveWindow);
-    // - 逆时针 i1, i2, i3, i4
+    if (!vertices) {
+      console.warn("获取素材边框失败");
+      return;
+    }
+    let i1, i2, i3, i4;
+    if (type === NvsCaptionTextBoundingTypeEnum.Frame) {
+      const v = WorkFlow.getVerticesPoint(vertices, liveWindow);
+      i1 = v.i1;
+      i2 = v.i2;
+      i3 = v.i3;
+      i4 = v.i4;
+    } else {
+      const { translationX, translationY } = clip;
+      const f = i => ({ x: i.x + translationX, y: i.y + translationY }); // 框的位置基本不变，需要加上transition
+      i1 = f(vertices.get(0));
+      i2 = f(vertices.get(1));
+      i3 = f(vertices.get(2));
+      i4 = f(vertices.get(3));
+      // - 逆时针 i1, i2, i3, i4
+      i1 = WorkFlow.bToa(new NvsPointF(i1.x, i1.y), liveWindow);
+      i2 = WorkFlow.bToa(new NvsPointF(i2.x, i2.y), liveWindow);
+      i3 = WorkFlow.bToa(new NvsPointF(i3.x, i3.y), liveWindow);
+      i4 = WorkFlow.bToa(new NvsPointF(i4.x, i4.y), liveWindow);
+    }
+
     let x;
     let y;
     let width;
@@ -246,6 +274,7 @@ export default class WorkFlow {
 
     return { i1, i2, i3, i4 };
   }
+  //  liveWindow -> canvas
   static bToa(coordinate, liveWindow) {
     // 渲染层 to 视口层
     if (!liveWindow) {
@@ -258,6 +287,7 @@ export default class WorkFlow {
       this.stage.destroy();
     }
   }
+  // canvas -> liveWindow
   static aTob(coordinate, liveWindow) {
     // 视口层 to 渲染层
     return liveWindow.mapViewToCanonical(coordinate);
@@ -275,14 +305,31 @@ export default class WorkFlow {
     this.clip.translationY = targetPointF.y;
   }
   captionTransformer(oldBox, newBox, rectCenter) {
-    const centerPointF = new NvsPointF(rectCenter.x, rectCenter.y);
-    const scaleFactor = newBox.width / oldBox.width;
-    // 缩放操作
-    this.clip.raw.scaleCaption(
-      scaleFactor,
-      WorkFlow.aTob(centerPointF, this.timelineClass.liveWindow)
+    // 容器宽高
+    const {
+      width: viewWidth,
+      height: viewHeight
+    } = this.dom.getBoundingClientRect();
+    const { x, y, width, height } = newBox;
+    const liveWindow = this.timelineClass.liveWindow;
+    let { x: left, y: top } = WorkFlow.aTob(new NvsPointF(x, y), liveWindow);
+    left -= this.clip.translationX;
+    top -= this.clip.translationY;
+    let { x: liveWidth, y: liveHeight } = WorkFlow.aTob(
+      new NvsPointF(width + viewWidth / 2, height + viewHeight / 2),
+      liveWindow
     );
-    this.clip.scale = this.clip.raw.getScaleX();
+    liveWidth = Math.abs(liveWidth);
+    liveHeight = Math.abs(liveHeight);
+    const right = left + liveWidth;
+    const bottom = top - liveHeight;
+    const rect = new NvsRectF(left, top, right, bottom);
+    //     console.log(`isFrameCaption ${this.clip.raw.isFrameCaption()}
+    //     ┌────── Top:${rect.top.toString().substring(0, 4)} ──────┐
+    // Left:${rect.left.toFixed(2)}            Right:${rect.right.toFixed(2)}
+    //     └──── Bottom:${rect.bottom.toString().substring(0, 4)} ─────┘
+    //     `);
+    this.clip.raw.setTextFrameOriginRect(rect);
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {
@@ -328,22 +375,24 @@ export default class WorkFlow {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const container = document.getElementById(this.containerId);
-    const originHeight = this.rectTransform.height();
-    const originWidth = this.rectTransform.width();
-    const originX = this.rectTransform.x();
-    const originY = this.rectTransform.y();
+
+    const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
+      this.clip,
+      this.timelineClass.liveWindow,
+      NvsCaptionTextBoundingTypeEnum.Frame
+    );
     input.style.boxSizing = "content-box";
     input.style.position = "absolute";
-    input.style.width = originWidth + "px";
-    input.style.height = originHeight + "px";
+    input.style.width = width + "px";
+    input.style.height = height + "px";
     input.style.lineHeight = 1;
     input.style.verticalAlign = "middle";
     input.style.fontSize = captionClipRaw.getFontSize() * window.ABTimes + "px";
     input.style.fontFamily = captionClipRaw.getFontFamily() || "sans-serif";
-    input.style.fontWeight = captionClipRaw.getBold() ? "500" : "300";
-    input.style.left = originX + "px";
-    input.style.top = originY + "px";
-    input.style.zIndex = 1000;
+    input.style.fontWeight = captionClipRaw.getBold() ? "600" : "300";
+    input.style.left = x + "px";
+    input.style.top = y + "px";
+    input.style.zIndex = 200;
     input.style.display = "block";
     input.style.border = 0;
     input.style.backgroundColor = "transparent";
@@ -390,7 +439,7 @@ export default class WorkFlow {
       input.style.width = this.rectTransform.width() + "px";
     };
 
-    calculateRect(originWidth, text);
+    calculateRect(width, text);
     const onChange = () => {
       captionClipRaw.setText(input.value + "");
       captionClip.text = captionClipRaw.getText();
