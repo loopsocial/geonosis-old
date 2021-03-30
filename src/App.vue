@@ -77,7 +77,7 @@ export default {
     },
     isLoading() {
       if (["Branding", "Create"].includes(this.$route.name)) return false;
-      return !this.isFinishNvs && this.isEditPages && !this.isFinishProject;
+      return !(this.isFinishNvs && this.isFinishProject) && this.isEditPages;
     },
     isEditPages() {
       const pages = ["Branding", "Music", "Scenes", "Styles"];
