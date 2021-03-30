@@ -391,25 +391,18 @@ export default {
       }
     },
     getInPointAndDuration(t) {
-      let duration;
-      let trimIn = 0;
-      const v = this.videos.find(video => {
-        const s = video.splitList.find(split => {
-          return (
-            t >= video.inPoint + split.captureIn &&
-            t < video.inPoint + split.captureOut
-          );
-        });
-        if (s) {
-          duration = s.captureOut - s.captureIn;
-          trimIn = s.captureIn;
+      let durationCumulate = 0;
+      for (let video of this.videos) {
+        for (let item of video.splitList) {
+          if (durationCumulate >= t) {
+            return {
+              duration: item.captureOut - item.captureIn - 1,
+              inPoint: durationCumulate
+            };
+          }
+          durationCumulate += item.captureOut - item.captureIn;
         }
-        return s;
-      });
-      return {
-        duration,
-        inPoint: v.inPoint + trimIn
-      };
+      }
     },
     async editClip(e, option) {
       const { type, target, raw } = option;
