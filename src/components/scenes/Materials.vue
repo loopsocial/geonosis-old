@@ -3,15 +3,28 @@
     <el-tabs v-model="activeName" class="ln-tabs-body" v-show="!showPanel">
       <el-tab-pane label="text" name="text" lazy>
         <template #label>
-          <svg-icon class="text-icon" icon-class="text"></svg-icon>
-          {{ $t("text") }}
+          <svg-icon
+            class="text-icon"
+            :icon-class="activeName === 'text' ? 'text' : 'text-deactive'"
+          ></svg-icon>
+          <span :style="{ color: activeName === 'text' ? '#fff' : '#666' }">{{
+            $t("text")
+          }}</span>
         </template>
         <TextList />
       </el-tab-pane>
       <el-tab-pane label="sticker" name="sticker" lazy>
         <template #label>
-          <svg-icon class="sticker-icon" icon-class="sticker"></svg-icon>
-          {{ $t("sticker") }}
+          <svg-icon
+            class="sticker-icon"
+            :icon-class="
+              activeName === 'sticker' ? 'sticker' : 'sticker-deactive'
+            "
+          ></svg-icon>
+          <span
+            :style="{ color: activeName === 'sticker' ? '#fff' : '#666' }"
+            >{{ $t("sticker") }}</span
+          >
         </template>
         <StickerList />
       </el-tab-pane>
