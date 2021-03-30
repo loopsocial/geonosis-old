@@ -95,6 +95,7 @@ export default {
   },
   methods: {
     calcLivewindowStyle() {
+      if (!this.timelineClass) return null;
       const liveWindowContainer = document.body.querySelector(
         ".live-window-container"
       );

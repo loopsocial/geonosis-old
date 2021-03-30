@@ -327,7 +327,8 @@ export default {
         startBottom: 0, // 按下四角时候记录
         mousePosX: 0,
         mousePosY: 0
-      }
+      },
+      isDisplayingMessage: null
     };
   },
   computed: {
@@ -364,9 +365,12 @@ export default {
   methods: {
     getCover(item, splitItem) {
       const inPoint = item.splitList[splitItem].captureIn;
-      return inPoint === 0
-        ? item.coverUrl
-        : item.thumbnails[Math.round(inPoint / 1000000)].url;
+      if (inPoint === 0) {
+        return item.coverUrl;
+      }
+      return (
+        item.thumbnails[Math.round(inPoint / 1000000)]?.url ?? item.coverUrl
+      );
     },
     handleRectMouseDown(e) {
       const { width, height } = this.dialogCanvasSize;
@@ -685,6 +689,7 @@ export default {
         inPoint += video.duration;
         assets.push(video);
       }
+      debugger
       this.addClipToVuex(assets);
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
@@ -1073,7 +1078,16 @@ export default {
     // 拼出缩略图
     getClipListImages() {
       if (!this.item.thumbnails.length) {
-        return this.$message({ type: "warning", message: "No thumbnails!" });
+        if (!this.isDisplayingMessage) {
+          return (this.isDisplayingMessage = this.$message({
+            type: "warning",
+            message: "No thumbnails!",
+            onClose: () => {
+              this.isDisplayingMessage = null;
+            }
+          }));
+        }
+        return null;
       }
       const { offsetWidth } = this.$refs.clipList;
       const { width, height } = this.videoInfo.videoStreamInfo;

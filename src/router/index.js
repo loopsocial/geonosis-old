@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 
+
 const Create = () =>
   import(/* webpackChunkName: "Create" */ "../views/Create.vue");
 const Scenes = () =>
@@ -12,6 +13,12 @@ const Music = () =>
 const Branding = () =>
   import(/* webpackChunkName: "Branding" */ "../views/Branding.vue");
 const Upload = () => import("../views/Upload.vue");
+
+const originalPush = VueRouter.prototype.push;
+VueRouter.prototype.push = function replace(location) {
+  return originalPush.call(this, location).catch(err => err);
+};
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -50,5 +57,6 @@ const routes = [
 const router = new VueRouter({
   routes
 });
+
 
 export default router;
