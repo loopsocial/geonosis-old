@@ -1,7 +1,34 @@
 {
   "resourceCount": 18,
   "resourceList": [
-		{
+    {
+      "singleSliceUrl":"",
+      "rightChannelUrl":"https://alieasset.meishesdk.com/video/2/",
+      "description":"",
+      "alphaUrl":"",
+      "media_type": "video",
+      "title":"infinite_flow",
+      "uuid":"fa7e5515-1c56-4460-b189-b8923f067863",
+      "userId":2,
+      "video_url":"https://alieasset.meishesdk.com/video/2/infinite_flow.mp4",
+      "duration":15,
+      "thumbnail_url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863.jpg",
+      "jobId":4455,
+      "createdAt":1585562274000,
+      "leftChannelUrl":"https://alieasset.meishesdk.com/video/2/",
+      "alphaM3u8Url":"",
+      "width":0,
+      "isPublic":1,
+      "id":4009,
+      "thumbnails": [
+        {"time":0,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0000000.jpg"},{"time":1000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0001000.jpg"},{"time":2000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0002000.jpg"},{"time":3000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0003000.jpg"},{"time":4000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0004000.jpg"},{"time":5000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0005000.jpg"},{"time":6000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0006000.jpg"},{"time":7000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0007000.jpg"},{"time":8000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0008000.jpg"},{"time":9000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0009000.jpg"},{"time":10000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0010000.jpg"},{"time":11000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0011000.jpg"},{"time":12000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0012000.jpg"},{"time":13000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0013000.jpg"},{"time":14000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0014000.jpg"},{"time":15000000,"url":"https://alieasset.meishesdk.com/video-thumbnail/2/fa7e5515-1c56-4460-b189-b8923f067863-0015000.jpg"}
+      ],
+      "status":1,
+      "hls_video_url":"https://alieasset.meishesdk.com/video/2/fa7e5515-1c56-4460-b189-b8923f067863.m3u8",
+      "isDir":0,
+      "height":0
+    },
+    {
       "alphaM3u8Url": "",
       "alphaUrl": "",
       "thumbnail_url": "https://alieasset.meishesdk.com/editor/2021/02/23/image/322565be-8c9e-47af-8d35-bd37a3354572/322565be-8c9e-47af-8d35-bd37a3354572-cover.png",
@@ -26,7 +53,8 @@
       "userId": 141,
       "uuid": "34bfd92a-377f-4834-8e94-3e133d600c35",
       "width": -1
-    }, {
+    },
+    {
       "singleSliceUrl": "",
       "rightChannelUrl": "https://alieasset.meishesdk.com/video/2/e282b6e3-308f-4e86-8075-55a889ead300-rightchannel.data",
       "description": "",

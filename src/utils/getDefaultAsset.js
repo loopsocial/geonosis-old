@@ -13,7 +13,7 @@ export default async function() {
     const val = await getAssetFromIndexDB(key);
     if (!val) {
       saveAssetToIndexDB(key, new Uint8Array(req(key)));
-      console.log(key, new Uint8Array(req(key)));
+      // console.log(key, new Uint8Array(req(key)));
     }
   }
   return req.keys();

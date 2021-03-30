@@ -73,7 +73,11 @@ export default {
     }
     // 创建时间线
     if (!this.vuexLoaded) {
-      await this.installFont(); // 安装字体
+      try {
+        await this.installFont(); // 安装字体
+      } catch (error) {
+        console.warn("字体安装失败");
+      }
       const { mediaAssets, xml } = await this.getProjectInfo(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
       console.log("media-assets", mediaAssets);
       await this.applyAssetsXml(mediaAssets, xml); // 更新vuex 安装并应用素材
@@ -105,7 +109,6 @@ export default {
         -WorkFlow.aTob(new NvsPointF(0, 0), this.timelineClass.liveWindow).x *
         2;
       const ABTimes = this.liveWindowStyle.width / bWidth;
-      console.log(ABTimes);
       window.ABTimes = ABTimes;
     },
     // 更新工程。初始化档案时；添加、删除素材时调用
@@ -143,6 +146,13 @@ export default {
     },
     // 点击livewindow, 是否显示操作转换框
     clickLiveWindow(e) {
+      const { offsetX, offsetY } = e;
+      let v = WorkFlow.aTob(
+        new NvsPointF(offsetX, offsetY),
+        this.timelineClass.liveWindow
+      );
+      console.log(`canvas X ${offsetX} Y ${offsetY}
+live window X:${v.x} Y:${v.y}`);
       if (this.editBoxStatus) return; // 调整框
       if (this.flow && this.flow.isInRect({ x: e.offsetX, y: e.offsetY })) {
         // 点击的位置就是在编辑框内
@@ -179,7 +189,8 @@ export default {
         return [...captions, ...stickers].find(item => {
           const point = WorkFlow.getCoordinateFromPoint(
             item,
-            this.timelineClass.liveWindow
+            this.timelineClass.liveWindow,
+            true
           );
           const { x, y, height, width } = point;
           if (item.rotation) {
