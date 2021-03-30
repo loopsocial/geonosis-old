@@ -139,6 +139,7 @@ export default class TimelineClass {
   async buildModule() {
     const { videoModule: module, videos } = store.state.clip;
     if (!module) return;
+    if (!Array.isArray(module.scenes)) return;
     let intro;
     let end;
     const defaultScenes = module.scenes.filter(scene => {
