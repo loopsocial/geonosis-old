@@ -10,11 +10,11 @@ export default {
     keyBind() {
       Mousetrap.bind(KeyMap.play, this.play);
       Mousetrap.bind(KeyMap.save, () => {
-        console.log("保存", this.saving);
         if (this.saving) return false;
         this.saving = true;
         this.$bus.$emit(this.$keys.updateProject, () => {
           this.saving = false;
+          this.$message.success("Save Success");
         });
         return false;
       });

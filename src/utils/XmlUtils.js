@@ -18,7 +18,7 @@ function transformation() {
     videoWidth,
     videoHeight,
     alias,
-    module // vuex 中的模板信息以及经过转换，transformX、Y，fontSize都是直接给SDK的值
+    videoModule: module // vuex 中的模板信息以及经过转换，transformX、Y，fontSize都是直接给SDK的值
   } = store.state.clip;
   const creation = {
     scenes: [],
@@ -78,6 +78,7 @@ function transformation() {
       else if (scene.temporal === "intro") intro = scene;
       else return true;
     });
+    creation.moduleAlias = module.alias;
   }
   creation.scenes = videoList.map((v, index) => {
     // 将用户添加的字幕按照 视频槽的方式进行规整
@@ -192,6 +193,8 @@ function writeCreation(stream) {
   stream.writeAttribute("video-height", "" + creation.videoHeight);
   stream.writeAttribute("version", "" + creation.version);
   stream.writeAttribute("alias", "" + creation.alias);
+  creation.moduleAlias &&
+    stream.writeAttribute("module-alias", "" + creation.moduleAlias);
   creation.scenes.map(scene => {
     writeScene(stream, scene);
   });
@@ -321,16 +324,20 @@ async function readDom(stream) {
       res.videoHeight = stream.getAttributeValue("video-height") * 1;
       res.version = stream.getAttributeValue("version");
       res.alias = stream.getAttributeValue("alias");
+      const moduleAlias = stream.getAttributeValue("module-alias");
+      if (moduleAlias) {
+        res.moduleAlias = moduleAlias;
+      }
       res.videos = [];
       res.audios = [];
       res.captions = [];
-      res.modules = [];
+      res.videoModule = [];
       res.stickers = [];
     } else if (stream.isStartElement() && stream.name() === "fw-scene") {
       const { video, captions, module } = await readProjectScene(stream, res);
       res.videos.push(video);
       res.captions.push(...captions);
-      res.modules.push(module);
+      res.videoModule.push(module);
     }
     stream.readNext();
   }
@@ -437,7 +444,7 @@ async function readProjectCaptions(stream, video) {
         scale: stream.getAttributeValue("scale-x") * 1,
         align: stream.getAttributeValue("text-x-alignment") || "center"
       };
-      const fontUrl = stream.getAttributeValue("font-color");
+      const fontUrl = stream.getAttributeValue("font");
       if (fontUrl) {
         caption.fontUrl = fontUrl;
         try {

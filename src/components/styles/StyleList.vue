@@ -56,7 +56,7 @@ export default {
   methods: {
     async getStyleList() {
       const { compounds } = await this.axios.get(
-        this.$api.compounds(this.$route.query.id)
+        this.$api.compounds(this.$route.query.id || "ao08xo")
       );
       this.compounds = compounds;
     },
@@ -66,7 +66,7 @@ export default {
       console.log("模板xml", string);
       const moduleDate = await readModuleXml("module.xml");
       console.log("模板数据", moduleDate);
-      this.setModule(moduleDate);
+      this.setVideoModule(moduleDate);
       this.$bus.$emit(this.$keys.rebuildTimeline);
     },
     load() {

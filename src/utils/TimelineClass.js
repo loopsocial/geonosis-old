@@ -135,8 +135,9 @@ export default class TimelineClass {
   getCurrentPosition() {
     return this.streamingContext.getTimelineCurrentPosition(this.timeline);
   }
+  // 直接点击模板应用
   async buildModule() {
-    const { module, videos } = store.state.clip;
+    const { videoModule: module, videos } = store.state.clip;
     if (!module) return;
     let intro;
     let end;

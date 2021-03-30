@@ -10,7 +10,7 @@ export default {
     audios: [],
     captions: [],
     stickers: [],
-    module: null, // 使用的module
+    videoModule: null, // 使用的module
     currentVideoUuid: null,
     videoWidth: 1080,
     videoHeight: 1920,
@@ -22,11 +22,12 @@ export default {
     changeLoaded(state, payload) {
       state.loaded = payload;
     },
-    init(state, data) {
+    init(state, data = {}) {
       state.videos = cloneDeep(data.videos || []);
       state.audios = cloneDeep(data.audios || []);
       state.captions = cloneDeep(data.captions || []);
       state.stickers = cloneDeep(data.stickers || []);
+      state.videoModule = cloneDeep(data.videoModule || data.module || {});
       state.videoHeight = data.videoHeighth || 1920;
       state.videoWidth = data.videoWidth || 1080;
       state.alias = data.alias;
@@ -80,8 +81,8 @@ export default {
           break;
       }
     },
-    setModule(state, module) {
-      state.module = cloneDeep(module);
+    setVideoModule(state, module) {
+      state.videoModule = cloneDeep(module);
     },
     updateClipToVuex(state, value) {
       let index = -1;

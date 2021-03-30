@@ -6,7 +6,7 @@ export default {
       audios: state => state.clip.audios,
       captions: state => state.clip.captions,
       stickers: state => state.clip.stickers,
-      videoModule: state => state.clip.module,
+      videoModule: state => state.clip.videoModule,
       vuexLoaded: state => state.clip.loaded
     }),
     currentVideoUuid: {
@@ -26,7 +26,7 @@ export default {
       updateClipToVuex: "clip/updateClipToVuex",
       resetClips: "clip/resetClips",
       initVuex: "clip/init",
-      setModule: "clip/setModule",
+      setVideoModule: "clip/setVideoModule",
       resetLoaded: "clip/resetLoaded"
     })
   }
