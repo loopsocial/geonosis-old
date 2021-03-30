@@ -147,13 +147,14 @@ export default {
     },
     // 点击livewindow, 是否显示操作转换框
     clickLiveWindow(e) {
-      const { offsetX, offsetY } = e;
-      let v = WorkFlow.aTob(
-        new NvsPointF(offsetX, offsetY),
-        this.timelineClass.liveWindow
-      );
-      console.log(`canvas X ${offsetX} Y ${offsetY}
-live window X:${v.x} Y:${v.y}`);
+      // 注释部分用来测试，只是为了看坐标系转换时计算是否正确
+      //       const { offsetX, offsetY } = e;
+      //       let v = WorkFlow.aTob(
+      //         new NvsPointF(offsetX, offsetY),
+      //         this.timelineClass.liveWindow
+      //       );
+      //       console.log(`canvas X ${offsetX} Y ${offsetY}
+      // live window X:${v.x} Y:${v.y}`);
       if (this.editBoxStatus) return; // 调整框
       if (this.flow && this.flow.isInRect({ x: e.offsetX, y: e.offsetY })) {
         // 点击的位置就是在编辑框内

@@ -595,6 +595,7 @@ async function readLayer(stream) {
         value: stream.getAttributeValue("value")
       };
       const captionStyle = stream.getAttributeValue("caption-style-uuid");
+      caption.styleDesc = DEFAULT_CAPTION;
       if (captionStyle) {
         caption.packageUrl = captionStyle;
         try {
@@ -602,7 +603,6 @@ async function readLayer(stream) {
           caption.styleDesc = captionPath.split("/").pop();
         } catch (error) {
           console.error("字幕安装失败 使用默认字幕", captionStyle);
-          caption.styleDesc = DEFAULT_CAPTION;
         }
       }
       const fontUrl = stream.getAttributeValue("font");

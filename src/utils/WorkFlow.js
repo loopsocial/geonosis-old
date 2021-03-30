@@ -312,9 +312,11 @@ export default class WorkFlow {
     } = this.dom.getBoundingClientRect();
     const { x, y, width, height } = newBox;
     const liveWindow = this.timelineClass.liveWindow;
+    // 计算rect在liveWindow坐标系下的left、top
     let { x: left, y: top } = WorkFlow.aTob(new NvsPointF(x, y), liveWindow);
     left -= this.clip.translationX;
     top -= this.clip.translationY;
+    // 计算rect再liveWindow坐标系下的宽高
     let { x: liveWidth, y: liveHeight } = WorkFlow.aTob(
       new NvsPointF(width + viewWidth / 2, height + viewHeight / 2),
       liveWindow
@@ -330,6 +332,8 @@ export default class WorkFlow {
     //     └──── Bottom:${rect.bottom.toString().substring(0, 4)} ─────┘
     //     `);
     this.clip.raw.setTextFrameOriginRect(rect);
+    // 记录frameWidth、Height
+
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {

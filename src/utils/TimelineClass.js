@@ -222,7 +222,12 @@ export default class TimelineClass {
           return;
         }
         const m3u8Path = await installAsset(m3u8Url);
-        const clip = this.otherTrackRaw.addClip2(m3u8Path, inPoint, 0, duration);
+        const clip = this.otherTrackRaw.addClip2(
+          m3u8Path,
+          inPoint,
+          0,
+          duration
+        );
         if (!clip) {
           console.warn("图片添加失败", m3u8Path, image);
           return;
@@ -418,7 +423,6 @@ export default class TimelineClass {
       captionRaw.setTextFrameOriginRect(rect);
       fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
     } else {
-      console.log("字体大小", fontSize);
       fontSize !== undefined && captionRaw.setFontSize(fontSize);
     }
     if (font) {
@@ -429,7 +433,7 @@ export default class TimelineClass {
   }
   getValue(string, length) {
     if (string.search("%") > -1) {
-      return parseFloat(string) * length;
+      return (parseFloat(string) * length) / 100;
     }
     return parseFloat(string);
   }
