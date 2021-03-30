@@ -598,12 +598,12 @@ export default {
           }
         });
 
-        const [
+        const {
           imageWidth,
           imageHeight,
           standardizedVideoHeight,
           standardizedVideoWidth
-        ] = this.calcTransformParams();
+        } = this.calcTransformParams();
 
         const centerX = -(
           paramX /
@@ -689,7 +689,6 @@ export default {
         inPoint += video.duration;
         assets.push(video);
       }
-      debugger
       this.addClipToVuex(assets);
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
@@ -848,14 +847,16 @@ export default {
       }
     },
 
-    calcTransformParams() {
-      let { imageWidth, imageHeight } = new NvsVideoResolution(540, 960); // 主 LiveWindow 渲染层视频像素宽高
+    calcTransformParams(centerPos) {
+      const { videoWidth: w, videoHeight: h } = this.$store.state.clip;
+      let { imageWidth, imageHeight } = new NvsVideoResolution(w, h); // 主 LiveWindow 渲染层视频像素宽高
 
-      const [videoWidth, videoHeight] = [
-        // dialog中视频宽高
-        this.videoInfo.videoStreamInfo.width,
-        this.videoInfo.videoStreamInfo.height
-      ];
+      // dialog中视频宽高
+      const {
+        width: videoWidth,
+        height: videoHeight
+      } = this.videoInfo.videoStreamInfo;
+
       let standardizedVideoHeight = 0; //原始素材按 9/16 计算后高度
       let standardizedVideoWidth = 0; //原始素材按 9/16 计算后宽度
       let scaleX = 0;
@@ -873,14 +874,25 @@ export default {
         scaleX = 1 / ((videoWidth * this.rect.width) / standardizedVideoWidth);
         scaleY = scaleX;
       }
-      return [
-        imageWidth,
-        imageHeight,
-        standardizedVideoHeight,
-        standardizedVideoWidth,
+      if (!centerPos)
+        return {
+          imageWidth,
+          imageHeight,
+          standardizedVideoHeight,
+          standardizedVideoWidth
+        };
+
+      const transX =
+        -(imageWidth / standardizedVideoWidth) * centerPos.x * scaleX;
+      const transY =
+        -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
+
+      return {
+        transX,
+        transY,
         scaleX,
         scaleY
-      ];
+      };
     },
     handleNext() {
       this.dialogVisible = false;
@@ -898,18 +910,9 @@ export default {
         this.trimTimeline.liveWindow
       );
 
-      const [
-        imageWidth,
-        imageHeight,
-        standardizedVideoHeight,
-        standardizedVideoWidth,
-        scaleX,
-        scaleY
-      ] = this.calcTransformParams();
-      const transX =
-        -(imageWidth / standardizedVideoWidth) * centerPos.x * scaleX;
-      const transY =
-        -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
+      const { transX, transY, scaleX, scaleY } = this.calcTransformParams(
+        centerPos
+      );
 
       const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
       transformFx.params = [
@@ -1142,7 +1145,6 @@ export default {
             clipItemWidth}px 0/${clipItemWidth}px 100% repeat,`;
         }
       }
-      console.log(bg);
       this.background = bg.substring(0, bg.length - 1);
     },
     // 处理切片的选中
@@ -1400,7 +1402,6 @@ export default {
 <style lang="scss" scoped>
 $infoBgc: rgba(0, 0, 0, 0.5);
 .draft-list {
-  min-width: 111px;
   height: 100%;
   width: 216px;
   position: relative;
@@ -1528,7 +1529,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     // width: 600px;
     // height: 560px;
     .el-dialog__body {
-      height: calc(100% - 130px);
+      // height: calc(100% - 130px);
       display: flex;
       flex-direction: column;
       justify-content: space-around;
