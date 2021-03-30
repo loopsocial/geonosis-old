@@ -19,6 +19,9 @@ export default {
     loaded: false
   },
   mutations: {
+    changeLoaded(state, payload) {
+      state.loaded = payload;
+    },
     init(state, data) {
       state.videos = cloneDeep(data.videos || []);
       state.audios = cloneDeep(data.audios || []);

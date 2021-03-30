@@ -82,6 +82,7 @@ export default {
       console.log("media-assets", mediaAssets);
       await this.applyAssetsXml(mediaAssets, xml); // 更新vuex 安装并应用素材
       this.updateProject();
+      this.changeVuexLoaded(true);
     } else {
       await this.$nextTick();
     }
