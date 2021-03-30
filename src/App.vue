@@ -60,7 +60,8 @@ export default {
   },
   computed: {
     ...mapState({
-      isFinishNvs: state => state.isFinishNvs
+      isFinishNvs: state => state.isFinishNvs,
+      isFinishProject: state => state.isFinishProject
     }),
     isCreate() {
       return this.$route.name === "Create";
@@ -76,7 +77,7 @@ export default {
     },
     isLoading() {
       if (["Branding", "Create"].includes(this.$route.name)) return false;
-      return !this.isFinishNvs && this.isEditPages;
+      return !this.isFinishNvs && this.isEditPages && !this.isFinishProject;
     },
     isEditPages() {
       const pages = ["Branding", "Music", "Scenes", "Styles"];

@@ -90,6 +90,7 @@ export default {
     await this.createTimeline();
     document.body.addEventListener("mouseup", this.statusEvent);
     this.$emit("on-loaded");
+    this.setProjectStatus(true); // 工程加载完成
     this.calcLivewindowStyle(); // 计算a/b倍数
   },
   computed: {
@@ -487,7 +488,8 @@ live window X:${v.x} Y:${v.y}`);
     // },
     ...mapActions({
       setNvsStatus: "setNvsStatus",
-      setEditBoxstatus: "setEditBoxStatus"
+      setEditBoxstatus: "setEditBoxStatus",
+      setProjectStatus: "setProjectStatus"
     }),
     async createTimeline() {
       this.timelineClass = new TimelineClass("live-window", {

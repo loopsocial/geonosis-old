@@ -8,6 +8,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     isFinishNvs: false,
+    isFinishProject: false,
     editBoxStatus: false // 字幕编辑窗是否打开中
   },
   mutations: {
@@ -16,6 +17,9 @@ export default new Vuex.Store({
     },
     setEditBoxStatus(state, status) {
       state.editBoxStatus = status;
+    },
+    setProjectStatus(state, isFinish) {
+      state.isFinishProject = isFinish;
     }
   },
   actions: {
@@ -24,6 +28,9 @@ export default new Vuex.Store({
     },
     setEditBoxStatus({ commit }, status) {
       commit("setEditBoxStatus", status);
+    },
+    setProjectStatus({ commit }, isFinish) {
+      commit("setProjectStatus", isFinish);
     }
   },
   modules: {

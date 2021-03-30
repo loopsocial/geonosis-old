@@ -29,6 +29,8 @@
 import Project from "../components/create/Project";
 import Medias from "../components/create/Medias";
 import Edit from "../components/create/Edit";
+import { mapActions } from "vuex";
+
 const statusMap = {
   media: "media",
   edit: "edit"
@@ -53,6 +55,10 @@ export default {
     await this.getMediaLibrary();
   },
   methods: {
+    ...mapActions({
+      setNvsStatus: "setNvsStatus",
+      setProjectStatus: "setProjectStatus"
+    }),
     openMedia() {
       this.mediaDialog = true;
     },
@@ -64,6 +70,8 @@ export default {
       this.status = this.statusMap.edit;
       this.medias = videoProject.media_assets;
       this.resetLoaded();
+      this.setNvsStatus(false);
+      this.setProjectStatus(false);
       this.$router.push({
         name: "Scenes",
         query: { id: videoProject.id }
