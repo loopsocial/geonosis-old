@@ -434,6 +434,9 @@ export default {
       overflow: auto;
       height: calc(100% - 40px);
       margin-top: 10px;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
     .horizontal {
       aspect-ratio: 21/9;

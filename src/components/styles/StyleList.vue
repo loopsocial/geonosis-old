@@ -9,6 +9,7 @@
     >
       <li
         class="list-item"
+        :class="{ selected: isCurrentSelected(style) }"
         v-for="style of compounds"
         :key="style.uuid"
         v-loading="style.isInstalling"
@@ -54,6 +55,9 @@ export default {
   },
 
   methods: {
+    isCurrentSelected(style) {
+      return this.$store.state.clip.module?.alias === style.alias;
+    },
     async getStyleList() {
       const { compounds } = await this.axios.get(
         this.$api.compounds(this.$route.query.id)
@@ -76,6 +80,7 @@ export default {
       }, 1999);
     },
     async userModule(style) {
+      console.log(style)
       const loading = this.$loading({
         lock: true,
         text: "Loading",
@@ -119,11 +124,14 @@ export default {
       border-radius: 6px;
       width: 100%;
       height: auto;
-      box-sizing: border-box;
-      border: 2px solid transparent;
+      border: 4px solid transparent;
       transition: color 0.3s;
       aspect-ratio: 9/16;
       position: relative;
+      box-sizing: content-box;
+      &.selected {
+        border: 4px solid #fff;
+      }
       &.active {
         border-color: $white;
       }

@@ -113,11 +113,11 @@ body {
     font-family: "Avenir Next" !important;
   }
   .el-menu-vertical {
-    height: 100%;
     overflow-y: scroll;
+    padding-top: 10px;
     flex-shrink: 0;
     width: 100px;
-    height: 100%;
+    height: calc(100% - 10px);
     background-color: transparent;
     border-right: 1px solid #6b6b6b;
     &::-webkit-scrollbar {
