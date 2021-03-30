@@ -33,7 +33,7 @@ import { CaptionClip, StickerClip, AudioClip } from "@/utils/ProjectData";
 import dragMixin from "@/mixins/dragMixin";
 import keyBindMx from "@/mixins/keyBindMx";
 import WorkFlow from "@/utils/WorkFlow";
-import { install, mapActions, mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
@@ -718,6 +718,7 @@ export default {
     this.$bus.$off(this.$keys.delCaptionSticker, this.delCaptionSticker);
     this.$bus.$off(this.$keys.seek, this.seekTimeline);
     this.$bus.$off(this.$keys.rebuildTimeline, this.rebuildTimeline);
+    this.$bus.$off(this.$keys.updateProject, this.updateProject);
   }
 };
 </script>
