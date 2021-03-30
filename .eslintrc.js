@@ -37,6 +37,8 @@ module.exports = {
     NvsSeekFlagEnum: true,
     NvsColor: true,
     NvsVectorFloat: true,
-    axios: true
+    axios: true,
+    NvsCaptionTextBoundingTypeEnum: true,
+    NvsRectF: true
   }
 };

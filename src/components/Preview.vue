@@ -115,10 +115,10 @@ export default {
     // 更新工程。初始化档案时；添加、删除素材时调用
     async updateProject(callback) {
       const { id: projectId } = this.$route.query;
-      // if (!projectId) {
-      //   if (typeof callback === "function") callback(false);
-      //   return;
-      // }
+      if (!projectId) {
+        if (typeof callback === "function") callback(false);
+        return;
+      }
       try {
         const mediaIds = this.videos.reduce((ids, v) => {
           if (typeof v.id === "string") ids.push(v.id);
@@ -190,8 +190,7 @@ live window X:${v.x} Y:${v.y}`);
         return [...captions, ...stickers].find(item => {
           const point = WorkFlow.getCoordinateFromPoint(
             item,
-            this.timelineClass.liveWindow,
-            true
+            this.timelineClass.liveWindow
           );
           const { x, y, height, width } = point;
           if (item.rotation) {
@@ -391,18 +390,23 @@ live window X:${v.x} Y:${v.y}`);
     },
     getInPointAndDuration(t) {
       let duration;
+      let trimIn = 0;
       const v = this.videos.find(video => {
         const s = video.splitList.find(split => {
-          return t >= split.captureIn && t <= split.captureOut;
+          return (
+            t >= video.inPoint + split.captureIn &&
+            t < video.inPoint + split.captureOut
+          );
         });
         if (s) {
           duration = s.captureOut - s.captureIn;
+          trimIn = s.captureIn;
         }
         return s;
       });
       return {
         duration,
-        inPoint: v.inPoint
+        inPoint: v.inPoint + trimIn
       };
     },
     async editClip(e, option) {
