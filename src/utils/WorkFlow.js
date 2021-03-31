@@ -1,6 +1,6 @@
 import Konva from "konva";
 import { CLIP_TYPES } from "@/utils/Global";
-import { vectorRotate } from "@/utils/common";
+import { toPercentage, vectorRotate } from "@/utils/common";
 import delImg from "../assets/images/delete.png";
 import store from "../store/index";
 import Keys from "../utils/EventBusKeys";
@@ -333,7 +333,11 @@ export default class WorkFlow {
     //     `);
     this.clip.raw.setTextFrameOriginRect(rect);
     // 记录frameWidth、Height
-
+    const { videoWidth, videoHeight } = store.state.clip;
+    const rectWidth = right - left;
+    const rectHeight = top - bottom;
+    this.clip.frameWidth = toPercentage(rectWidth / videoWidth);
+    this.clip.frameHeight = toPercentage(rectHeight / videoHeight);
     // 旋转操作
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {

@@ -115,6 +115,7 @@ export class CaptionClip extends Clip {
     this.uuid = option.uuid || generateUUID();
     this.packageUrl = option.packageUrl;
     this.align = "center"; // string, left/center/right
+    // 前端的颜色存储为RGBA，XML内的颜色存储为#FFFFFFF, SDK使用的是NvsColor
     this.color = ""; // RGBA
     this.backgroundColor = "";
     this.font = ""; // stringValue

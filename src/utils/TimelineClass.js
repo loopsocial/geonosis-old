@@ -7,7 +7,7 @@ import {
 } from "./Global";
 import store from "../store";
 import { installAsset } from "./AssetsUtils";
-import { HexToRGBA, RGBAToNvsColor } from "./common";
+import { HexToRGBA, NvsColorToRGBA, RGBAToNvsColor } from "./common";
 import { CaptionClip } from "./ProjectData";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
@@ -447,6 +447,9 @@ export default class TimelineClass {
       const rgba = color[0] === "#" ? HexToRGBA(color) : color;
       const nvsColor = RGBAToNvsColor(rgba);
       captionRaw.setTextColor(nvsColor);
+    } else {
+      const nvsColor = captionRaw.getTextColor();
+      caption.color = NvsColorToRGBA(nvsColor);
     }
     if (backgroundColor) {
       const rgba =
@@ -455,6 +458,9 @@ export default class TimelineClass {
           : backgroundColor;
       const nvsColor = RGBAToNvsColor(rgba);
       captionRaw.setBackgroundColor(nvsColor);
+    } else {
+      const nvsColor = captionRaw.getBackgroundColor();
+      caption.backgroundColor = NvsColorToRGBA(nvsColor);
     }
     if (align) {
       const temp = {

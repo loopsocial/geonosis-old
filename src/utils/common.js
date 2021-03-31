@@ -1,3 +1,11 @@
+// 小数转百分数
+export function toPercentage(number, fixed = 2) {
+  number = number * 100;
+  if (fixed) {
+    number = number.toFixed(2);
+  }
+  return number + "%";
+}
 export function sleep(timeout) {
   return new Promise(resolve => {
     setTimeout(() => {
