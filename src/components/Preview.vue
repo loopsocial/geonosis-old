@@ -394,9 +394,10 @@ export default {
       let durationCumulate = 0;
       for (let video of this.videos) {
         for (let item of video.splitList) {
-          if (durationCumulate >= t) {
+          const duration = item.captureOut - item.captureIn - 1;
+          if (durationCumulate + duration >= t) {
             return {
-              duration: item.captureOut - item.captureIn - 1,
+              duration,
               inPoint: durationCumulate
             };
           }

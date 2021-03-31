@@ -807,12 +807,14 @@ export default {
 
     handleImageDurationPlus() {
       this.imageDuration += 1000000;
+      this.calcDuration(null, null, true);
     },
     handleImageDurationMinus() {
       this.imageDuration -= 1000000;
       if (this.imageDuration < 0) {
         this.imageDuration = 0;
       }
+      this.calcDuration(null, null, true);
     },
     handlePlaying(timeline, currentTime) {
       this.splittreLeft = this.calcCurrentPercentage(currentTime);
@@ -960,6 +962,7 @@ export default {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
           this.motion = this.activeClip.motion;
+          this.calcDuration(null, null, true);
           this.operateStack.pushSnapshot(this.splitList);
         } else {
           this.initSplit(); // 根据当前video的splitList分隔当前缩略图
@@ -1261,27 +1264,26 @@ export default {
       this.calcDuration(startTime, endTime);
       this.refreshBackgroundCover();
     },
-    calcDuration(startTime, endTime) {
-      if (startTime !== undefined && endTime !== undefined) {
+    calcDuration(startTime, endTime, isImage) {
+      if ((startTime && endTime) ?? false) {
         this.duration = endTime - startTime;
       }
-      this.totalDuration =
-        this.videos.reduce((prev, cur) => {
-          if (Object.is(cur, this.activeClip)) {
-            return prev;
-          }
-          const captureDuration = cur.splitList.reduce(
-            (prevSplit, curSplit) => {
-              return prevSplit + (curSplit.captureOut - curSplit.captureIn);
-            },
+      const otherVideoDuration = this.videos.reduce((prev, cur) => {
+        if (Object.is(cur, this.activeClip)) {
+          return prev;
+        }
+        const captureDuration = cur.splitList.reduce((prevSplit, curSplit) => {
+          return prevSplit + (curSplit.captureOut - curSplit.captureIn);
+        }, 0);
+        return prev + captureDuration;
+      }, 0);
+      const currentVideoDuration = isImage
+        ? this.imageDuration
+        : this.splitList.reduce(
+            (prev, cur) => prev + cur.captureOut - cur.captureIn,
             0
           );
-          return prev + captureDuration;
-        }, 0) +
-        this.splitList.reduce(
-          (prev, cur) => prev + cur.captureOut - cur.captureIn,
-          0
-        );
+      this.totalDuration = otherVideoDuration + currentVideoDuration;
     },
     handleRightMouseUp() {
       this.operateStack.pushSnapshot(this.splitList);
