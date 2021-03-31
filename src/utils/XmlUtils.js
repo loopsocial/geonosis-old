@@ -68,29 +68,33 @@ function transformation() {
       videoList.push(vItem);
     });
   });
-
-  let intro; // module 片头的scene
-  let end; // module 片尾的scene
-  let defaultScenes = []; // module 中间部分的scene
-  if (module && Array.isArray(module.scenes)) {
-    defaultScenes = module.scenes.filter(scene => {
-      if (scene.temporal === "end") end = scene;
-      else if (scene.temporal === "intro") intro = scene;
-      else return true;
-    });
+  if (module) {
     creation.moduleAlias = module.alias;
   }
+  // let intro; // module 片头的scene
+  // let end; // module 片尾的scene
+  // let defaultScenes = []; // module 中间部分的scene
+  // if (module && Array.isArray(module.scenes)) {
+  //   defaultScenes = module.scenes.filter(scene => {
+  //     if (scene.temporal === "end") end = scene;
+  //     else if (scene.temporal === "intro") intro = scene;
+  //     else return true;
+  //   });
+  //   creation.moduleAlias = module.alias;
+  // }
   creation.scenes = videoList.map((v, index) => {
+    const moduleCaptions = []; // 使用的模板字幕
+
     // 将用户添加的字幕按照 视频槽的方式进行规整
     const c = captions.reduce((res, caption) => {
-      const { inPoint, duration } = caption;
+      const { inPoint, duration, isModule } = caption;
       if (
         inPoint === v.inPoint ||
         (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
       ) {
         const diff = v.inPoint - inPoint; // 处理 一个字幕横跨两个视频的情况
-        res.push({
-          type: "user-added",
+        const cap = {
+          type: isModule ? "module" : "user-added",
           zValue: caption.z || 1,
           fontColor: caption.color,
           translationX: caption.translationX,
@@ -98,69 +102,71 @@ function transformation() {
           scaleX: caption.scale,
           scaleY: caption.scale,
           fontSize: caption.fontSize,
-          frameWidth: "",
-          frameHeight: "",
+          frameWidth: caption.frameWidth,
+          frameHeight: caption.frameHeight,
           duration: Math.min(v.duration, duration - diff),
           value: caption.text,
           textXAlignment: caption.align,
           font: caption.fontUrl,
           backgroundImage: caption.backgroundImage,
+          backgroundColor: caption.backgroundColor,
           packageUrl: caption.packageUrl
-        });
+        };
+        isModule ? moduleCaptions.push(cap) : res.push(cap);
       }
       return res;
     }, []);
-    // 将模板内容应用过去
-    const moduleCaptions = []; // 使用的模板字幕
-    let curModuleScene;
-    if (index === 0) {
-      curModuleScene = intro || defaultScenes[index];
-    } else if (index === videoList.length - 1) {
-      const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
-      curModuleScene = end || defaultScenes[index];
-    } else {
-      const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
-      curModuleScene = defaultScenes[index];
-    }
-    if (curModuleScene) {
-      curModuleScene.layers.map(item => {
-        if (item.type === "raw") {
-          // video.videoType = video/image
-          if (item[v.videoType]) {
-            v.scaleX *= item[v.videoType].scaleX;
-            v.scaleY *= item[v.videoType].scaleY;
-            v.translationX += item[v.videoType].translationX;
-            v.translationY += item[v.videoType].translationY;
-          }
-        } else if (item.type === "module") {
-          item.text.map(text => {
-            const caption = {
-              type: "module",
-              zValue: text.zValue || 1,
-              fontColor: text.fontColor,
-              translationX: text.translationX,
-              translationY: text.translationY,
-              scaleX: text.scaleX,
-              scaleY: text.scaleY,
-              fontSize: text.fontSize, // todo -----
-              frameWidth: text.frameWidth,
-              frameHeight: text.frameHeight,
-              value: text.value,
-              textXAlignment: text.textXAlignment,
-              font: text.font
-            };
-            if (text.packageUrl) {
-              caption.packageUrl = text.packageUrl;
-            }
-            moduleCaptions.push(caption);
-          });
-          if (item.image && item.image.source && item.image.source.src) {
-            moduleCaptions[moduleCaptions.length - 1].backgroundImage =
-              item.image.source.src;
-          }
-        }
-      });
-    }
+    // // 将模板内容应用过去
+    // const moduleCaptions = []; // 使用的模板字幕
+    // let curModuleScene;
+    // if (index === 0) {
+    //   curModuleScene = intro || defaultScenes[index];
+    // } else if (index === videoList.length - 1) {
+    //   const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
+    //   curModuleScene = end || defaultScenes[index];
+    // } else {
+    //   const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
+    //   curModuleScene = defaultScenes[index];
+    // }
+    // if (curModuleScene) {
+    //   curModuleScene.layers.map(item => {
+    //     if (item.type === "raw") {
+    //       // video.videoType = video/image
+    //       if (item[v.videoType]) {
+    //         v.scaleX *= item[v.videoType].scaleX;
+    //         v.scaleY *= item[v.videoType].scaleY;
+    //         v.translationX += item[v.videoType].translationX;
+    //         v.translationY += item[v.videoType].translationY;
+    //       }
+    //     } else if (item.type === "module") {
+    //       item.text.map(text => {
+    //         const caption = {
+    //           type: "module",
+    //           zValue: text.zValue || 1,
+    //           fontColor: text.fontColor,
+    //           translationX: text.translationX,
+    //           translationY: text.translationY,
+    //           scaleX: text.scaleX,
+    //           scaleY: text.scaleY,
+    //           fontSize: text.fontSize, // todo -----
+    //           frameWidth: text.frameWidth,
+    //           frameHeight: text.frameHeight,
+    //           value: text.value,
+    //           textXAlignment: text.textXAlignment,
+    //           font: text.font
+    //         };
+    //         if (text.packageUrl) {
+    //           caption.packageUrl = text.packageUrl;
+    //         }
+    //         moduleCaptions.push(caption);
+    //       });
+    //       if (item.image && item.image.source && item.image.source.src) {
+    //         moduleCaptions[moduleCaptions.length - 1].backgroundImage =
+    //           item.image.source.src;
+    //       }
+    //     }
+    //   });
+    // }
     return {
       video: v,
       captions: c,
@@ -324,20 +330,34 @@ async function readDom(stream) {
       res.videoHeight = stream.getAttributeValue("video-height") * 1;
       res.version = stream.getAttributeValue("version");
       res.alias = stream.getAttributeValue("alias");
-      const moduleAlias = stream.getAttributeValue("module-alias");
-      if (moduleAlias) {
-        res.moduleAlias = moduleAlias;
-      }
       res.videos = [];
       res.audios = [];
       res.captions = [];
-      res.videoModule = [];
       res.stickers = [];
+      res.videoModule = {
+        alias: "",
+        scenes: []
+      };
+      const moduleAlias = stream.getAttributeValue("module-alias");
+      if (moduleAlias) {
+        res.videoModule.alias = moduleAlias;
+      }
     } else if (stream.isStartElement() && stream.name() === "fw-scene") {
-      const { video, captions, module } = await readProjectScene(stream, res);
+      const { video, captions, videoModule } = await readProjectScene(
+        stream,
+        res
+      );
       res.videos.push(video);
       res.captions.push(...captions);
-      res.videoModule.push(module);
+      res.videoModule.scenes.push({
+        temporal: "default",
+        layers: [
+          {
+            type: "module",
+            text: videoModule.text
+          }
+        ]
+      });
     }
     stream.readNext();
   }
@@ -348,8 +368,8 @@ async function readProjectScene(stream, res) {
   const scene = {
     video: null,
     captions: [],
-    module: {
-      captions: []
+    videoModule: {
+      text: []
     }
   };
   while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
@@ -360,7 +380,7 @@ async function readProjectScene(stream, res) {
       } else if (type === "module") {
         // TODO: 用户使用的模板（字幕、贴纸）
         const captions = await readProjectCaptions(stream, scene.video);
-        scene.module.captions.push(...captions);
+        scene.videoModule.text = captions;
       } else if (type === "user-added") {
         // TODO: 用户添加的字幕、贴纸等
         const captions = await readProjectCaptions(stream, scene.video);
@@ -454,11 +474,16 @@ async function readProjectCaptions(stream, video) {
           console.error("字体安装失败");
         }
       }
+      const backgroundColor = stream.getAttributeValue("background-color");
+      if (backgroundColor) {
+        caption.backgroundColor = HexToRGBA(backgroundColor);
+      }
       const fontColor = stream.getAttributeValue("font-color");
-      if (fontColor) caption.color = fontColor;
+      if (fontColor) caption.color = HexToRGBA(fontColor);
       const fontSize = stream.getAttributeValue("font-size");
       if (fontSize) {
-        caption.fontSize = stream.getAttributeValue("font-size") * videoLength;
+        caption.fontSize =
+          (stream.getAttributeValue("font-size") * videoLength) / 720;
       }
       const captionStyle = stream.getAttributeValue("caption-style-uuid");
       if (captionStyle) {
@@ -593,7 +618,7 @@ async function readLayer(stream) {
       if (!Array.isArray(layer.text)) layer.text = [];
       const caption = {
         uuid: generateUUID(),
-        textXAlignment: stream.getAttributeValue("text-x-alignment"),
+        align: stream.getAttributeValue("text-x-alignment"),
         fontSize: (stream.getAttributeValue("font-size") * videoLength) / 720,
         frameWidth: stream.getAttributeValue("frame-width"),
         frameHeight: stream.getAttributeValue("frame-height"),
@@ -615,10 +640,10 @@ async function readLayer(stream) {
       }
       const fontUrl = stream.getAttributeValue("font");
       if (fontUrl) {
+        caption.fontUrl = fontUrl;
         try {
           console.log("尝试安装字体");
           caption.font = await installAsset(fontUrl);
-          console.log(caption);
         } catch (error) {
           console.error("字体安装失败");
         }
@@ -627,7 +652,7 @@ async function readLayer(stream) {
       if (color) {
         caption.fontColor = HexToRGBA(color);
       }
-      layer.text.push(caption);
+      layer.text.push(new CaptionClip(caption));
     }
     stream.readNext();
   }

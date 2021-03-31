@@ -56,7 +56,7 @@ export default {
 
   methods: {
     isCurrentSelected(style) {
-      return this.$store.state.clip.module?.alias === style.alias;
+      return this.$store.state.clip.videoModule?.alias === style.alias;
     },
     async getStyleList() {
       const { compounds } = await this.axios.get(

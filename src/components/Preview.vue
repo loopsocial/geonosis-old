@@ -39,6 +39,7 @@ import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
 import { writeXml, readProjectXml } from "@/utils/XmlUtils";
+import getDefaultAsset from "@/utils/getDefaultAsset";
 
 export default {
   mixins: [dragMixin, keyBindMx],
@@ -74,6 +75,8 @@ export default {
     // 创建时间线
     if (!this.vuexLoaded) {
       try {
+        // 读取并安装asset/styleAssets下的captionstyle
+        await getDefaultAsset();
         await this.installFont(); // 安装字体
       } catch (error) {
         console.warn("字体安装失败");

@@ -2,7 +2,6 @@ import { getNameFromUrl } from "./common";
 import { objectStores, assetTypes, needInstall, RESOURCE } from "./Global";
 import axios from "axios";
 import store from "../store";
-import getDefaultAsset from "@/utils/getDefaultAsset";
 
 const name = "nvBSEditorAssets";
 const version = 1;
@@ -17,12 +16,6 @@ export function initIndexDB() {
     request.onsuccess = function(e) {
       db = e.target.result;
       console.log("index db version:" + db.version);
-      // 读取并安装asset/styleAssets下的captionstyle
-      getDefaultAsset().then(keys => {
-        keys.map(key => {
-          installAsset(key);
-        });
-      });
       resolve(db);
     };
     request.onupgradeneeded = function(e) {

@@ -108,18 +108,18 @@ export class CaptionClip extends Clip {
     });
     this.styleDesc =
       option.desc || option.id || option.styleDesc || DEFAULT_CAPTION;
-    this.text = option.text || CLIP_TYPES.CAPTION;
+    this.text = option.text || option.value || CLIP_TYPES.CAPTION;
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0; // 角度
     this.uuid = option.uuid || generateUUID();
     this.packageUrl = option.packageUrl;
-    this.align = "center"; // string, left/center/right
+    this.align = option.align || "center"; // string, left/center/right
     // 前端的颜色存储为RGBA，XML内的颜色存储为#FFFFFFF, SDK使用的是NvsColor
-    this.color = ""; // RGBA
-    this.backgroundColor = "";
-    this.font = ""; // stringValue
-    this.fontUrl = "";
+    this.color = option.color || ""; // RGBA
+    this.backgroundColor = option.backgroundColor || "";
+    this.font = option.font || ""; // stringValue
+    this.fontUrl = option.fontUrl || "";
     // 相对于监视器中心点的位置
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;

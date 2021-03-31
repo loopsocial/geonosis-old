@@ -18,7 +18,7 @@ const undoRedoPlugin = store => {
   store.subscribe((mutation, state) => {
     // is called AFTER every mutation
     if (/^clip\//.test(mutation.type) && !exclude.includes(mutation.type)) {
-      console.warn("添加到撤销栈", state.clip);
+      // console.warn("添加到撤销栈", state.clip);
       undoRedoHistory.addState(cloneDeep(state.clip));
     }
   });

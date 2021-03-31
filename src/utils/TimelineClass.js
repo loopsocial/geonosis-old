@@ -214,7 +214,7 @@ export default class TimelineClass {
     const { raw, inPoint, duration, videoType } = video;
     const rawLayer = scene.layers.find(l => l.type === "raw");
     const moduleLayer = scene.layers.find(l => l.type === "module");
-    const module = rawLayer[videoType];
+    const module = rawLayer && rawLayer[videoType];
     if (module) {
       const { scaleX, scaleY, translationX, translationY } = module;
       const transform2DFx = raw.appendBuiltinFx(FX_DESC.TRANSFORM2D);
@@ -237,20 +237,10 @@ export default class TimelineClass {
           this.addCaption(cap);
         } else {
           const moduleCaption = new CaptionClip({
-            uuid: item.uuid,
-            styleDesc: item.styleDesc,
-            font: item.font,
-            text: item.value,
+            ...item,
+            text: item.value || item.text,
             inPoint: inPoint,
             duration: duration || video.duration,
-            z: item.zValue,
-            color: item.fontColor,
-            fontSize: item.fontSize,
-            align: item.textXAlignment,
-            translationY: item.translationY,
-            translationX: item.translationX,
-            frameWidth: item.frameWidth,
-            frameHeight: item.frameHeight,
             isModule: true
           });
           this.addCaption(moduleCaption);
@@ -438,11 +428,6 @@ export default class TimelineClass {
       captionRaw.setScaleY(scale);
     }
     rotation !== undefined && captionRaw.setRotationZ(rotation);
-    if (translationX !== undefined && translationY !== undefined) {
-      captionRaw.setCaptionTranslation(
-        new NvsPointF(translationX, translationY)
-      );
-    }
     if (color) {
       const rgba = color[0] === "#" ? HexToRGBA(color) : color;
       const nvsColor = RGBAToNvsColor(rgba);
@@ -484,6 +469,11 @@ export default class TimelineClass {
       fontSize > 0 && captionRaw.setFrameCaptionMaxFontSize(fontSize);
     } else {
       fontSize !== undefined && captionRaw.setFontSize(fontSize);
+    }
+    if (translationX !== undefined && translationY !== undefined) {
+      captionRaw.setCaptionTranslation(
+        new NvsPointF(translationX, translationY)
+      );
     }
     if (font) {
       captionRaw.setFontFamily(font);

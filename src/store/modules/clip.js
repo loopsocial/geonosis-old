@@ -152,10 +152,9 @@ export default {
   },
   actions: {
     setVideoModule({ commit }, module) {
+      commit("clearModuleDate");
       if (module) {
         commit("setVideoModule", module);
-      } else {
-        commit("clearModuleDate");
       }
     }
   }
