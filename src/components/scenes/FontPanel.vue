@@ -130,7 +130,7 @@
               icon-class="plus"
             ></svg-icon>
             <span class="duration-text white">{{
-              (clip.duration / 1000) | msFormat
+              clip.duration | msFormat
             }}</span>
             <svg-icon
               @click="changeDuration(-1)"
