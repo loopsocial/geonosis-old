@@ -56,7 +56,7 @@ export default {
 
   methods: {
     isCurrentSelected(style) {
-      return this.$store.state.clip.module?.alias === style.alias;
+      return this.$store.state.clip.videoModule?.alias === style.alias;
     },
     async getStyleList() {
       const { compounds } = await this.axios.get(
@@ -80,7 +80,6 @@ export default {
       }, 1999);
     },
     async userModule(style) {
-      console.log(style)
       const loading = this.$loading({
         lock: true,
         text: "Loading",
@@ -129,6 +128,7 @@ export default {
       aspect-ratio: 9/16;
       position: relative;
       box-sizing: content-box;
+      transition: all 0.5s ease;
       &.selected {
         border: 4px solid #fff;
       }
