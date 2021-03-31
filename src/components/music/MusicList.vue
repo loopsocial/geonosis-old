@@ -126,7 +126,6 @@ export default {
   },
   methods: {
     applyAudio(audioClip) {
-      this.isLoading = true;
       this.$emit("clearAudio");
       this.$bus.$emit(this.$keys.clearAudioTrack);
       this.calcAudioTime(audioClip);
@@ -138,7 +137,6 @@ export default {
         .catch(err => {
           this.$message({ type: "error", message: err });
         })
-        .finally(() => (this.isLoading = false));
     },
     calcAudioTime(audioClip) {
       const fixedSlider = this.$refs.slider[this.activeIndex];

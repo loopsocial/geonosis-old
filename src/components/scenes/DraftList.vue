@@ -14,7 +14,7 @@
           ]"
           v-for="(split, i) in item.splitList"
           :key="i"
-          @click="selected(item, i)"
+          @click="selected(item, i, split)"
           :style="{
             background:
               `linear-gradient(
@@ -613,7 +613,7 @@ export default {
           ((imageHeight / standardizedVideoHeight) * scaleY)
         );
 
-        if (videoWidth > videoHeight) {
+        if (videoWidth / videoHeight < RATIO) {
           this.rect.height = standardizedVideoHeight / scaleY / videoHeight;
           this.rect.width =
             ((9 / 16) * (this.rect.height * videoHeight)) / videoWidth;
@@ -777,7 +777,6 @@ export default {
       this.splitList.reduce((prev, cur, curIdx, arr) => {
         const curWidth = this.calcSplittedItemWidth(cur.trimIn, cur.trimOut);
         if (splitterPercentage < curWidth + prev && splitterPercentage > prev) {
-          this.delMaterials(cur);
           // 一分为二
           splitedArr = [
             {
@@ -797,6 +796,7 @@ export default {
             }
           ];
           arr.splice(curIdx, 1, ...splitedArr);
+          // this.delMaterials(cur);
         }
         return prev + curWidth;
       }, 0);
@@ -935,6 +935,10 @@ export default {
         this.activeClip.motion = this.motion;
       } else {
         // 视频处理
+        this.splitList.reduce((prev, cur) => {
+          cur.inPoint = prev;
+          return prev + cur.captureOut - cur.captureIn;
+        }, this.activeClip.inPoint);
         this.activeClip.splitList = this.splitList.map(item => {
           item.videoFxs = [transformFx, mosaicFx];
           return item;
@@ -985,26 +989,31 @@ export default {
         this.calcSelectRectSize(); // 计算video部分选中框大小
       });
     },
-    delMaterials(delItem) {
-      ["captions", "stickers"].forEach(type => {
-        for (let i = 0; i < this[type].length; i++) {
-          const caption = this[type][i];
-          if (
-            delItem.captureIn <= caption.inPoint &&
-            delItem.captureOut > caption.inPoint
-          ) {
-            this[type].splice(i, 1);
-            i--;
-          }
-        }
-      });
-    },
+    // delMaterials(delItem) {
+    //   this.splitList.reduce((prev, cur) => {
+    //     cur.inPoint = prev;
+    //     return prev + cur.captureOut - cur.captureIn;
+    //   }, this.activeClip.inPoint);
+    //   ["captions", "stickers"].forEach(type => {
+    //     for (let i = 0; i < this[type].length; i++) {
+    //       const caption = this[type][i];
+    //       if (
+    //         delItem.inPoint <= caption.inPoint &&
+    //         delItem.inPoint + delItem.captureOut - delItem.captureIn >
+    //           caption.inPoint
+    //       ) {
+    //         this[type].splice(i, 1)
+    //         i--;
+    //       }
+    //     }
+    //   });
+    // },
     del(index, splitIndex) {
       const v = [];
       let inPoint = 0;
       const delItem = this.videos[index].splitList.splice(splitIndex, 1)[0];
 
-      this.delMaterials(delItem);
+      // this.delMaterials(delItem);
 
       for (let i = 0; i < this.videos.length; i++) {
         const el = this.videos[i];
@@ -1040,16 +1049,17 @@ export default {
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
-    selected(item, i) {
+    selected(item, i, split) {
       this.currentVideoUuid = item.uuid + `_${i}`;
       this.currentSplitedIdx = i;
       this.$bus.$emit(this.$keys.getTimeline, timeline => {
         const currentTime = timeline.getCurrentPosition();
         if (
-          currentTime < item.inPoint ||
-          currentTime >= item.inPoint + item.duration
+          currentTime < (split.inPoint ?? item.inPoint) ||
+          currentTime >=
+            (split.inPoint ?? item.inPoint) + split.captureOut - split.captureIn
         ) {
-          this.$bus.$emit(this.$keys.seek, item.inPoint);
+          this.$bus.$emit(this.$keys.seek, split.inPoint ?? item.inPoint);
         }
       });
     },
