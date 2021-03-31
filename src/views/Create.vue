@@ -82,11 +82,17 @@ export default {
     getMediaLibrary() {
       if (this.loading) return;
       this.loading = true;
-      return this.axios.get(this.$api.videoProjects).then(res => {
-        this.loading = false;
-        const { video_projects } = res;
-        this.videoProjects = video_projects;
-      });
+      return this.axios
+        .get(this.$api.videoProjects)
+        .then(res => {
+          this.loading = false;
+          const { video_projects } = res;
+          this.videoProjects = video_projects;
+        })
+        .catch(err => {
+          console.error(err);
+          this.$router.push({ name: "Login" });
+        });
     },
     refreshVideoproject() {
       this.getMediaLibrary();

@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-
+import token from "../utils/Token";
+import qs from "qs";
 
 const Create = () =>
   import(/* webpackChunkName: "Create" */ "../views/Create.vue");
@@ -51,12 +52,54 @@ const routes = [
     path: "/Branding",
     name: "Branding",
     component: Branding
+  },
+  {
+    path: "/Login",
+    name: "Login",
+    meta: {
+      isLoginPage: true
+    }
+  },
+  {
+    path: "/Token",
+    name: "Token",
+    meta: {
+      isLoginPage: true
+    }
   }
+  // { path: "/", redirect: "/Create" }
 ];
 
 const router = new VueRouter({
   routes
 });
 
+router.beforeEach((to, from, next) => {
+  console.log("beforeEach", to, from);
+  // Check if token exist
+  const hashToken = qs.parse(window.location.hash)["#/token"];
+  console.log("hashToken", !!hashToken, hashToken);
+  if (hashToken) {
+    token.setToken(hashToken);
+    window.location.hash = "";
+    return next({ path: "/Create" });
+  }
+  // Check if login
+  if (to.matched.some(record => record.meta.isLoginPage)) {
+    console.log("Not require login");
+    // if (token.hasUserToken()) return token.setTokenAndNext(next, "create");
+    return next();
+  } else {
+    console.log("Require login");
+    // if (!token.hasUserToken()) return next({ name: "Login" });
+    return token.setTokenAndNext(next);
+  }
+});
+
+export const parseQueryParams = params => {
+  if (!params) return {};
+  const idx = params.indexOf("?");
+  return idx !== -1 ? qs.parse(params.slice(idx + 1)) : qs.parse(params);
+};
 
 export default router;

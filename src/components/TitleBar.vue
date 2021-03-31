@@ -1,7 +1,7 @@
 <template>
   <div class="flex" id="title-bar">
     <svg-icon class="logo" icon-class="logo"></svg-icon>
-    {{ isEditPages}}
+    {{ isEditPages }}
     <div class="btn" v-if="isEditPages">
       <el-button type="text" size="medium" @click="preview">
         {{ $t("preview") }}
@@ -123,7 +123,9 @@ export default {
         writeXml("project.xml");
         let file = FS.readFile("project.xml", { encoding: "utf8" });
         // let file = base64ToString(videoModules.modules[0].encoded_dom_xml);
-        console.log(file);
+        console.log(file); // Firework DOM
+        // Before publish
+        // Call video project / compile
         file = new File([file], "project.xml");
         const xmlUrl = await uploadToMS(file);
         const { caption } = this.infoForm;
@@ -137,10 +139,14 @@ export default {
         };
         const res = await axios.post(this.$api.videoCreate, params);
         // let res = {}
+        // Received job id
         const { jobId } = res.data;
         const options = {
           jobId,
           onSuccess: r => {
+            // Call video project / publish
+            // Mp4
+            // get mp4 file link
             console.log("任务完成", r);
             this.taskFinsh(r);
           },
@@ -213,7 +219,7 @@ export default {
 .reconnection {
   padding: 0 !important;
   margin-left: 10px;
-  color: #409EFF !important;
+  color: #409eff !important;
   &:hover {
     color: #66b1ff !important;
   }

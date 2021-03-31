@@ -6,7 +6,10 @@
     <el-main class="app-main" v-if="isCreate">
       <Create />
     </el-main>
-    <el-main class="app-main" v-if="isEditPages && !isCreate">
+    <el-main class="app-main" v-if="isLogin">
+      <Login />
+    </el-main>
+    <el-main class="app-main" v-if="isEditPages">
       <el-menu
         :default-active="defaultActive"
         class="el-menu-vertical"
@@ -47,13 +50,15 @@
 <script>
 import TitleBar from "./components/TitleBar";
 import Create from "./views/Create";
+import Login from "./views/Login";
 import { mapState } from "vuex";
 
 export default {
   name: "app",
   components: {
     TitleBar,
-    Create
+    Create,
+    Login
   },
   data() {
     return {};
@@ -65,6 +70,9 @@ export default {
     }),
     isCreate() {
       return this.$route.name === "Create";
+    },
+    isLogin() {
+      return this.$route.name === "Login";
     },
     defaultActive() {
       return this.$route.name || "";
