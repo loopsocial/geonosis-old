@@ -249,12 +249,11 @@ export default class TimelineClass {
       });
       // 添加图片
       if (image && image.source) {
-        const { m3u8Url } = image.source;
-        if (!m3u8Url) {
-          console.warn("图片添加失败，缺少m3u8Url", image);
+        const { m3u8Path } = image.source;
+        if (!m3u8Path) {
+          console.warn("图片添加失败，缺少m3u8Path", image);
           return moduleValues;
         }
-        const m3u8Path = await installAsset(m3u8Url);
         const clip = this.otherTrackRaw.addClip2(
           m3u8Path,
           inPoint,

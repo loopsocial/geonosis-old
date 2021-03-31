@@ -595,22 +595,29 @@ async function readLayer(stream) {
         translationY: stream.getAttributeValue("translation-y") * videoLength
       };
       const source = {};
-      while (!(stream.isEndElement() && stream.name() === "fw-image")) {
-        if (stream.name() === "source" && stream.isStartElement()) {
-          const src = stream.getAttributeValue("src");
-          const width = stream.getAttributeValue("width") * 1;
-          const height = stream.getAttributeValue("height") * 1;
-          const aspectRatio = stream.getAttributeValue("aspect-ratio");
-          const m3u8Url = stream.getAttributeValue("m3u8-url");
-          const id = stream.getAttributeValue("id");
-          if (src) source.src = src;
-          if (width) source.width = width;
-          if (height) source.height = height;
-          if (aspectRatio) source.aspectRatio = aspectRatio;
-          if (m3u8Url) source.m3u8Url = m3u8Url;
-          if (id) source.id = id;
+      if (layer.type === "module") {
+        while (!(stream.isEndElement() && stream.name() === "fw-image")) {
+          if (stream.name() === "source" && stream.isStartElement()) {
+            const src = stream.getAttributeValue("src");
+            const width = stream.getAttributeValue("width") * 1;
+            const height = stream.getAttributeValue("height") * 1;
+            const aspectRatio = stream.getAttributeValue("aspect-ratio");
+            const m3u8Url = stream.getAttributeValue("m3u8-url");
+            const id = stream.getAttributeValue("id");
+            if (src) source.src = src;
+            if (width) source.width = width;
+            if (height) source.height = height;
+            if (aspectRatio) source.aspectRatio = aspectRatio;
+            if (m3u8Url) source.m3u8Url = m3u8Url;
+            if (id) source.id = id;
+            if (m3u8Url || src) {
+              source.m3u8Path = await installAsset(m3u8Url || src, {
+                isCustom: true
+              });
+            }
+          }
+          stream.readNext();
         }
-        stream.readNext();
       }
       if (Object.keys(source)) layer.image.source = source;
       // layer.image.source = readSource(stream);
