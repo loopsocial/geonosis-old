@@ -116,17 +116,17 @@ export default class WorkFlow {
     window.node = this.deleteNode;
     this.rectTransform = new Konva.Transformer({
       nodes: [this.node],
-      rotateEnabled: true,
+      rotateEnabled: false,
       borderStrokeWidth: 1,
       borderStroke: "white",
       anchorFill: "white",
       anchorSize: 8,
       anchorStroke: "white",
       anchorCornerRadius: 4,
-      rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
+      // rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
       centeredScaling: this.clip.type === CLIP_TYPES.STICKER,
       keepRatio: this.clip.type === CLIP_TYPES.STICKER,
-      rotateAnchorOffset: 20,
+      // rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
         const box = this.node.getClientRect();
@@ -382,9 +382,10 @@ export default class WorkFlow {
 
     const { x, y, width, height } = WorkFlow.getCoordinateFromPoint(
       this.clip,
-      this.timelineClass.liveWindow,
-      NvsCaptionTextBoundingTypeEnum.Frame
+      this.timelineClass.liveWindow
+      // NvsCaptionTextBoundingTypeEnum.Frame
     );
+    input.style.textAlign = this.clip.align || "center";
     input.style.boxSizing = "content-box";
     input.style.position = "absolute";
     input.style.width = width + "px";

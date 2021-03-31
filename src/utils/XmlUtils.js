@@ -72,7 +72,7 @@ function transformation() {
   let intro; // module 片头的scene
   let end; // module 片尾的scene
   let defaultScenes = []; // module 中间部分的scene
-  if (module) {
+  if (module && Array.isArray(module.scenes)) {
     defaultScenes = module.scenes.filter(scene => {
       if (scene.temporal === "end") end = scene;
       else if (scene.temporal === "intro") intro = scene;
