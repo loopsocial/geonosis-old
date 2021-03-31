@@ -42,7 +42,7 @@ export default {
   methods: {
     clearModule() {
       if (this.videoModule) {
-        this.setModule(null);
+        this.setVideoModule();
         this.$bus.$emit(this.$keys.rebuildTimeline);
       }
     },

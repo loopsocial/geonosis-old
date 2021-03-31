@@ -1,5 +1,5 @@
 import store from "../store";
-import { HexToRGBA, RGBAToHex } from "./common";
+import { generateUUID, HexToRGBA, RGBAToHex } from "./common";
 import {
   CLIP_TYPES,
   FX_DESC,
@@ -592,6 +592,7 @@ async function readLayer(stream) {
     } else if (stream.name() === "fw-text" && stream.isStartElement()) {
       if (!Array.isArray(layer.text)) layer.text = [];
       const caption = {
+        uuid: generateUUID(),
         textXAlignment: stream.getAttributeValue("text-x-alignment"),
         fontSize: (stream.getAttributeValue("font-size") * videoLength) / 720,
         frameWidth: stream.getAttributeValue("frame-width"),

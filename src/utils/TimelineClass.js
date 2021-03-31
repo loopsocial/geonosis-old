@@ -8,6 +8,7 @@ import {
 import store from "../store";
 import { installAsset } from "./AssetsUtils";
 import { HexToRGBA, RGBAToNvsColor } from "./common";
+import { CaptionClip } from "./ProjectData";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
 export default class TimelineClass {
@@ -86,8 +87,16 @@ export default class TimelineClass {
     this.buildVideoTrack();
     this.buildAudioTrack();
     await this.buildModule();
-    this.captions.map(c => this.addCaption(c));
-    this.stickers.map(s => this.addSticker(s));
+    this.captions.map(c => {
+      if (!c.isModule) {
+        this.addCaption(c);
+      }
+    });
+    this.stickers.map(s => {
+      if (!s.isModule) {
+        this.addSticker(s);
+      }
+    });
   }
   async play(startTime, endTime) {
     startTime = startTime === undefined ? this.getCurrentPosition() : startTime;
@@ -156,6 +165,8 @@ export default class TimelineClass {
       end
     );
     let j = 0;
+    const moduleValues = { captions: [], stickers: [] };
+
     for (let index = 0; index < videos.length; index++) {
       const video = videos[index];
       for (let i = 0; i < video.splitList.length; i++) {
@@ -168,21 +179,38 @@ export default class TimelineClass {
           videoType: video.videoType
         };
         if (j === 0) {
-          await this.applyModuleScene(v, intro || defaultScenes[0]);
+          const { captions, stickers } = await this.applyModuleScene(
+            v,
+            intro || defaultScenes[0]
+          );
+          moduleValues.captions.push(...captions);
+          moduleValues.stickers.push(...stickers);
         } else if (index === videos.length - 1 && arr.length - 1 === i) {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          await this.applyModuleScene(v, end || defaultScenes[index]);
+          const { captions, stickers } = await this.applyModuleScene(
+            v,
+            end || defaultScenes[index]
+          );
+          moduleValues.captions.push(...captions);
+          moduleValues.stickers.push(...stickers);
         } else {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          await this.applyModuleScene(v, defaultScenes[index]);
+          const { captions, stickers } = await this.applyModuleScene(
+            v,
+            defaultScenes[index]
+          );
+          moduleValues.captions.push(...captions);
+          moduleValues.stickers.push(...stickers);
         }
         j += 1;
       }
     }
+    store.commit("clip/addMultipleClipToVuex", moduleValues);
   }
   // 再视频上应用模板scene
   async applyModuleScene(video, scene) {
-    if (!scene) return;
+    const moduleValues = { captions: [], stickers: [] };
+    if (!scene) return moduleValues;
     const { raw, inPoint, duration, videoType } = video;
     const rawLayer = scene.layers.find(l => l.type === "raw");
     const moduleLayer = scene.layers.find(l => l.type === "module");
@@ -198,30 +226,39 @@ export default class TimelineClass {
     // 添加模板字幕
     if (moduleLayer) {
       const { text, image } = moduleLayer;
+      const { captions } = store.state.clip;
       text.map(item => {
-        // TODO: 还未考虑字体，以及frameHeight、frameWidth
-        this.addCaption({
-          styleDesc: item.styleDesc,
-          font: item.font,
-          text: item.value,
-          inPoint: inPoint,
-          duration: duration || video.duration,
-          z: item.zValue,
-          color: item.fontColor,
-          fontSize: item.fontSize,
-          align: item.textXAlignment,
-          translationY: item.translationY,
-          translationX: item.translationX,
-          frameWidth: item.frameWidth,
-          frameHeight: item.frameHeight
-        });
+        const cap = captions.find(c => c.uuid === item.uuid);
+        if (cap) {
+          this.addCaption(cap);
+        } else {
+          const moduleCaption = new CaptionClip({
+            uuid: item.uuid,
+            styleDesc: item.styleDesc,
+            font: item.font,
+            text: item.value,
+            inPoint: inPoint,
+            duration: duration || video.duration,
+            z: item.zValue,
+            color: item.fontColor,
+            fontSize: item.fontSize,
+            align: item.textXAlignment,
+            translationY: item.translationY,
+            translationX: item.translationX,
+            frameWidth: item.frameWidth,
+            frameHeight: item.frameHeight,
+            isModule: true
+          });
+          this.addCaption(moduleCaption);
+          moduleValues.captions.push(moduleCaption);
+        }
       });
       // 添加图片
       if (image && image.source) {
         const { m3u8Url } = image.source;
         if (!m3u8Url) {
           console.warn("图片添加失败，缺少m3u8Url", image);
-          return;
+          return moduleValues;
         }
         const m3u8Path = await installAsset(m3u8Url);
         const clip = this.otherTrackRaw.addClip2(
@@ -232,12 +269,13 @@ export default class TimelineClass {
         );
         if (!clip) {
           console.warn("图片添加失败", m3u8Path, image);
-          return;
+          return moduleValues;
         }
         clip.setImageMotionAnimationEnabled(false);
         clip.setImageMotionMode(0);
       }
     }
+    return moduleValues;
   }
   buildVideoTrack() {
     if (!this.videoTrack.raw) {
@@ -547,6 +585,7 @@ export default class TimelineClass {
     if (this.isPlaying) this.stop();
     this.liveWindow && this.removeLiveWindow(this.liveWindow);
     this.removeTimeline();
+    // store.commit("clip/clearIsModuleDate");
   }
   getImgFromTimeline(point) {
     return new Promise((resolve, reject) => {

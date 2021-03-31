@@ -81,8 +81,18 @@ export default {
           break;
       }
     },
+    addMultipleClipToVuex(state, object) {
+      for (const key in object) {
+        if (Object.hasOwnProperty.call(object, key)) {
+          const value = cloneDeep(object[key]);
+          state[key].push(...value);
+        }
+      }
+    },
     setVideoModule(state, module) {
-      state.videoModule = cloneDeep(module);
+      if (module) {
+        state.videoModule = cloneDeep(module);
+      }
     },
     updateClipToVuex(state, value) {
       let index = -1;
@@ -129,6 +139,24 @@ export default {
     },
     setCurrentVideoUuid(state, uuid) {
       state.currentVideoUuid = uuid;
+    },
+    clearModuleDate(state) {
+      state.videoModule = null;
+      state.captions = state.captions.filter(c => !c.isModule);
+      state.stickers = state.stickers.filter(s => !s.isModule);
+    },
+    clearIsModuleDate(state) {
+      state.captions = state.captions.filter(c => !c.isModule);
+      state.stickers = state.stickers.filter(s => !s.isModule);
+    }
+  },
+  actions: {
+    setVideoModule({ commit }, module) {
+      if (module) {
+        commit("setVideoModule", module);
+      } else {
+        commit("clearModuleDate");
+      }
     }
   }
 };

@@ -1,4 +1,4 @@
-import { mapState, mapMutations } from "vuex";
+import { mapState, mapMutations, mapActions } from "vuex";
 export default {
   computed: {
     ...mapState({
@@ -26,8 +26,12 @@ export default {
       updateClipToVuex: "clip/updateClipToVuex",
       resetClips: "clip/resetClips",
       initVuex: "clip/init",
-      setVideoModule: "clip/setVideoModule",
+      // setVideoModule: "clip/setVideoModule",
+      clearIsModuleDate: "clip/clearIsModuleDate",
       resetLoaded: "clip/resetLoaded"
+    }),
+    ...mapActions({
+      setVideoModule: "clip/setVideoModule"
     })
   }
 };

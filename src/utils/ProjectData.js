@@ -112,7 +112,7 @@ export class CaptionClip extends Clip {
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0; // 角度
-    this.uuid = generateUUID();
+    this.uuid = option.uuid || generateUUID();
     this.packageUrl = option.packageUrl;
     this.align = "center"; // string, left/center/right
     this.color = ""; // RGBA
@@ -125,6 +125,7 @@ export class CaptionClip extends Clip {
     this.z = option.z || 0;
     this.frameWidth = option.frameWidth;
     this.frameHeight = option.frameHeight;
+    this.isModule = !!option.isModule;
   }
 }
 export class StickerClip extends Clip {
@@ -141,6 +142,6 @@ export class StickerClip extends Clip {
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;
     this.z = option.z || 0;
-    this.uuid = generateUUID();
+    this.uuid = option.uuid || generateUUID();
   }
 }
