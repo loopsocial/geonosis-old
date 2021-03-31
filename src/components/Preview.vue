@@ -298,7 +298,7 @@ export default {
       this.timelineClass.seekTimeline(0);
     },
     async addAudioClip(clip) {
-      const clipOptions = { ...clip };
+      const clipOptions = { ...clip, url: clip.file_url };
       let audios = [];
       const timelineDuration = this.timelineClass.timeline.getDuration();
       const clipDuration = clipOptions.orgDuration;
