@@ -22,9 +22,9 @@
               rgba(0, 0, 0, 0) 0%,
               rgba(0, 0, 0, 0.3) 100%
             ),
-            url( ` +
+            url( &quot;` +
               getCover(item, i) +
-              `) no-repeat center center/auto 100%`
+              `&quot;) no-repeat center center/auto 100%`
           }"
         >
           <div class="order-number">{{ getNum(index, i) + 1 }}</div>
@@ -568,11 +568,10 @@ export default {
     calcSelectRectSize() {
       const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
       const { videoFxs } = this.activeClip.splitList[this.currentSplitedIdx];
-      const [videoWidth, videoHeight] = [
-        // dialog中视频宽高
-        this.videoInfo.videoStreamInfo.width,
-        this.videoInfo.videoStreamInfo.height
-      ];
+      const {
+        width: videoWidth,
+        height: videoHeight
+      } = this.videoInfo.videoStreamInfo;
       const transformData = videoFxs.find(
         fx => fx.desc === FX_DESC.TRANSFORM2D
       );
@@ -633,7 +632,7 @@ export default {
         this.rect.top = centerInLiveWindow.y / height - this.rect.height / 2;
       } else {
         const { width, height } = this.dialogCanvasSize;
-        if (width > height) {
+        if (width / height > RATIO) {
           this.rect.height = 1;
           this.rect.width = (height * RATIO) / width;
           this.rect.top = 0;
