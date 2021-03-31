@@ -418,6 +418,7 @@ export default class TimelineClass {
       frameWidth,
       frameHeight,
       font,
+      backgroundColor,
       z
     } = caption;
     const captionRaw = this.timeline.addCaption(
@@ -446,6 +447,14 @@ export default class TimelineClass {
       const rgba = color[0] === "#" ? HexToRGBA(color) : color;
       const nvsColor = RGBAToNvsColor(rgba);
       captionRaw.setTextColor(nvsColor);
+    }
+    if (backgroundColor) {
+      const rgba =
+        backgroundColor[0] === "#"
+          ? HexToRGBA(backgroundColor)
+          : backgroundColor;
+      const nvsColor = RGBAToNvsColor(rgba);
+      captionRaw.setBackgroundColor(nvsColor);
     }
     if (align) {
       const temp = {
