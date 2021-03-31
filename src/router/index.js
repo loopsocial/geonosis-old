@@ -66,8 +66,8 @@ const routes = [
     meta: {
       isLoginPage: true
     }
-  }
-  // { path: "/", redirect: "/Create" }
+  },
+  { path: "/", redirect: "/Create" }
 ];
 
 const router = new VueRouter({
@@ -78,20 +78,18 @@ router.beforeEach((to, from, next) => {
   console.log("beforeEach", to, from);
   // Check if token exist
   const hashToken = qs.parse(window.location.hash)["#/token"];
-  console.log("hashToken", !!hashToken, hashToken);
   if (hashToken) {
+    console.log("hashToken", !!hashToken, hashToken);
     token.setToken(hashToken);
     window.location.hash = "";
     return next({ path: "/Create" });
   }
   // Check if login
   if (to.matched.some(record => record.meta.isLoginPage)) {
-    console.log("Not require login");
-    // if (token.hasUserToken()) return token.setTokenAndNext(next, "create");
+    if (token.hasUserToken()) return token.setTokenAndNext(next, "Create");
     return next();
   } else {
-    console.log("Require login");
-    // if (!token.hasUserToken()) return next({ name: "Login" });
+    if (!token.hasUserToken()) return next({ name: "Login" });
     return token.setTokenAndNext(next);
   }
 });

@@ -1,12 +1,12 @@
 import cookies from "./Cookie";
-export const sessionKey = "_fstptyfwvs";
+export const tokenKey = "fwtoken";
 export const apiHost = document.domain;
 let sessionStore = {};
 
 /* Token */
 const token = {};
 token.hasUserToken = () => {
-  return !!getSessionFromLocalStorage.token;
+  return !!getTokenFromCookie();
 };
 
 token.setToken = token => {
@@ -15,26 +15,23 @@ token.setToken = token => {
   if (axios) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
-  console.log(token);
   return cookies.set("fwtoken", token, expireDate);
 };
 
 token.setTokenAndNext = (next, pathName) => {
-  // setUserToken
+  if (token.hasUserToken()) token.setToken(getTokenFromCookie());
   if (pathName) return next({ name: pathName });
   return next();
 };
 
 export default token;
 
-export const getSessionFromLocalStorage = () => {
+export const getTokenFromCookie = () => {
   try {
-    const sessionFromStorage = JSON.parse(
-      window.localStorage && window.localStorage.getItem(sessionKey)
-    );
-    const sessionFromCookies = JSON.parse(cookies.get(sessionKey));
-    return sessionFromCookies || sessionFromStorage;
+    const sessionFromCookies = cookies.get(tokenKey);
+    return sessionFromCookies;
   } catch (error) {
+    console.error(error);
     return sessionStore;
   }
 };

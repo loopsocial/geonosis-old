@@ -15,7 +15,6 @@
 import host from "../api/apiHost";
 export default {
   data() {
-    console.log(host["fw"]);
     return {
       // apiDomain: "https://api.fireworktv.com",
       apiDomain: host["fw"],
