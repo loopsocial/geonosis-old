@@ -281,15 +281,16 @@ export default class TimelineClass {
     }
     return moduleValues;
   }
-  buildVideoTrack() {
+  buildVideoTrack(clips) {
+    clips = clips || this.videoTrack.clips;
     if (!this.videoTrack.raw) {
       this.videoTrack.raw = this.timeline.appendVideoTrack();
     }
     if (!this.otherTrackRaw) {
       this.otherTrackRaw = this.timeline.appendVideoTrack();
     }
-    if (Array.isArray(this.videoTrack.clips)) {
-      this.videoTrack.clips.map(clip => {
+    if (Array.isArray(clips)) {
+      clips.map(clip => {
         clip.splitList.reduce((res, item) => {
           const clipInfo = {
             m3u8Path: clip.m3u8Path,

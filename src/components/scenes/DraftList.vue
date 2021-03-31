@@ -817,7 +817,9 @@ export default {
       this.calcDuration(null, null, true);
     },
     handlePlaying(timeline, currentTime) {
-      this.splittreLeft = this.calcCurrentPercentage(currentTime);
+      if (currentTime === this.trimTimeline.timeline) {
+        this.splittreLeft = this.calcCurrentPercentage(currentTime);
+      }
     },
     handleResize() {
       !this.isImage && this.getClipListImages();
@@ -950,10 +952,17 @@ export default {
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
-        this.activeClip.m3u8Path,
-        0
-      );
+      // this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
+      //   this.activeClip.m3u8Path,
+      //   0
+      // );
+      const { videoWidth, videoHeight } = this.$store.state.clip;
+      this.videoInfo = {
+        videoStreamInfo: {
+          width: videoWidth,
+          height: videoHeight
+        }
+      };
       this.$nextTick(async () => {
         this.handleResize(); // 计算canvas尺寸、计算缩略图
         await this.createTrimTimeline();
@@ -1020,14 +1029,14 @@ export default {
     async createTrimTimeline() {
       const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
       this.trimTimeline = new TimelineClass(
-        "trim-window",
-        streamingContext.streamingContext.getAVFileInfo(
-          this.activeClip.m3u8Path,
-          0
-        ).videoStreamInfo
+        "trim-window"
+        // streamingContext.streamingContext.getAVFileInfo(
+        //   this.activeClip.m3u8Path,
+        //   0
+        // ).videoStreamInfo
       );
       await this.trimTimeline.stopEngin();
-      await this.trimTimeline.buildTimeline([videoClip]);
+      await this.trimTimeline.buildVideoTrack([videoClip]);
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
@@ -1095,7 +1104,11 @@ export default {
         return null;
       }
       const { offsetWidth } = this.$refs.clipList;
-      const { width, height } = this.videoInfo.videoStreamInfo;
+      const { width, height } = streamingContext.streamingContext.getAVFileInfo(
+        this.activeClip.m3u8Path,
+        0
+      ).videoStreamInfo;
+
       const clipItemWidth = 30 * (width / height); // 每个缩略图宽度
       const clipItemDuration =
         (clipItemWidth / offsetWidth) * this.activeClip.orgDuration;
@@ -1396,7 +1409,9 @@ export default {
       );
     }
   },
-  beforeDestroy() {}
+  beforeDestroy() {
+    this.destroy();
+  }
 };
 </script>
 
@@ -1635,7 +1650,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       }
     }
     .live-window {
-      background-color: violet;
+      background-color: $select-bgc;
     }
   }
 
@@ -1685,9 +1700,9 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       &::before {
         content: "";
         display: block;
-        width: 14px;
+        width: 20px;
         height: 100%;
-        transform: translateX(-7px);
+        transform: translateX(-10px);
       }
     }
 
