@@ -218,10 +218,14 @@ export default class TimelineClass {
     if (module) {
       const { scaleX, scaleY, translationX, translationY } = module;
       const transform2DFx = raw.appendBuiltinFx(FX_DESC.TRANSFORM2D);
-      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_X, scaleX);
-      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY);
-      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX);
-      transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY);
+      !isNaN(scaleX) &&
+        transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_X, scaleX * 1);
+      !isNaN(scaleY) &&
+        transform2DFx.setFloatVal(TRANSFORM2D_KEYS.SCALE_Y, scaleY * 1);
+      !isNaN(translationX) &&
+        transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_X, translationX * 1);
+      !isNaN(translationY) &&
+        transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY * 1);
     }
     // 添加模板字幕
     if (moduleLayer) {
