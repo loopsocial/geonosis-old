@@ -36,7 +36,7 @@ function transformation() {
   videos.map(video => {
     video.splitList.map(item => {
       const transform2D = item.videoFxs.find(
-        fx => fx.desc === FX_DESC.transform2D
+        fx => fx.desc === FX_DESC.TRANSFORM2D
       );
       let scaleX = 1,
         scaleY = 1,
@@ -44,8 +44,8 @@ function transformation() {
         translationY = 0;
       if (transform2D) {
         transform2D.params.map(p => {
-          if (p.key === TRANSFORM2D_KEYS.scaleX) scaleX = p.value;
-          if (p.key === TRANSFORM2D_KEYS.scaleY) scaleY = p.value;
+          if (p.key === TRANSFORM2D_KEYS.SCALE_X) scaleX = p.value;
+          if (p.key === TRANSFORM2D_KEYS.SCALE_Y) scaleY = p.value;
           if (p.key === TRANSFORM2D_KEYS.TRANS_X) translationX = p.value;
           if (p.key === TRANSFORM2D_KEYS.TRANS_Y) translationY = p.value;
         });
@@ -239,6 +239,8 @@ function writeScene(stream, scene) {
   stream.writeEndElement();
 }
 function writeVideoLayer(stream, video) {
+  const { videoWidth, videoHeight } = store.state.clip;
+  const videoLength = Math.max(videoHeight, videoWidth);
   stream.writeStartElement("fw-scene-layer");
   stream.writeAttribute("type", "raw");
   // 写video标签
@@ -251,8 +253,8 @@ function writeVideoLayer(stream, video) {
   stream.writeAttribute("trim-out", "" + video.trimOut);
   stream.writeAttribute("scale-x", "" + video.scaleX);
   stream.writeAttribute("scale-y", "" + video.scaleY);
-  stream.writeAttribute("translation-x", "" + video.translationX);
-  stream.writeAttribute("translation-y", "" + video.translationY);
+  stream.writeAttribute("translation-x", "" + video.translationX / videoLength);
+  stream.writeAttribute("translation-y", "" + video.translationY / videoLength);
   // 写 source标签
   stream.writeStartElement("source");
   const { src, width, height, aspectRatio, m3u8Url, id } = video.source;
@@ -363,6 +365,7 @@ async function readProjectAudio(stream, videos) {
   }
   return audioToAudios(audio, videos);
 }
+// 将xml内的audio转成vuex中的audios列表
 function audioToAudios(clipOptions, videos) {
   let audios = [];
   clipOptions.trimOut = clipOptions.duration;

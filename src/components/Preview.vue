@@ -568,19 +568,20 @@ export default {
           video.videoType = media.media_type;
           video.m3u8Url = media[`hls_${media.media_type}_url`];
           video.coverUrl = media.thumbnail_url || media.coverUrl;
-          video.thumbnails = media.thumbnails;
+          video.thumbnails = media.thumbnails || [];
           video.m3u8Path = await installAsset(video.m3u8Url);
           video.duration =
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
           video.orgDuration =
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
-          videos.push(new VideoClip(video));
+          videos.push(video);
         } else {
           console.log("工程内没有这个素材", video.id);
         }
       }
       return { ...data, videos };
     },
+    // 没有xml时 直接使用素材创建时间线
     async applyAssets(mediaAssets) {
       const videoList = [];
       let inPoint = 0;
