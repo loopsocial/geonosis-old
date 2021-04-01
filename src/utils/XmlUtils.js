@@ -215,15 +215,17 @@ function writeCreation(stream) {
 function writeAudio(stream) {
   const { audios } = store.state.clip;
   if (audios.length) {
-    const { inPoint, trimIn, id, name, url } = audios[0];
+    const { inPoint, trimIn, id, name, url, orgDuration } = audios[0];
     stream.writeStartElement("fw-audio");
     stream.writeAttribute("soundtrack-id", "" + id);
     stream.writeAttribute("soundtrack-name", "" + name);
     stream.writeAttribute("in-point", "" + inPoint);
     stream.writeAttribute("soundtrack-in-point", "" + trimIn);
+    stream.writeAttribute("soundtrack-duration", "" + orgDuration);
+
     // audio source
-    stream.writeStartElement("fw-audio");
-    stream.writeAttribute("url", "" + url);
+    stream.writeStartElement("source");
+    stream.writeAttribute("src", "" + url);
     stream.writeEndElement();
 
     stream.writeEndElement();
@@ -335,9 +337,6 @@ export async function readProjectXml(xmlPath) {
   while (!stream.atEnd() && !stream.hasError()) {
     if (stream.isStartElement() && stream.name() === "fw-creation") {
       result = await readDom(stream);
-    } else if (stream.isStartElement() && stream.name() === "fw-audio") {
-      const audios = await readProjectAudio(stream);
-      result.audios = audios;
     }
     stream.readNext();
   }
@@ -347,25 +346,31 @@ export async function readProjectXml(xmlPath) {
   stream.close();
   return result;
 }
-async function readProjectAudio(stream) {
+async function readProjectAudio(stream, videos) {
   const audio = {};
   while (!(stream.isEndElement() && stream.name() === "fw-audio")) {
     if (stream.isStartElement() && stream.name() === "fw-audio") {
       audio.id = stream.getAttributeValue("soundtrack-id");
       audio.name = stream.getAttributeValue("soundtrack-name");
-      audio.inPoint = stream.getAttributeValue("in-point");
-      audio.trimIn = stream.getAttributeValue("soundtrack-in-point");
+      audio.inPoint = stream.getAttributeValue("in-point") * 1;
+      audio.trimIn = stream.getAttributeValue("soundtrack-in-point") * 1;
+      audio.duration = stream.getAttributeValue("soundtrack-duration") * 1;
     } else if (stream.isStartElement() && stream.name() === "source") {
-      audio.src = stream.getAttributeValue("src");
-      audio.m3u8Path = await installAsset(audio.src);
+      audio.url = stream.getAttributeValue("src");
+      audio.m3u8Path = await installAsset(audio.url);
     }
     stream.readNext();
   }
-  return audioToAudios(audio);
+  return audioToAudios(audio, videos);
 }
-function audioToAudios(clipOptions) {
+function audioToAudios(clipOptions, videos) {
   let audios = [];
-  const timelineDuration = this.timelineClass.timeline.getDuration();
+  clipOptions.trimOut = clipOptions.duration;
+  const lastVideo = videos[videos.length - 1];
+  const timelineDuration = lastVideo.splitList.reduce((sum, item) => {
+    sum += item.captureOut - item.captureIn;
+    return sum;
+  }, lastVideo.inPoint);
   const clipDuration = clipOptions.orgDuration;
   if (clipOptions.inPoint > 0) {
     let durationCumulate = clipOptions.inPoint;
@@ -445,6 +450,9 @@ async function readDom(stream) {
           }
         ]
       });
+    } else if (stream.isStartElement() && stream.name() === "fw-audio") {
+      const audios = await readProjectAudio(stream, res.videos);
+      res.audios = audios;
     }
     stream.readNext();
   }

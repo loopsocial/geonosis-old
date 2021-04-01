@@ -32,9 +32,12 @@
             <el-button
               :disabled="idx !== activeIndex"
               type="text"
+              class="using-btn"
               @click="applyAudio(music)"
               :title="idx !== activeIndex ? 'Trim First' : 'Use Audio'"
-              >{{ usingMusicId === music.id ? "using" : "use" }}</el-button
+              >{{
+                "" + usingMusicId === "" + music.id ? "using" : "use"
+              }}</el-button
             >
           </div>
         </div>
@@ -108,7 +111,8 @@ export default {
           this.usingMusicId = "";
         }
       },
-      deep: true
+      deep: true,
+      immediate: true
     }
   },
   computed: {
@@ -419,6 +423,9 @@ export default {
             background-color: rgba($color: $white, $alpha: 0.1);
           }
         }
+      }
+      .using-btn {
+        font-size: 16px;
       }
     }
   }
