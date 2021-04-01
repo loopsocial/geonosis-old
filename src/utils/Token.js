@@ -20,7 +20,7 @@ token.setToken = token => {
 
 token.setTokenAndNext = (next, pathName) => {
   if (token.hasUserToken()) token.setToken(getTokenFromCookie());
-  if (pathName) return next({ name: pathName });
+  if (pathName) return next({ path: pathName });
   return next();
 };
 

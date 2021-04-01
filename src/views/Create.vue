@@ -52,6 +52,9 @@ export default {
     };
   },
   async created() {
+    if (this.$route.query.access_token) {
+      this.$router.replace({});
+    }
     await this.getMediaLibrary();
     this.$store.commit("clip/init", {});
     this.$store.commit("clip/changeLoaded", false);
