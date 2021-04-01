@@ -41,6 +41,7 @@ export default {
   },
   methods: {
     clearModule() {
+      this.$bus.$emit(this.$keys.destroyWorkFlow);
       if (this.videoModule) {
         this.setVideoModule();
         this.$bus.$emit(this.$keys.rebuildTimeline);

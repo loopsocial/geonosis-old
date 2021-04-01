@@ -76,17 +76,6 @@ function transformation() {
   if (module) {
     creation.moduleAlias = module.alias;
   }
-  // let intro; // module 片头的scene
-  // let end; // module 片尾的scene
-  // let defaultScenes = []; // module 中间部分的scene
-  // if (module && Array.isArray(module.scenes)) {
-  //   defaultScenes = module.scenes.filter(scene => {
-  //     if (scene.temporal === "end") end = scene;
-  //     else if (scene.temporal === "intro") intro = scene;
-  //     else return true;
-  //   });
-  //   creation.moduleAlias = module.alias;
-  // }
   creation.scenes = videoList.map((v, index) => {
     const moduleCaptions = []; // 使用的模板字幕
 
@@ -99,79 +88,21 @@ function transformation() {
       ) {
         const diff = v.inPoint - inPoint; // 处理 一个字幕横跨两个视频的情况
         const cap = {
+          ...caption,
           type: isModule ? "module" : "user-added",
           zValue: caption.z || 1,
           fontColor: caption.color,
-          translationX: caption.translationX,
-          translationY: caption.translationY,
           scaleX: caption.scale,
           scaleY: caption.scale,
-          fontSize: caption.fontSize,
-          frameWidth: caption.frameWidth,
-          frameHeight: caption.frameHeight,
           duration: Math.min(v.duration, duration - diff),
           value: caption.text,
           textXAlignment: caption.align,
-          font: caption.fontUrl,
-          backgroundImage: caption.backgroundImage,
-          backgroundColor: caption.backgroundColor,
-          packageUrl: caption.packageUrl
+          font: caption.fontUrl
         };
         isModule ? moduleCaptions.push(cap) : res.push(cap);
       }
       return res;
     }, []);
-    // // 将模板内容应用过去
-    // const moduleCaptions = []; // 使用的模板字幕
-    // let curModuleScene;
-    // if (index === 0) {
-    //   curModuleScene = intro || defaultScenes[index];
-    // } else if (index === videoList.length - 1) {
-    //   const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
-    //   curModuleScene = end || defaultScenes[index];
-    // } else {
-    //   const index = Math.min(index - Number(!!intro), defaultScenes.length - 1);
-    //   curModuleScene = defaultScenes[index];
-    // }
-    // if (curModuleScene) {
-    //   curModuleScene.layers.map(item => {
-    //     if (item.type === "raw") {
-    //       // video.videoType = video/image
-    //       if (item[v.videoType]) {
-    //         v.scaleX *= item[v.videoType].scaleX;
-    //         v.scaleY *= item[v.videoType].scaleY;
-    //         v.translationX += item[v.videoType].translationX;
-    //         v.translationY += item[v.videoType].translationY;
-    //       }
-    //     } else if (item.type === "module") {
-    //       item.text.map(text => {
-    //         const caption = {
-    //           type: "module",
-    //           zValue: text.zValue || 1,
-    //           fontColor: text.fontColor,
-    //           translationX: text.translationX,
-    //           translationY: text.translationY,
-    //           scaleX: text.scaleX,
-    //           scaleY: text.scaleY,
-    //           fontSize: text.fontSize, // todo -----
-    //           frameWidth: text.frameWidth,
-    //           frameHeight: text.frameHeight,
-    //           value: text.value,
-    //           textXAlignment: text.textXAlignment,
-    //           font: text.font
-    //         };
-    //         if (text.packageUrl) {
-    //           caption.packageUrl = text.packageUrl;
-    //         }
-    //         moduleCaptions.push(caption);
-    //       });
-    //       if (item.image && item.image.source && item.image.source.src) {
-    //         moduleCaptions[moduleCaptions.length - 1].backgroundImage =
-    //           item.image.source.src;
-    //       }
-    //     }
-    //   });
-    // }
     return {
       video: v,
       captions: c,
@@ -320,6 +251,15 @@ function writeCaption(stream, caption) {
   // stream.writeAttribute("text-y-alignment", "" + caption.align);
   caption.scaleX && stream.writeAttribute("scale-x", "" + caption.scaleX);
   caption.scaleY && stream.writeAttribute("scale-y", "" + caption.scaleY);
+  if (caption.outlineWidth) {
+    stream.writeAttribute("outline-width", "" + caption.outlineWidth);
+  }
+  if (caption.outlineColor) {
+    stream.writeAttribute(
+      "outline-color",
+      "" + RGBAToHex(caption.outlineColor)
+    );
+  }
   stream.writeAttribute("value", "" + caption.value);
   stream.writeEndElement();
   if (caption.backgroundImage) {
@@ -602,6 +542,10 @@ async function readProjectCaptions(stream, video) {
       if (frameWidth) caption.frameWidth = frameWidth;
       const frameHeight = stream.getAttributeValue("frame-height");
       if (frameHeight) caption.frameHeight = frameHeight;
+      const outlineWidth = stream.getAttributeValue("outline-width");
+      if (outlineWidth) caption.outlineWidth = outlineWidth * 1;
+      const outlineColor = stream.getAttributeValue("outline-color");
+      if (outlineColor) caption.outlineColor = HexToRGBA(outlineColor);
       captions.push(new CaptionClip(caption));
     } else if (stream.isStartElement() && stream.name() === "fw-image") {
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
@@ -755,7 +699,19 @@ async function readLayer(stream) {
       }
       let color = stream.getAttributeValue("font-color");
       if (color) {
-        caption.fontColor = HexToRGBA(color);
+        caption.color = HexToRGBA(color);
+      }
+      const backgroundColor = stream.getAttributeValue("background-color");
+      if (backgroundColor) {
+        caption.backgroundColor = HexToRGBA(backgroundColor);
+      }
+      const outlineColor = stream.getAttributeValue("outline-color");
+      if (outlineColor) {
+        caption.outlineColor = HexToRGBA(outlineColor);
+      }
+      const outlineWidth = stream.getAttributeValue("outline-width");
+      if (outlineWidth) {
+        caption.outlineWidth = outlineWidth * 1;
       }
       layer.text.push(new CaptionClip(caption));
     }

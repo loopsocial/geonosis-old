@@ -408,6 +408,8 @@ export default class TimelineClass {
       frameHeight,
       font,
       backgroundColor,
+      outlineWidth,
+      outlineColor,
       z
     } = caption;
     const captionRaw = this.timeline.addCaption(
@@ -478,6 +480,14 @@ export default class TimelineClass {
       captionRaw.setFontFamily(font);
     }
     if (z) captionRaw.setZValue(z);
+    if (outlineWidth) {
+      captionRaw.setDrawOutline(true);
+      captionRaw.setOutlineWidth(outlineWidth);
+    }
+    if (outlineColor) {
+      const nvsColor = RGBAToNvsColor(outlineColor);
+      captionRaw.setOutlineColor(nvsColor);
+    }
     return captionRaw;
   }
   getValue(string, length) {

@@ -236,6 +236,14 @@ export default {
       this.$bus.$on(this.$keys.drawBox, this.drawBox);
       this.$bus.$on(this.$keys.rebuildTimeline, this.rebuildTimeline);
       this.$bus.$on(this.$keys.updateProject, this.updateProject);
+      this.$bus.$on(this.$keys.destroyWorkFlow, this.destroyWorkFlow);
+    },
+    // 销毁字幕、贴纸编辑框
+    destroyWorkFlow() {
+      if (this.flow) {
+        this.flow.destroy();
+        this.flow = null;
+      }
     },
     // 重新构建timeline
     async rebuildTimeline() {
@@ -687,10 +695,7 @@ export default {
         this.timelineClass.destroy();
       });
     }
-    if (this.flow) {
-      this.flow.destroy();
-      this.flow = null;
-    }
+    this.destroyWorkFlow();
     this.setNvsStatus(false);
     document.body.removeEventListener("mouseup", this.statusEvent);
     removeEventListener("resize", this.calcLivewindowStyle);
@@ -717,6 +722,7 @@ export default {
     this.$bus.$off(this.$keys.seek, this.seekTimeline);
     this.$bus.$off(this.$keys.rebuildTimeline, this.rebuildTimeline);
     this.$bus.$off(this.$keys.updateProject, this.updateProject);
+    this.$bus.$off(this.$keys.destroyWorkFlow, this.destroyWorkFlow);
   }
 };
 </script>

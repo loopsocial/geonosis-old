@@ -17,7 +17,7 @@
       >
         <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
         <img :src="style.thumbnail_url" alt="" class="content" />
-        <!-- <img class="cover" :src="coverData" alt="" v-if="coverData" /> -->
+        <img class="cover" :src="coverData" alt="" v-if="coverData" />
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
@@ -80,6 +80,8 @@ export default {
       }, 1999);
     },
     async userModule(style) {
+      this.$bus.$emit(this.$keys.destroyWorkFlow);
+
       const loading = this.$loading({
         lock: true,
         text: "Loading",

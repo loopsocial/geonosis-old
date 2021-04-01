@@ -127,6 +127,8 @@ export class CaptionClip extends Clip {
     this.frameWidth = option.frameWidth;
     this.frameHeight = option.frameHeight;
     this.isModule = !!option.isModule;
+    this.outlineWidth = option.outlineWidth || 0;
+    this.outlineColor = option.outlineColor || "";
   }
 }
 export class StickerClip extends Clip {

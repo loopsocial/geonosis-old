@@ -12,5 +12,6 @@ export default {
   closePanel: "closePanel",
   drawBox: "drawBox",
   rebuildTimeline: "rebuildTimeline",
-  updateProject: "updateProject"
+  updateProject: "updateProject",
+  destroyWorkFlow: "destroyWorkFlow"
 };
