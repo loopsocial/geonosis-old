@@ -125,18 +125,25 @@ export default {
     this.getUsingMusicId();
   },
   methods: {
-    applyAudio(audioClip) {
-      this.$emit("clearAudio");
-      this.$bus.$emit(this.$keys.clearAudioTrack);
-      this.calcAudioTime(audioClip);
-      installAsset(audioClip.file_url)
-        .then(r => {
-          audioClip.m3u8Path = r;
-          this.$bus.$emit(this.$keys.addAudioClip, audioClip);
-        })
-        .catch(err => {
-          this.$message({ type: "error", message: err });
-        })
+    async applyAudio(audioClip) {
+      const loading = this.$loading({
+        lock: true,
+        text: this.$t("loading"),
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
+      try {
+        this.$emit("clearAudio");
+        this.$bus.$emit(this.$keys.clearAudioTrack);
+        this.calcAudioTime(audioClip);
+        audioClip.m3u8Path = await installAsset(audioClip.file_url);
+        this.$bus.$emit(this.$keys.addAudioClip, audioClip);
+      } catch (error) {
+        console.error("应用音频失败", error);
+        this.$message({ type: "error", message: this.$t("applyAudioFailed") });
+      } finally {
+        loading.close();
+      }
     },
     calcAudioTime(audioClip) {
       const fixedSlider = this.$refs.slider[this.activeIndex];
@@ -428,7 +435,8 @@ export default {
     "use":"Use",
     "noMore": "No More",
     "cancel":"Cancel",
-    "loading":"Loading..."
+    "loading":"Loading...",
+    "applyAudioFailed": "Apply Audio Failed"
   }
 }
 </i18n>

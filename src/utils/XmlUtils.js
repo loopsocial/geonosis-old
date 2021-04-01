@@ -6,13 +6,18 @@ import {
   TRANSFORM2D_KEYS,
   DEFAULT_CAPTION
 } from "./Global";
-import { FxParam, VideoFx, VideoClip, CaptionClip } from "@/utils/ProjectData";
+import {
+  FxParam,
+  VideoFx,
+  VideoClip,
+  CaptionClip,
+  AudioClip
+} from "@/utils/ProjectData";
 import { installAsset } from "./AssetsUtils";
 // 将vuex中的数据转换格式，方便写入xml  TODO: 要合并module
 function transformation() {
   const {
     videos,
-    audios,
     captions,
     stickers,
     videoWidth,
@@ -204,9 +209,26 @@ function writeCreation(stream) {
   creation.scenes.map(scene => {
     writeScene(stream, scene);
   });
+  writeAudio(stream);
   stream.writeEndElement();
 }
+function writeAudio(stream) {
+  const { audios } = store.state.clip;
+  if (audios.length) {
+    const { inPoint, trimIn, id, name, url } = audios[0];
+    stream.writeStartElement("fw-audio");
+    stream.writeAttribute("soundtrack-id", "" + id);
+    stream.writeAttribute("soundtrack-name", "" + name);
+    stream.writeAttribute("in-point", "" + inPoint);
+    stream.writeAttribute("soundtrack-in-point", "" + trimIn);
+    // audio source
+    stream.writeStartElement("fw-audio");
+    stream.writeAttribute("url", "" + url);
+    stream.writeEndElement();
 
+    stream.writeEndElement();
+  }
+}
 function writeScene(stream, scene) {
   stream.writeStartElement("fw-scene");
   writeVideoLayer(stream, scene.video);
@@ -313,6 +335,9 @@ export async function readProjectXml(xmlPath) {
   while (!stream.atEnd() && !stream.hasError()) {
     if (stream.isStartElement() && stream.name() === "fw-creation") {
       result = await readDom(stream);
+    } else if (stream.isStartElement() && stream.name() === "fw-audio") {
+      const audios = await readProjectAudio(stream);
+      result.audios = audios;
     }
     stream.readNext();
   }
@@ -321,6 +346,68 @@ export async function readProjectXml(xmlPath) {
   }
   stream.close();
   return result;
+}
+async function readProjectAudio(stream) {
+  const audio = {};
+  while (!(stream.isEndElement() && stream.name() === "fw-audio")) {
+    if (stream.isStartElement() && stream.name() === "fw-audio") {
+      audio.id = stream.getAttributeValue("soundtrack-id");
+      audio.name = stream.getAttributeValue("soundtrack-name");
+      audio.inPoint = stream.getAttributeValue("in-point");
+      audio.trimIn = stream.getAttributeValue("soundtrack-in-point");
+    } else if (stream.isStartElement() && stream.name() === "source") {
+      audio.src = stream.getAttributeValue("src");
+      audio.m3u8Path = await installAsset(audio.src);
+    }
+    stream.readNext();
+  }
+  return audioToAudios(audio);
+}
+function audioToAudios(clipOptions) {
+  let audios = [];
+  const timelineDuration = this.timelineClass.timeline.getDuration();
+  const clipDuration = clipOptions.orgDuration;
+  if (clipOptions.inPoint > 0) {
+    let durationCumulate = clipOptions.inPoint;
+    const count = Math.ceil(
+      (timelineDuration - clipOptions.inPoint) / clipDuration
+    );
+    for (let index = 0; index < count; index++) {
+      durationCumulate += clipDuration;
+      index >= 1 && (clipOptions.inPoint = durationCumulate);
+      if (durationCumulate > timelineDuration) {
+        clipOptions.trimOut =
+          clipDuration - (durationCumulate - timelineDuration);
+      }
+
+      clipOptions.duration = clipOptions.trimOut - clipOptions.trimIn;
+      audios.push(new AudioClip(clipOptions));
+    }
+  } else {
+    let durationCumulate = 0;
+    while (durationCumulate < timelineDuration) {
+      if (durationCumulate === 0) {
+        // 起始段音频 trimIn 非 0 需要单独处理
+        durationCumulate = clipOptions.trimOut - clipOptions.trimIn;
+        if (durationCumulate > timelineDuration) {
+          clipOptions.trimOut = timelineDuration + clipOptions.trimIn;
+        }
+      } else {
+        // 后面音频循环部分处理
+        clipOptions.trimIn = 0;
+        clipOptions.inPoint = durationCumulate;
+        durationCumulate += clipDuration;
+
+        if (durationCumulate > timelineDuration) {
+          clipOptions.trimOut =
+            clipDuration - (durationCumulate - timelineDuration);
+        }
+      }
+      clipOptions.duration = clipOptions.trimOut - clipOptions.trimIn;
+      audios.push(new AudioClip(clipOptions));
+    }
+  }
+  return audios;
 }
 async function readDom(stream) {
   const res = {};
