@@ -817,7 +817,7 @@ export default {
       this.calcDuration(null, null, true);
     },
     handlePlaying(timeline, currentTime) {
-      if (currentTime === this.trimTimeline.timeline) {
+      if (timeline === this.trimTimeline.timeline) {
         this.splittreLeft = this.calcCurrentPercentage(currentTime);
       }
     },
