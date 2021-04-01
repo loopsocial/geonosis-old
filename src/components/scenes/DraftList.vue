@@ -1099,6 +1099,7 @@ export default {
     // 拼出缩略图
     getClipListImages() {
       if (!this.item.thumbnails.length) {
+        this.background = `url("${this.item.coverUrl}") repeat-x center/contain`;
         if (!this.isDisplayingMessage) {
           return (this.isDisplayingMessage = this.$message({
             type: "warning",

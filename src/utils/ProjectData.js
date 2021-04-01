@@ -44,12 +44,12 @@ export class VideoClip extends Clip {
     this.videoType = option.videoType; // videoType是字符串，且只能是video、image
     // this.trimIn = option.trimIn || 0;
     // this.trimOut = option.trimOut || option.duration;
-    this.orgDuration = option.duration;
+    this.orgDuration = option.orgDuration || option.duration;
     this.splitList = [
       {
         trimIn: 0,
-        trimOut: option.trimOut || option.duration, // 切割点
-        captureIn: 0,
+        trimOut: option.orgDuration || option.duration, // 切割点
+        captureIn: option.trimIn || 0,
         captureOut: option.trimOut || option.duration, // 选中点
         raw: null,
         videoFxs: option.videoFxs || []

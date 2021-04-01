@@ -54,6 +54,7 @@ function transformation() {
         videoType: video.videoType,
         inPoint: video.inPoint + item.captureIn,
         duration: item.captureOut - item.captureIn,
+        orgDuration: video.orgDuration,
         trimIn: item.captureIn,
         trimOut: item.captureOut,
         scaleX,
@@ -180,6 +181,9 @@ function writeVideoLayer(stream, video) {
     stream.writeAttribute("motion-on", "" + !!video.motion);
   }
   stream.writeAttribute("duration", "" + video.duration);
+  if (video.orgDuration) {
+    stream.writeAttribute("org-duration", "" + video.orgDuration);
+  }
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
   stream.writeAttribute("scale-x", "" + video.scaleX);
@@ -448,6 +452,10 @@ function readProjectVideo(stream, videos) {
       stream.isStartElement()
     ) {
       video.duration = stream.getAttributeValue("duration") * 1;
+      const orgDuration = stream.getAttributeValue("org-duration")
+      if (orgDuration) {
+        video.orgDuration = orgDuration * 1;
+      }
       video.trimIn = stream.getAttributeValue("trim-in") * 1;
       video.trimOut = stream.getAttributeValue("trim-out") * 1;
       const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
