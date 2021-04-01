@@ -810,10 +810,7 @@ export default {
       this.calcDuration(null, null, true);
     },
     handleImageDurationMinus() {
-      this.imageDuration -= 1000000;
-      if (this.imageDuration < 0) {
-        this.imageDuration = 0;
-      }
+      this.imageDuration = Math.max(1000000, this.imageDuration - 1000000);
       this.calcDuration(null, null, true);
     },
     handlePlaying(timeline, currentTime) {
