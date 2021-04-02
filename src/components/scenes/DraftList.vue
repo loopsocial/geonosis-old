@@ -202,7 +202,7 @@
                 width: captureWidth * 100 + '%',
                 left: captureLeft * 100 + '%'
               }"
-              v-if="activeIndex != -1"
+              v-if="isShowSplitedSelector"
               ref="capture"
             >
               <div class="capture-inner" @mousedown="handleCaptureMouseDown">
@@ -275,9 +275,11 @@ import TimelineClass from "../../utils/TimelineClass";
 import { VideoClip, FxParam, VideoFx } from "@/utils/ProjectData";
 import OperateStack from "@/utils/OperateStack";
 import Medias from "../create/Medias";
-import { RATIO } from "@/utils/Global";
+import { RATIO, DURATION_LIMIT } from "@/utils/Global";
 import WorkFlow from "@/utils/WorkFlow";
 import { installAsset } from "@/utils/AssetsUtils";
+import { generateUUID } from "@/utils/common";
+import cloneDeep from "clone-deep";
 
 export default {
   components: {
@@ -291,6 +293,7 @@ export default {
         width: 0,
         height: 0
       },
+      calcRectIdx: 0, // 根据分割线位置裁剪对应视频还是根据选择分块裁剪视频
       mediaDialog: false, // 添加素材的弹窗
       currentSplitList: [],
       height: 0,
@@ -310,14 +313,15 @@ export default {
       motion: true,
       mousePos: 0,
       backgroundPosition: 0,
-      activeIndex: -1, // 当前被选中的被分割的片段
+      activeIndex: 0, // 当前被选中的被分割的片段
       backgroundCover: "",
       splitList: [],
       totalDuration: 0,
       operateStack: null,
       captureMoved: false,
       videoInfo: null,
-      currentSplitedIdx: 0,
+      currentVideoIdx: 0, // draftList列表上选中video
+      isShowSplitedSelector: false,
       rect: {
         width: 0,
         height: 0,
@@ -547,6 +551,7 @@ export default {
       }
     },
     handleRectMouseUp() {
+      this.saveTranslateFx();
       document.body.removeEventListener(
         "mousemove",
         this.handleRightTopResizeMouseMove
@@ -567,7 +572,7 @@ export default {
     },
     calcSelectRectSize() {
       const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
-      const { videoFxs } = this.activeClip.splitList[this.currentSplitedIdx];
+      const { videoFxs } = this.splitList[this.calcRectIdx];
       const {
         width: videoWidth,
         height: videoHeight
@@ -688,6 +693,7 @@ export default {
         inPoint += video.duration;
         assets.push(video);
       }
+      if (!assets.length) return (this.mediaDialog = false);
       this.addClipToVuex(assets);
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
@@ -729,7 +735,7 @@ export default {
         item => item === this.$refs.clipList || item === this.$refs.clipWrapper
       );
       if (isOnClipList) return;
-      this.activeIndex = -1;
+      this.isShowSplitedSelector = false;
     },
     handleSplitterMouseDown() {
       document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
@@ -754,6 +760,10 @@ export default {
       const currentSeekTime = this.splittreLeft * this.activeClip.orgDuration;
       this.trimTimeline.seekTimeline(currentSeekTime);
 
+      this.calcRectIdx = this.getCurrentSplitIdx(currentSeekTime);
+      console.log(this.calcRectIdx);
+      this.calcSelectRectSize();
+
       document.body.addEventListener("mouseup", this.handleSplitterMouseUp, {
         once: true
       });
@@ -774,21 +784,35 @@ export default {
       const splitterPercentage = this.splittreLeft;
       const splitPoint = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
+      let splitFailed = false;
       this.splitList.reduce((prev, cur, curIdx, arr) => {
         const curWidth = this.calcSplittedItemWidth(cur.trimIn, cur.trimOut);
         if (splitterPercentage < curWidth + prev && splitterPercentage > prev) {
+          if (
+            splitPoint - cur.trimIn <= DURATION_LIMIT ||
+            cur.trimOut - splitPoint <= DURATION_LIMIT
+          ) {
+            this.$message({
+              type: "warning",
+              message:
+                "Your Splitted Video Cannot Shorter Then " +
+                DURATION_LIMIT / 1000000 +
+                "s"
+            });
+            return (splitFailed = true);
+          }
           // 一分为二
           splitedArr = [
             {
               raw: cur.raw,
-              videoFxs: cur.videoFxs || [],
+              videoFxs: cloneDeep(cur.videoFxs) || [],
               trimIn: Math.round(cur.trimIn),
               trimOut: Math.round(splitPoint),
               captureIn: Math.round(cur.trimIn),
               captureOut: Math.round(splitPoint)
             },
             {
-              videoFxs: cur.videoFxs || [],
+              videoFxs: cloneDeep(cur.videoFxs) || [],
               trimIn: Math.round(splitPoint),
               trimOut: Math.round(cur.trimOut),
               captureIn: Math.round(splitPoint),
@@ -800,6 +824,7 @@ export default {
         }
         return prev + curWidth;
       }, 0);
+      if (splitFailed) return;
       this.refreshBackgroundCover();
       this.calcDuration();
       this.operateStack.pushSnapshot(this.splitList);
@@ -841,16 +866,88 @@ export default {
             height: this.$refs.liveWindowWrapper.offsetHeight,
             width: (width / height) * this.$refs.liveWindowWrapper.offsetHeight
           };
-          // this.$refs.liveWindow.style.width =
+          // this.$refs.liveWindow.style.width
           //   Math.floor(this.dialogCanvasSize.width) + "px";
         });
       }
     },
+    convertSplitListToVideoClip() {
+      this.splitList = this.splitList.map(item => {
+        item.trimIn = 0;
+        item.trimOut = this.activeClip.orgDuration;
+        return item;
+      });
+      const currentVideoIdx = this.videos.findIndex(
+        video => video.uuid === this.activeClip.uuid
+      );
 
-    calcTransformParams(centerPos) {
+      const newVideos = [
+        ...this.videos.slice(0, currentVideoIdx),
+        ...this.splitList.map((item, idx) => {
+          const activeClip = { ...this.activeClip };
+          activeClip.inPoint = item.captureIn;
+          activeClip.splitList = [item];
+          // activeClip.duration = item.captureOut - item.captureIn;
+          idx !== 1 && (activeClip.uuid = generateUUID());
+          return activeClip;
+        }),
+        ...this.videos.slice(currentVideoIdx + 1)
+      ];
+      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: newVideos });
+      this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.$bus.$emit(this.$keys.updateProject);
+    },
+    getCurrentSplitIdx(time) {
+      let cumulatedDuration = 0;
+      for (let i = 0; i < this.splitList.length; i++) {
+        const item = this.splitList[i];
+        cumulatedDuration += item.trimOut - item.trimIn;
+        if (cumulatedDuration >= time) return i;
+      }
+    },
+    saveTranslateFx() {
+      const { transX, transY, scaleX, scaleY } = this.calcTransformParams();
+
+      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+      transformFx.params = [
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_X, transX), // 偏移
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_Y, transY),
+
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scaleX), // 缩放
+        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scaleY)
+      ];
+
+      const idx = this.splitList[this.calcRectIdx].videoFxs.findIndex(
+        item => item.desc === FX_DESC.TRANSFORM2D
+      );
+      if (idx === -1) {
+        return (this.splitList[this.calcRectIdx].videoFxs = [
+          ...this.splitList[this.calcRectIdx].videoFxs,
+          transformFx
+        ]);
+      }
+      return this.splitList[this.calcRectIdx].videoFxs.splice(
+        idx,
+        1,
+        transformFx
+      );
+    },
+    calcTransformParams() {
       const { videoWidth: w, videoHeight: h } = this.$store.state.clip;
       let { imageWidth, imageHeight } = new NvsVideoResolution(w, h); // 主 LiveWindow 渲染层视频像素宽高
+      const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
 
+      // 计算特效参数
+      // ui层 选中的rect中点(视图坐标系为基准)
+      let center = {
+        x: (this.rect.left + this.rect.width / 2) * width,
+        y: (this.rect.top + this.rect.height / 2) * height
+      };
+      // 渲染层 选中的rect中点（时间线坐标系为基准）
+      const centerPos = WorkFlow.aTob(
+        new NvsPointF(center.x, center.y),
+        this.trimTimeline.liveWindow
+      );
       // dialog中视频宽高
       const {
         width: videoWidth,
@@ -874,13 +971,6 @@ export default {
         scaleX = 1 / ((videoWidth * this.rect.width) / standardizedVideoWidth);
         scaleY = scaleX;
       }
-      if (!centerPos)
-        return {
-          imageWidth,
-          imageHeight,
-          standardizedVideoHeight,
-          standardizedVideoWidth
-        };
 
       const transX =
         -(imageWidth / standardizedVideoWidth) * centerPos.x * scaleX;
@@ -888,6 +978,10 @@ export default {
         -(imageHeight / standardizedVideoHeight) * centerPos.y * scaleY;
 
       return {
+        imageWidth,
+        imageHeight,
+        standardizedVideoHeight,
+        standardizedVideoWidth,
         transX,
         transY,
         scaleX,
@@ -896,36 +990,20 @@ export default {
     },
     handleNext() {
       this.dialogVisible = false;
-      const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
-
-      // 计算特效参数
-      // ui层 选中的rect中点(视图坐标系为基准)
-      let center = {
-        x: (this.rect.left + this.rect.width / 2) * width,
-        y: (this.rect.top + this.rect.height / 2) * height
-      };
-      // 渲染层 选中的rect中点（时间线坐标系为基准）
-      const centerPos = WorkFlow.aTob(
-        new NvsPointF(center.x, center.y),
-        this.trimTimeline.liveWindow
-      );
-
-      const { transX, transY, scaleX, scaleY } = this.calcTransformParams(
-        centerPos
-      );
-
-      const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
-      transformFx.params = [
-        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_X, transX), // 偏移
-        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_Y, transY),
-
-        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scaleX), // 缩放
-        new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scaleY)
-      ];
 
       const mosaicFx = new VideoFx(FX_DESC.MOSAIC);
       if (this.isImage) {
         // 图片处理
+        const { transX, transY, scaleX, scaleY } = this.calcTransformParams();
+
+        const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+        transformFx.params = [
+          new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_X, transX), // 偏移
+          new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.TRANS_Y, transY),
+
+          new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scaleX), // 缩放
+          new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scaleY)
+        ];
         this.activeClip.splitList[0].trimOut = this.imageDuration;
         this.activeClip.splitList[0].captureOut = this.imageDuration;
         this.activeClip.splitList[0].videoFxs = [transformFx, mosaicFx];
@@ -937,9 +1015,11 @@ export default {
           return prev + cur.captureOut - cur.captureIn;
         }, this.activeClip.inPoint);
         this.activeClip.splitList = this.splitList.map(item => {
-          item.videoFxs = [transformFx, mosaicFx];
+          item.videoFxs = [...item.videoFxs, mosaicFx];
           return item;
         });
+
+        this.convertSplitListToVideoClip();
       }
       this.updateClipToVuex(this.activeClip);
       // 底层执行操作
@@ -947,7 +1027,7 @@ export default {
       this.destroy();
     },
     initSplit() {
-      this.splitList = this.activeClip.splitList.map(item => ({ ...item }));
+      this.splitList = this.activeClip.splitList.map(item => cloneDeep(item));
     },
     // 视频裁剪
     cut(item) {
@@ -986,37 +1066,15 @@ export default {
         this.calcSelectRectSize(); // 计算video部分选中框大小
       });
     },
-    // delMaterials(delItem) {
-    //   this.splitList.reduce((prev, cur) => {
-    //     cur.inPoint = prev;
-    //     return prev + cur.captureOut - cur.captureIn;
-    //   }, this.activeClip.inPoint);
-    //   ["captions", "stickers"].forEach(type => {
-    //     for (let i = 0; i < this[type].length; i++) {
-    //       const caption = this[type][i];
-    //       if (
-    //         delItem.inPoint <= caption.inPoint &&
-    //         delItem.inPoint + delItem.captureOut - delItem.captureIn >
-    //           caption.inPoint
-    //       ) {
-    //         this[type].splice(i, 1)
-    //         i--;
-    //       }
-    //     }
-    //   });
-    // },
-    del(index, splitIndex) {
+    del(index) {
       const v = [];
       let inPoint = 0;
-      // const delItem = this.videos[index].splitList.splice(splitIndex, 1)[0];
-
-      // this.delMaterials(delItem);
-
       for (let i = 0; i < this.videos.length; i++) {
         const el = this.videos[i];
         if (!el.splitList.length) continue;
+        if (i === index) continue;
         el.inPoint = inPoint;
-        inPoint += el.duration;
+        inPoint += el.splitList[0].captureOut - el.splitList[0].captureIn;
         v.push(el);
       }
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
@@ -1048,7 +1106,7 @@ export default {
     },
     selected(item, i, split) {
       this.currentVideoUuid = item.uuid + `_${i}`;
-      this.currentSplitedIdx = i;
+      this.currentVideoIdx = i;
       this.$bus.$emit(this.$keys.getTimeline, timeline => {
         const currentTime = timeline.getCurrentPosition();
         if (
@@ -1078,7 +1136,7 @@ export default {
       e.stopPropagation();
 
       if (!this.isPlaying) {
-        if (this.activeIndex === -1) {
+        if (!this.isShowSplitedSelector) {
           // 片段未选中
           this.trimTimeline.play(0);
         } else {
@@ -1174,11 +1232,14 @@ export default {
     handleClipClick(e) {
       if (!e.target.dataset.index) return;
 
-      this.activeIndex = parseInt(e.target.dataset.index);
+      this.activeIndex = this.calcRectIdx = parseInt(e.target.dataset.index);
+      this.calcSelectRectSize();
+
       const clip = this.splitList[this.activeIndex];
-
+      this.trimTimeline.seekTimeline(clip.captureIn);
+      this.isShowSplitedSelector = true;
       this.calcDuration(clip.captureIn, clip.captureOut);
-
+      this.calcRectBy = "clip";
       this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
       this.captureWidth =
         (clip.captureOut - clip.captureIn) / this.activeClip.orgDuration;
@@ -1395,6 +1456,8 @@ export default {
     },
     // 销毁时间线, 并解除事件绑定
     destroy(done) {
+      this.calcRectIdx = 0;
+      this.activeIndex = 0;
       if (this.trimTimeline) {
         this.trimTimeline.stopEngin().then(() => {
           this.trimTimeline.destroy();

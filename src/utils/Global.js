@@ -77,3 +77,5 @@ export const MEDIA_TYPES = {
   3: "image"
 };
 export const RATIO = 0.5625;
+
+export const DURATION_LIMIT = 0.5 * 1000 * 1000;
