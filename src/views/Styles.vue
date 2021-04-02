@@ -49,8 +49,10 @@ export default {
     },
     async onLoaded() {
       // 工程加载完成后，再获取封面
-      this.coverData = await this.$refs.preview.getImgFromTimeline();
-      console.log("获取封面", this.coverData);
+      this.$refs.preview.getImgFromTimeline(0, data => {
+        this.coverData = data;
+        console.log("获取封面", this.coverData);
+      });
     }
   }
 };

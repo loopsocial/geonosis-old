@@ -120,7 +120,10 @@ export default {
     async updateProject(callback) {
       const { id: projectId } = this.$route.query;
       if (!projectId) {
-        if (typeof callback === "function") callback(false);
+        if (typeof callback === "function") {
+          console.error("Save Failed: No ProjectID");
+          callback(false);
+        }
         return;
       }
       try {
@@ -237,6 +240,7 @@ export default {
       this.$bus.$on(this.$keys.rebuildTimeline, this.rebuildTimeline);
       this.$bus.$on(this.$keys.updateProject, this.updateProject);
       this.$bus.$on(this.$keys.destroyWorkFlow, this.destroyWorkFlow);
+      this.$bus.$on(this.$keys.getImgFromTimeline, this.getImgFromTimeline);
     },
     // 销毁字幕、贴纸编辑框
     destroyWorkFlow() {
@@ -673,20 +677,20 @@ export default {
         this.statusChangeEvent
       );
     },
-    getImgFromTimeline(t) {
-      return new Promise((resolve, reject) => {
-        this.timelineClass
-          .getImgFromTimeline(t)
-          .then(data => {
-            const array = new Uint8Array(data);
-            const blob = new Blob([array], { type: "image/png" });
-            const imageUrl = URL.createObjectURL(blob);
-            resolve(imageUrl);
-            // const str = String.fromCharCode(...array);
-            // resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
-          })
-          .catch(reject);
-      });
+    getImgFromTimeline(t, callback) {
+      this.timelineClass
+        .getImgFromTimeline(t)
+        .then(data => {
+          const array = new Uint8Array(data);
+          const blob = new Blob([array], { type: "image/png" });
+          const imageUrl = URL.createObjectURL(blob);
+          callback && callback(imageUrl);
+          // const str = String.fromCharCode(...array);
+          // resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
+        })
+        .catch(() => {
+          callback && callback(null);
+        });
     }
   },
   beforeDestroy() {
@@ -723,6 +727,7 @@ export default {
     this.$bus.$off(this.$keys.rebuildTimeline, this.rebuildTimeline);
     this.$bus.$off(this.$keys.updateProject, this.updateProject);
     this.$bus.$off(this.$keys.destroyWorkFlow, this.destroyWorkFlow);
+    this.$bus.$off(this.$keys.getImgFromTimeline, this.getImgFromTimeline);
   }
 };
 </script>

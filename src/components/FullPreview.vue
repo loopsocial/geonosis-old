@@ -1,6 +1,10 @@
 <template>
   <div class="preview-box">
-    <div class="preview-window">
+    <div
+      class="preview-window"
+      v-loading="waiting"
+      element-loading-background="rgba(0, 0, 0, 0.5)"
+    >
       <canvas
         class="preview-window"
         width="540"
@@ -36,6 +40,7 @@ export default {
   data() {
     return {
       seekVal: 0,
+      waiting: false,
       timelineClass: null,
       isPlaying: false
     };
@@ -84,6 +89,10 @@ export default {
       this.timelineClass = timelineClass;
       this.bindContextEvent();
     });
+    window.streamingContext.addEventListener(
+      "onWebRequestWaitStatusChange",
+      this.statusChangeEvent
+    );
   },
   methods: {
     preview() {
@@ -148,6 +157,9 @@ export default {
         "onPlaybackTimelinePosition",
         this.playingEvent
       );
+    },
+    statusChangeEvent(isVideo, waiting) {
+      this.waiting = waiting;
     }
   },
   beforeDestroy() {

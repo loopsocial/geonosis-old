@@ -12,9 +12,20 @@ export default {
       Mousetrap.bind(KeyMap.save, () => {
         if (this.saving) return false;
         this.saving = true;
-        this.$bus.$emit(this.$keys.updateProject, () => {
+        const savingMsg = this.$message({
+          iconClass: "el-icon-loading loading-message",
+          duration: 0,
+          message: "Saving",
+          center: true
+        });
+        this.$bus.$emit(this.$keys.updateProject, isSuccess => {
           this.saving = false;
-          this.$message.success("Save Success");
+          savingMsg.close();
+          this.$message({
+            type: isSuccess ? "success" : "error",
+            message: isSuccess ? "Save Success" : "Save Failed",
+            center: true
+          });
         });
         return false;
       });

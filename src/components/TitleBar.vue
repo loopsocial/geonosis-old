@@ -31,7 +31,7 @@
       <div class="publish-dialog" v-if="dialogVisible">
         <div class="publish-content">
           <FullPreview class="preview-box"></FullPreview>
-          <el-form :model="infoForm" class="ln-form">
+          <el-form :model="infoForm" class="ln-form publish-form">
             <el-form-item :label="$t('caption')" prop="caption">
               <el-input v-model="infoForm.caption" class="ln-input"></el-input>
             </el-form-item>
@@ -43,8 +43,24 @@
               ></el-input>
               <span class="minor">{{ $t("hashtagHint") }}</span>
             </el-form-item>
-            <el-form-item :label="$t('posters')" prop="posters">
-              <div class="posters"></div>
+            <el-form-item
+              :label="$t('posters')"
+              prop="posters"
+              class="form-poster"
+            >
+              <div class="posters flex" @click="getCover">
+                <el-image
+                  class="media-cover"
+                  ref="image"
+                  :src="infoForm.coverData"
+                  fit="cover"
+                  v-if="infoForm.coverData"
+                ></el-image>
+                <template v-else>
+                  {{ $t("posterMsg") }}
+                  <i class="el-icon-circle-plus"></i>
+                </template>
+              </div>
             </el-form-item>
             <el-form-item :label="$t('postTo')" prop="postTo">
               <el-radio-group v-model="infoForm.postTo" class="ln-radio-group">
@@ -57,6 +73,14 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item class="publish-form-item">
+              <el-button
+                round
+                class="round-btn cancal"
+                size="medium"
+                @click="cancalPublish"
+              >
+                {{ $t("cancal") }}
+              </el-button>
               <el-button
                 round
                 class="round-btn"
@@ -82,10 +106,8 @@
 <script>
 import FullPreview from "./FullPreview";
 import { writeXml } from "@/utils/XmlUtils";
-import { uploadToMS, uploadToS3 } from "@/utils/Uploader";
+import { uploadToMS } from "@/utils/Uploader";
 import { TaskItem } from "@/utils/Task";
-import videoModules from "@/mock/videoModules";
-import { base64ToString } from "@/utils/common";
 
 export default {
   data() {
@@ -97,7 +119,8 @@ export default {
         caption: "",
         hashtags: "",
         posters: null,
-        postTo: "global"
+        postTo: "global",
+        coverData: null
       }
     };
   },
@@ -111,11 +134,21 @@ export default {
     }
   },
   methods: {
+    // 打开预览窗口
     preview() {
       this.showPreview = true;
     },
+    // 关闭预览窗口
     close() {
       this.showPreview = false;
+    },
+    getCover() {
+      this.$bus.$emit(this.$keys.getImgFromTimeline, 0, imageData => {
+        this.infoForm.coverData = imageData;
+      });
+    },
+    cancalPublish() {
+      this.dialogVisible = false;
     },
     async publish() {
       this.commiting = true;
@@ -271,7 +304,8 @@ export default {
       border-radius: 6px;
       align-items: center;
       height: 80%;
-      width: 80%;
+      width: 60%;
+      min-width: 800px;
       position: relative;
       padding: 24px;
       .preview-close {
@@ -279,6 +313,8 @@ export default {
         right: -44px;
         top: 0;
         cursor: pointer;
+        width: 1.5em;
+        height: 1.5em;
       }
       .ln-form {
         height: 100%;
@@ -297,11 +333,43 @@ export default {
     }
     .el-form {
       flex: 1;
+      &.publish-form {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100% - 100px);
+      }
     }
     .publish-form-item {
       position: absolute;
       right: 18px;
       bottom: 0;
+    }
+    .form-poster {
+      display: flex;
+      flex-direction: column;
+      .el-form-item__content {
+        height: 100%;
+      }
+    }
+    .cancal {
+      background: $btn-bgc;
+    }
+    .posters {
+      cursor: pointer;
+      flex: 1;
+      border: 1px dashed $main-bgc;
+      background-color: $btn-bgc;
+      border-radius: 6px;
+      text-align: center;
+      flex-direction: column;
+      aspect-ratio: 9/16;
+      color: $white;
+      width: 115px;
+      height: auto;
+      i {
+        font-size: 16px;
+        // color: $white;
+      }
     }
   }
   .full-preview {
@@ -347,7 +415,9 @@ export default {
     "see": "See",
     "finish": "Video Compose Finish!",
     "running": "Video Compose Be In Progress...",
-    "failed": "Video Compose Failed"
+    "failed": "Video Compose Failed",
+    "cancal": "Cancal",
+    "posterMsg": "Add a new Poster"
   }
 }
 </i18n>

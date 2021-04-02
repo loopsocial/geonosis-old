@@ -1831,7 +1831,9 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     "totalVideoDuration":"Total video duration",
     "motionOn": "Motion On ",
     "motionOff": "Motion Off",
-    "pick": "Pick Media"
+    "pick": "Pick Media",
+    "saving": "Saving",
+    "saveSuccess": "Save Success"
   }
 }
 </i18n>

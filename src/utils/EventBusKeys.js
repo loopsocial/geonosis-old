@@ -13,5 +13,6 @@ export default {
   drawBox: "drawBox",
   rebuildTimeline: "rebuildTimeline",
   updateProject: "updateProject",
-  destroyWorkFlow: "destroyWorkFlow"
+  destroyWorkFlow: "destroyWorkFlow",
+  getImgFromTimeline: "getImgFromTimeline"
 };
