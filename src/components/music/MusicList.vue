@@ -385,7 +385,7 @@ export default {
       .cover {
         height: 63px;
         width: 63px;
-        background-color: pink;
+        background-color: white;
         border-radius: 6px;
         img {
           height: 100%;
