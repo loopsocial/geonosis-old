@@ -1008,7 +1008,7 @@ export default {
     del(index, splitIndex) {
       const v = [];
       let inPoint = 0;
-      const delItem = this.videos[index].splitList.splice(splitIndex, 1)[0];
+      // const delItem = this.videos[index].splitList.splice(splitIndex, 1)[0];
 
       // this.delMaterials(delItem);
 
@@ -1286,7 +1286,7 @@ export default {
       this.refreshBackgroundCover();
     },
     calcDuration(startTime, endTime, isImage) {
-      if ((startTime && endTime) ?? false) {
+      if (!isNaN(startTime) && !isNaN(endTime)) {
         this.duration = endTime - startTime;
       }
       const otherVideoDuration = this.videos.reduce((prev, cur) => {
