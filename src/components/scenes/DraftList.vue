@@ -1456,6 +1456,8 @@ export default {
     },
     // 销毁时间线, 并解除事件绑定
     destroy(done) {
+      this.calcRectIdx = 0;
+      this.activeIndex = 0;
       if (this.trimTimeline) {
         this.trimTimeline.stopEngin().then(() => {
           this.trimTimeline.destroy();
