@@ -160,7 +160,7 @@ export default {
         // Before publish
         // Call video project / compile
         file = new File([file], "project.xml");
-        const xmlUrl = await uploadToS3(file);
+        const xmlUrl = await uploadToMS(file);
         const { caption } = this.infoForm;
         const params = {
           projectId: "14399",
@@ -187,7 +187,7 @@ export default {
             console.error("任务失败", e);
             this.$message({
               type: "error",
-              message: "Video Compose Failed"
+              message: this.$t("failed")
             });
           }
         };
@@ -195,13 +195,13 @@ export default {
         console.log("合成返回", res.data);
         this.$message({
           type: "info",
-          message: "Video Compose Be In Progress..."
+          message: this.$t("running")
         });
       } catch (error) {
         console.error("合成失败", error);
         this.$message({
           type: "error",
-          message: "Video Compose Failed"
+          message: this.$t("failed")
         });
       } finally {
         this.commiting = false;
@@ -218,7 +218,7 @@ export default {
         center: true,
         type: "success",
         message: h("div", null, [
-          h("span", null, "Video Compose Finish!"),
+          h("span", null, this.$t("finish")),
           h(
             "el-button",
             {
@@ -232,7 +232,7 @@ export default {
               },
               class: "reconnection"
             },
-            "See"
+            this.$t("see")
           )
         ])
       });

@@ -46,18 +46,13 @@ export class TaskItem {
       .get(api.jobInfo, { params: { id: this.jobId } })
       .then(res => {
         if (res.code === 0) {
-          const { progress, status, videoUrl, title } = res.data;
+          const { progress, status, videoUrl } = res.data;
           this.progress = progress;
           console.log("获取进度", progress);
           if (status === 2) {
-            console.error(
-              title + " 任务失败, 任务ID:",
-              this.jobId,
-              "status:",
-              status
-            );
+            console.error(this.name + " 任务失败, 任务ID:", this.jobId);
             this.status = "failed";
-            this.onError(title);
+            this.onError();
             return;
           } else if (status === 1) {
             console.log("任务完成");
@@ -71,7 +66,7 @@ export class TaskItem {
         }
       })
       .catch(err => {
-        console.log("任务查询失败", err);
+        console.log("任务查询失败");
         this.timer = setTimeout(() => {
           this.getProgress();
         }, 1000);
