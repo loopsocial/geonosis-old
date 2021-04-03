@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import token from "../utils/Token";
+import cookies from "../utils/Cookie";
 import qs from "qs";
 
 const Create = () =>
@@ -85,16 +86,27 @@ router.beforeEach((to, from, next) => {
       token.setToken(hashToken);
       window.location.hash = "";
     }
-    const accessToken = to.query.access_token;
-    if (accessToken) {
-      token.setToken(accessToken);
+    const { access_token } = to.query;
+    if (access_token) {
+      // Remove businessId and channel Id
+      token.setToken(access_token);
+      cookies.remove("businessId");
+      cookies.remove("channelId");
     }
-    if (hashToken || accessToken) {
+    if (hashToken || access_token) {
       return next({ path: "/Create" });
     }
   }
   // Check if login
   if (to.matched.some(record => record.meta.isLoginPage)) {
+    // Check businessId channelId
+    const { businessId, channelId } = to.query;
+    if (businessId && channelId) {
+      cookies.set("businessId", businessId);
+      cookies.set("channelId", channelId);
+    }
+
+    // Redirect
     if (token.hasUserToken()) return token.setTokenAndNext(next, "/Create");
     return next();
   } else {

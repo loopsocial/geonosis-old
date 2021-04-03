@@ -21,7 +21,7 @@ const Cookies = {
     }
   },
   remove: name => {
-    document.cookie = `${name}=;max-age=0;path=/}`;
+    document.cookie = `${name}=;max-age=0;path=/`;
   }
 };
 

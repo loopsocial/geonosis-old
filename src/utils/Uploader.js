@@ -31,7 +31,7 @@ function isFileTypeImage(file) {
 function isFileTypeVideo(file) {
   return file.type.startsWith("video");
 }
-function getSignature(file) {
+function uploadMediaAsset(file) {
   const payload = {};
   if (isFileTypeImage(file)) {
     payload.image = { filename: file.name, mime_type: file.type };
@@ -42,15 +42,25 @@ function getSignature(file) {
   return axios.post(api.mediaAssets, payload);
 }
 
-export function uploadToS3(file, onProgress = () => {}) {
+function uploadFile(file) {
+  const payload = {
+    filename: file.name,
+    mime_type: file.type
+  };
+  return axios.post(api.fwUpload, payload);
+}
+
+function uploadToS3(uploader, file, onProgress = () => { }) {
   return new Promise((resolve, reject) => {
     try {
-      getSignature(file).then(response => {
+      uploader(file).then(response => {
         let signature = null;
-        if (response.image_signature !== null) {
+        if (response.image_signature) {
           signature = response.image_signature;
-        } else if (response.video_signature !== null) {
+        } else if (response.video_signature) {
           signature = response.video_signature;
+        } else {
+          signature = response;
         }
         const xhr = new global.XMLHttpRequest();
         xhr.open("PUT", signature.put_url);
@@ -65,11 +75,14 @@ export function uploadToS3(file, onProgress = () => {}) {
           if (xhr.status !== 200) {
             return reject(xhr);
           }
-          resolve({
-            media_asset_id: response.media_asset.id,
+          const resolveResponse = {
             key: signature.key,
             url: `${signature.action}/${signature.key}`
-          });
+          };
+          if (response.media_asset) {
+            resolveResponse.media_asset_id = response.media_asset.id;
+          }
+          resolve(resolveResponse);
         };
         xhr.onerror = () => reject(xhr);
         xhr.send(file);
@@ -78,4 +91,12 @@ export function uploadToS3(file, onProgress = () => {}) {
       reject(error);
     }
   });
+}
+
+export function uploadMediaToS3(file, onProgress) {
+  return uploadToS3(uploadMediaAsset, file, onProgress);
+}
+
+export function uploadFileToS3(file, onProgress) {
+  return uploadToS3(uploadFile, file, onProgress);
 }

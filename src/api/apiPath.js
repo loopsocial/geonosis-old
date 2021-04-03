@@ -18,9 +18,11 @@ export default {
   jobInfo: `${isDev("fwServe")}/bs/job/info`, // 查询任务
 
   soundTracks: `${isDev("fw")}/api/soundtracks`,
-  compounds: id => `${isDev("fw")}/studio/video_projects/${id}/compounds`,
+  fwUpload: `${isDev("fw")}/api/upload_signatures`,
   videoProjects: `${isDev("fw")}/studio/video_projects`,
   videoProjectById: id => `${isDev("fw")}/studio/video_projects/${id}`,
+  videoProjectActionById: (action, id) =>
+    `${isDev("fw")}/studio/video_projects/${id}/${action}`,
   mediaAssets: `${isDev("fw")}/studio/media_assets`,
   mediaAssetsById: id => `${isDev("fw")}/studio/media_assets/${id}`,
   mediaAssetsUploadComplete: id =>

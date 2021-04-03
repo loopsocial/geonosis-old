@@ -60,7 +60,10 @@ export default {
     },
     async getStyleList() {
       const { compounds } = await this.axios.get(
-        this.$api.compounds(this.$route.query.id || "ao08xo")
+        this.$api.videoProjectActionById(
+          "compounds",
+          this.$route.query.id || "ao08xo"
+        )
       );
       this.compounds = compounds;
     },

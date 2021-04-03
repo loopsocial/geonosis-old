@@ -128,6 +128,7 @@ import SelectedMediaItem from "./SelectedMedia";
 import { MEDIA_TYPES } from "@/utils/Global";
 import { installAsset } from "@/utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
+import { uploadMediaToS3 } from "@/utils/Uploader";
 
 const cloneDeep = require("clone-deep");
 
@@ -242,7 +243,7 @@ export default {
         fileProgress.progress = progress;
       };
       // Upload to S3
-      const uploadToS3Res = await this.uploadToS3(file, onProgress);
+      const uploadToS3Res = await uploadMediaToS3(file, onProgress);
       // Notity server that upload is completed
       await this.axios.put(
         this.$api.mediaAssetsUploadComplete(uploadToS3Res.media_asset_id)
@@ -359,53 +360,6 @@ export default {
     },
     isFileTypeVideo(file) {
       return file.type.startsWith("video");
-    },
-    async getSignature(file) {
-      const payload = {};
-      if (this.isFileTypeImage(file)) {
-        payload.image = { filename: file.name, mime_type: file.type };
-      }
-      if (this.isFileTypeVideo(file)) {
-        payload.video = { filename: file.name, mime_type: file.type };
-      }
-      return await this.axios.post(this.$api.mediaAssets, payload);
-    },
-    async uploadToS3(file, onProgress = () => {}) {
-      return new Promise((resolve, reject) => {
-        try {
-          this.getSignature(file).then(response => {
-            let signature = null;
-            if (response.image_signature !== null) {
-              signature = response.image_signature;
-            } else if (response.video_signature !== null) {
-              signature = response.video_signature;
-            }
-            const xhr = new global.XMLHttpRequest();
-            xhr.open("PUT", signature.put_url);
-            xhr.setRequestHeader("Content-Type", file.type);
-
-            xhr.upload.onprogress = event => {
-              const progress = Math.round((event.loaded * 100) / event.total);
-              onProgress(progress);
-            };
-
-            xhr.onload = () => {
-              if (xhr.status !== 200) {
-                return reject(xhr);
-              }
-              resolve({
-                media_asset_id: response.media_asset.id,
-                key: signature.key,
-                url: `${signature.action}/${signature.key}`
-              });
-            };
-            xhr.onerror = () => reject(xhr);
-            xhr.send(file);
-          });
-        } catch (error) {
-          reject(error);
-        }
-      });
     },
     removeMedia(item) {
       this.selectedMedia(item, false);
