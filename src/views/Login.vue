@@ -1,12 +1,17 @@
 <template>
   <div class="login flex flex-column ">
-    <h1>login</h1>
-    <br />
-    <div class="login-button">
-      <a :href="zeffoOauth()">Login from zeffo</a>
-    </div>
-    <div class="login-button">
-      <a :href="businessOauth()">Login from businessPortal</a>
+    <h1>Login</h1>
+    <div class="login-buttons flex flex-column">
+      <div class="login-button">
+        <el-button round class="round-btn" autofocus size="medium">
+          <a :href="zeffoOauth()">Login from Zeffo</a>
+        </el-button>
+      </div>
+      <div class="login-button">
+        <el-button round class="round-btn" autofocus size="medium">
+          <a :href="businessOauth()">Login from Biz portal</a>
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -40,5 +45,19 @@ export default {
   width: 100%;
   height: 100%;
   color: white;
+  .login-button:not(first-child) {
+    margin-top: 10px;
+  }
+}
+.el-button {
+  a,
+  a:hover,
+  a:focus,
+  a:focus-within,
+  a:active,
+  a:visited {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 </style>
