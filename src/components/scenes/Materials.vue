@@ -4,7 +4,7 @@
       <el-tab-pane label="text" name="text" lazy>
         <template #label>
           <svg-icon
-            class="text-icon"
+            class="text-icon material-icon"
             :icon-class="activeName === 'text' ? 'text' : 'text-deactive'"
           ></svg-icon>
           <span :style="{ color: activeName === 'text' ? '#fff' : '#666' }">{{
@@ -16,7 +16,7 @@
       <el-tab-pane label="sticker" name="sticker" lazy>
         <template #label>
           <svg-icon
-            class="sticker-icon"
+            class="sticker-icon material-icon"
             :icon-class="
               activeName === 'sticker' ? 'sticker' : 'sticker-deactive'
             "
@@ -98,6 +98,9 @@ export default {
   }
   .sticker-list {
     height: calc(100% - 40px);
+  }
+  .material-icon {
+    margin-right: 8px;
   }
 }
 </style>

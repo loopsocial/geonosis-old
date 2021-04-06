@@ -61,7 +61,6 @@
       </li>
     </ul>
     <p v-show="isLoading">{{ $t("loading") }}</p>
-    <p v-show="isNoMore">{{ $t("noMore") }}</p>
   </div>
 </template>
 
@@ -440,7 +439,6 @@ export default {
   "en": {
     "trim":"Trim",
     "use":"Use",
-    "noMore": "No More",
     "cancel":"Cancel",
     "loading":"Loading...",
     "applyAudioFailed": "Apply Audio Failed"

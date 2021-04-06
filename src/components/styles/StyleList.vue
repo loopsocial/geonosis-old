@@ -21,7 +21,6 @@
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-else-if="isNoMore">{{ $t("nomore") }}</p>
   </div>
 </template>
 
@@ -76,12 +75,7 @@ export default {
       this.setVideoModule(moduleDate);
       this.$bus.$emit(this.$keys.rebuildTimeline);
     },
-    load() {
-      this.isLoading = true;
-      setTimeout(() => {
-        this.isLoading = false;
-      }, 1999);
-    },
+    load() {},
     async userModule(style) {
       this.$bus.$emit(this.$keys.destroyWorkFlow);
 

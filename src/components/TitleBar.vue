@@ -406,7 +406,7 @@ export default {
 <i18n>
 {
   "en": {
-    "preview":"Preivew",
+    "preview":"Preview",
     "publish":"Publish",
     "create": "Create",
     "template": "Template",

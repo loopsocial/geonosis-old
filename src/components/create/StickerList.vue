@@ -15,7 +15,6 @@
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-if="isNoMore">{{ $t("nomore") }}</p>
   </div>
 </template>
 
@@ -125,7 +124,6 @@ export default {
 {
   "en":{
     "loading":"Loading...",
-    "nomore":"No More!"
   }
 }
 </i18n>

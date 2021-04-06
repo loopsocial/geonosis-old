@@ -24,7 +24,6 @@
       </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
-    <p v-else-if="isNoMore">{{ $t("noMore") }}</p>
   </div>
 </template>
 
