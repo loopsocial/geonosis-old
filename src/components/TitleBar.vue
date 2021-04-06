@@ -143,8 +143,13 @@ export default {
       this.showPreview = false;
     },
     getCover() {
-      this.$bus.$emit(this.$keys.getImgFromTimeline, 0, imageData => {
-        this.infoForm.coverData = imageData;
+      this.$bus.$emit(this.$keys.getTimeline, timelineClass => {
+        const t = timelineClass.getCurrentPosition();
+        console.log("t", t);
+        this.$bus.$emit(this.$keys.getImgFromTimeline, t || 0, imageData => {
+          console.log("图片数据", imageData);
+          this.infoForm.coverData = imageData;
+        });
       });
     },
     cancalPublish() {
@@ -344,7 +349,7 @@ export default {
         display: flex;
         flex-direction: column;
         max-height: calc(100% - 100px);
-        overflow-y: scroll;
+        overflow-y: auto;
       }
     }
     .publish-form-item {

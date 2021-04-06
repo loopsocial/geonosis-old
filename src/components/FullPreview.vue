@@ -89,10 +89,6 @@ export default {
       this.timelineClass = timelineClass;
       this.bindContextEvent();
     });
-    window.streamingContext.addEventListener(
-      "onWebRequestWaitStatusChange",
-      this.statusChangeEvent
-    );
   },
   methods: {
     preview() {
@@ -139,24 +135,20 @@ export default {
       }
     },
     bindContextEvent() {
-      window.streamingContext.addEventListener(
-        "onPlaybackStopped",
-        this.stopEvent
+      this.$bus.$on(
+        this.$keys.onWebRequestWaitStatusChange,
+        this.statusChangeEvent
       );
-      window.streamingContext.addEventListener(
-        "onPlaybackTimelinePosition",
-        this.playingEvent
-      );
+      this.$bus.$on(this.$keys.onPlaybackTimelinePosition, this.playingEvent);
+      this.$bus.$on(this.$keys.onPlaybackStopped, this.stopEvent);
     },
     unbindContextEvent() {
-      window.streamingContext.removeEventListener(
-        "onPlaybackStopped",
-        this.stopEvent
+      this.$bus.$off(
+        this.$keys.onWebRequestWaitStatusChange,
+        this.statusChangeEvent
       );
-      window.streamingContext.removeEventListener(
-        "onPlaybackTimelinePosition",
-        this.playingEvent
-      );
+      this.$bus.$off(this.$keys.onPlaybackTimelinePosition, this.playingEvent);
+      this.$bus.$off(this.$keys.onPlaybackStopped, this.stopEvent);
     },
     statusChangeEvent(isVideo, waiting) {
       this.waiting = waiting;

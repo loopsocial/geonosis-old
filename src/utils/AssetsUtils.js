@@ -2,6 +2,8 @@ import { getNameFromUrl } from "./common";
 import { objectStores, assetTypes, needInstall, RESOURCE } from "./Global";
 import axios from "axios";
 import store from "../store";
+import EventBus from "@/EventBus";
+import EventBusKeys from "./EventBusKeys";
 
 const name = "nvBSEditorAssets";
 const version = 1;
@@ -201,7 +203,7 @@ export async function installAsset(packageUrl, options) {
         } else if (storeName === "m3u8" || isCustom) {
           resolve(filePath);
         } else if (needInstall.includes(storeName)) {
-          const status = window.streamingContext.streamingContext
+          const status = nvsGetStreamingContextInstance()
             .getAssetPackageManager()
             .getAssetPackageStatus(uuid, assetTypes[storeName]);
           if (status === NvsAssetPackageStatusEnum.NotInstalled) {
@@ -214,12 +216,12 @@ export async function installAsset(packageUrl, options) {
                 FS.writeFile(licPath);
               }
             }
-            window.streamingContext.addEventListener(
-              "onFinishAssetPackageInstallation",
+            EventBus.$on(
+              EventBusKeys.onFinishAssetPackageInstallation,
               function slot(id, path, type, error) {
                 if (id !== uuid) return;
-                window.streamingContext.removeEventListener(
-                  "onFinishAssetPackageInstallation",
+                EventBus.$off(
+                  EventBusKeys.onFinishAssetPackageInstallation,
                   slot
                 );
                 try {
@@ -235,7 +237,7 @@ export async function installAsset(packageUrl, options) {
                 }
               }
             );
-            window.streamingContext.streamingContext
+            nvsGetStreamingContextInstance()
               .getAssetPackageManager()
               .installAssetPackage(filePath, licPath, assetTypes[storeName]);
           } else {

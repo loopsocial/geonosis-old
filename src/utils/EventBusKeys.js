@@ -14,5 +14,12 @@ export default {
   rebuildTimeline: "rebuildTimeline",
   updateProject: "updateProject",
   destroyWorkFlow: "destroyWorkFlow",
-  getImgFromTimeline: "getImgFromTimeline"
+  getImgFromTimeline: "getImgFromTimeline",
+
+  // stream context events
+  onPlaybackStopped: "onPlaybackStopped",
+  onPlaybackTimelinePosition: "onPlaybackTimelinePosition",
+  onImageGrabbedArrived: "onImageGrabbedArrived",
+  onWebRequestWaitStatusChange: "onWebRequestWaitStatusChange",
+  onFinishAssetPackageInstallation: "onFinishAssetPackageInstallation"
 };

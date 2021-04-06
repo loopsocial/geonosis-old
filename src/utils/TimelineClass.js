@@ -9,6 +9,8 @@ import store from "../store";
 import { installAsset } from "./AssetsUtils";
 import { HexToRGBA, NvsColorToRGBA, RGBAToNvsColor } from "./common";
 import { CaptionClip } from "./ProjectData";
+import EventBus from "@/EventBus";
+import EventBusKeys from "./EventBusKeys";
 
 // 该类不修改vuex内的数据, 只对vuex内的数据进行渲染, 且与vuex内的数据使用相同的地址
 export default class TimelineClass {
@@ -607,26 +609,18 @@ export default class TimelineClass {
     // store.commit("clip/clearIsModuleDate");
   }
   getImgFromTimeline(point) {
-    return new Promise((resolve, reject) => {
-      window.streamingContext.addEventListener(
-        "onImageGrabbedArrived",
-        function slot(data) {
-          window.streamingContext.removeEventListener(
-            "onImageGrabbedArrived",
-            slot
-          );
+    return this.stopEngin().then(() => {
+      return new Promise((resolve, reject) => {
+        EventBus.$once(EventBusKeys.onImageGrabbedArrived, data => {
           resolve(data);
-        }
-      );
-      setTimeout(() => {
-        reject(new Error("Get cover timeout"));
-      }, 5000);
-      this.streamingContext.grabImageFromTimeline(
-        this.timeline,
-        point || 0,
-        new NvsRational(1, 1),
-        0
-      );
+        });
+        this.streamingContext.grabImageFromTimeline(
+          this.timeline,
+          point || 0,
+          new NvsRational(1, 1),
+          0
+        );
+      });
     });
   }
 }

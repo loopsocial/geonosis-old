@@ -51,7 +51,6 @@ export default {
       // 工程加载完成后，再获取封面
       this.$refs.preview.getImgFromTimeline(0, data => {
         this.coverData = data;
-        console.log("获取封面", this.coverData);
       });
     }
   }

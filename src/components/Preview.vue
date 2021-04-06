@@ -40,6 +40,7 @@ import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
 import { writeXml, readProjectXml } from "@/utils/XmlUtils";
 import getDefaultAsset from "@/utils/getDefaultAsset";
+import { Base64 } from "js-base64";
 
 export default {
   mixins: [dragMixin, keyBindMx],
@@ -664,29 +665,23 @@ export default {
     },
     // 设置context回调事件
     setContextEvent() {
-      window.streamingContext.addEventListener(
-        "onPlaybackStopped",
-        this.stopEvent
-      );
-      window.streamingContext.addEventListener(
-        "onPlaybackTimelinePosition",
-        this.playingEvent
-      );
-      window.streamingContext.addEventListener(
-        "onWebRequestWaitStatusChange",
+      this.$bus.$on(
+        this.$keys.onWebRequestWaitStatusChange,
         this.statusChangeEvent
       );
+      this.$bus.$on(this.$keys.onPlaybackTimelinePosition, this.playingEvent);
+      this.$bus.$on(this.$keys.onPlaybackStopped, this.stopEvent);
     },
     getImgFromTimeline(t, callback) {
       this.timelineClass
         .getImgFromTimeline(t)
         .then(data => {
           const array = new Uint8Array(data);
-          const blob = new Blob([array], { type: "image/png" });
-          const imageUrl = URL.createObjectURL(blob);
-          callback && callback(imageUrl);
-          // const str = String.fromCharCode(...array);
-          // resolve(`data:image/jpeg;base64,${window.btoa(str)}`);
+          const base64 = `data:image/jpeg;base64,${Base64.fromUint8Array(
+            array
+          )}`;
+          console.log(base64);
+          callback && callback(base64);
         })
         .catch(() => {
           callback && callback(null);
@@ -703,18 +698,12 @@ export default {
     this.setNvsStatus(false);
     document.body.removeEventListener("mouseup", this.statusEvent);
     removeEventListener("resize", this.calcLivewindowStyle);
-    window.streamingContext.removeEventListener(
-      "onPlaybackStopped",
-      this.stopEvent
-    );
-    window.streamingContext.removeEventListener(
-      "onPlaybackTimelinePosition",
-      this.playingEvent
-    );
-    window.streamingContext.removeEventListener(
-      "onWebRequestWaitStatusChange",
+    this.$bus.$off(
+      this.$keys.onWebRequestWaitStatusChange,
       this.statusChangeEvent
     );
+    this.$bus.$off(this.$keys.onPlaybackTimelinePosition, this.playingEvent);
+    this.$bus.$off(this.$keys.onPlaybackStopped, this.stopEvent);
     this.$bus.$off(this.$keys.editClip, this.editClip);
     this.$bus.$off(this.$keys.changeMonitor, this.changeMonitor);
     this.$bus.$off(this.$keys.getTimeline, this.getTimeline);

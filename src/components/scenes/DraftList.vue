@@ -1033,7 +1033,7 @@ export default {
     cut(item) {
       this.dialogVisible = true;
       this.item = item;
-      // this.videoInfo = streamingContext.streamingContext.getAVFileInfo(
+      // this.videoInfo = nvsGetStreamingContextInstance().getAVFileInfo(
       //   this.activeClip.m3u8Path,
       //   0
       // );
@@ -1094,7 +1094,7 @@ export default {
       const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
       this.trimTimeline = new TimelineClass(
         "trim-window"
-        // streamingContext.streamingContext.getAVFileInfo(
+        // nvsGetStreamingContextInstance().getAVFileInfo(
         //   this.activeClip.m3u8Path,
         //   0
         // ).videoStreamInfo
@@ -1170,7 +1170,7 @@ export default {
         return null;
       }
       const { offsetWidth } = this.$refs.clipList;
-      const { width, height } = streamingContext.streamingContext.getAVFileInfo(
+      const { width, height } = nvsGetStreamingContextInstance().getAVFileInfo(
         this.activeClip.m3u8Path,
         0
       ).videoStreamInfo;
@@ -1441,18 +1441,12 @@ export default {
       this.waiting = waiting;
     },
     setContextEvent() {
-      window.streamingContext.addEventListener(
-        "onPlaybackStopped",
-        this.stopEvent
-      );
-      window.streamingContext.addEventListener(
-        "onWebRequestWaitStatusChange",
+      this.$bus.$on(this.$keys.onPlaybackStopped, this.stopEvent);
+      this.$bus.$on(
+        this.$keys.onWebRequestWaitStatusChange,
         this.statusChangeEvent
       );
-      window.streamingContext.addEventListener(
-        "onPlaybackTimelinePosition",
-        this.handlePlaying
-      );
+      this.$bus.$on(this.$keys.onPlaybackTimelinePosition, this.handlePlaying);
     },
     // 销毁时间线, 并解除事件绑定
     destroy(done) {
@@ -1466,18 +1460,12 @@ export default {
       }
       document.body.removeEventListener("mousedown", this.handleDocumentClick);
       removeEventListener("resize", this.handleResize);
-      window.streamingContext.removeEventListener(
-        "onPlaybackStopped",
-        this.stopEvent
-      );
-      window.streamingContext.removeEventListener(
-        "onWebRequestWaitStatusChange",
+      this.$bus.$off(this.$keys.onPlaybackStopped, this.stopEvent);
+      this.$bus.$off(
+        this.$keys.onWebRequestWaitStatusChange,
         this.statusChangeEvent
       );
-      window.streamingContext.removeEventListener(
-        "onPlaybackTimelinePosition",
-        this.handlePlaying
-      );
+      this.$bus.$off(this.$keys.onPlaybackTimelinePosition, this.handlePlaying);
     }
   },
   beforeDestroy() {

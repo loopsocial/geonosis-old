@@ -1,6 +1,9 @@
 import { objectStores } from "./Global";
 import { initIndexDB } from "./AssetsUtils";
-import StreamingContext from "./StreamingContext";
+import EventBus from "../EventBus";
+import EventBusKeys from "./EventBusKeys";
+
+// import StreamingContext from "./StreamingContext";
 // 初始化wasm
 function initPlayerWasm() {
   return new Promise((resolve, reject) => {
@@ -58,6 +61,41 @@ function slot() {
   document.body.removeEventListener("mousedown", slot);
   window.removeEventListener("keydown", slot);
 }
+function initStreamContextEvent() {
+  const streamingContext = nvsGetStreamingContextInstance();
+
+  // 播放停止的回调
+  streamingContext.onPlaybackStopped = timeline => {
+    EventBus.$emit(EventBusKeys.onPlaybackStopped, timeline);
+  };
+  // 播放中回调
+  streamingContext.onPlaybackTimelinePosition = (timeline, position) => {
+    EventBus.$emit(EventBusKeys.onPlaybackTimelinePosition, timeline, position);
+  };
+  // 生成图片的回调
+  streamingContext.onImageGrabbedArrived = (imageData, time) => {
+    EventBus.$emit(EventBusKeys.onImageGrabbedArrived, imageData, time);
+  };
+  // 播放状态发生改变的回调
+  streamingContext.onWebRequestWaitStatusChange = (isVideo, waiting) => {
+    EventBus.$emit(EventBusKeys.onWebRequestWaitStatusChange, isVideo, waiting);
+  };
+  // 资源安装完成的回调
+  streamingContext.getAssetPackageManager().onFinishAssetPackageInstallation = (
+    assetPackageId,
+    assetPackageFilePath,
+    assetPackageType,
+    error
+  ) => {
+    EventBus.$emit(
+      EventBusKeys.onFinishAssetPackageInstallation,
+      assetPackageId,
+      assetPackageFilePath,
+      assetPackageType,
+      error
+    );
+  };
+}
 export default function initSDK() {
   return new Promise((resolve, reject) => {
     if (Module.Meishe) {
@@ -72,7 +110,8 @@ export default function initSDK() {
         })
         .then(() => {
           createFSDir();
-          window.streamingContext = new StreamingContext();
+          // window.streamingContext = new StreamingContext();
+          initStreamContextEvent();
           return initIndexDB();
         })
         .then(() => {
