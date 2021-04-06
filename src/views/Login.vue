@@ -2,7 +2,7 @@
   <div class="login flex flex-column ">
     <h1>Login</h1>
     <div class="login-buttons flex flex-column">
-      <div class="login-button">
+      <div class="login-button" v-if="false">
         <el-button round class="round-btn" autofocus size="medium">
           <a :href="zeffoOauth()">Login from Zeffo</a>
         </el-button>

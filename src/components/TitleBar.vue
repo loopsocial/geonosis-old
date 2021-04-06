@@ -108,6 +108,7 @@ import FullPreview from "./FullPreview";
 import { writeXml } from "@/utils/XmlUtils";
 import { uploadToMS, uploadFileToS3 } from "@/utils/Uploader";
 import { TaskItem } from "@/utils/Task";
+import cookie from "@/utils/Cookie";
 
 export default {
   data() {
@@ -150,13 +151,15 @@ export default {
       this.dialogVisible = false;
     },
     async publish() {
+      const channelId = cookie.get("channelId");
       this.commiting = true;
       try {
         const params = {
           access: this.infoForm.access,
           caption: this.infoForm.caption,
           hashtags: this.infoForm.hashtags.trim().split(","),
-          video_posters: []
+          video_posters: [],
+          channelId: channelId
         };
         await this.axios.post(
           this.$api.videoProjectActionById("publish", this.$route.query.id),
