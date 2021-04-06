@@ -62,12 +62,12 @@
                 </template>
               </div>
             </el-form-item>
-            <el-form-item :label="$t('postTo')" prop="postTo">
-              <el-radio-group v-model="infoForm.postTo" class="ln-radio-group">
-                <el-radio class="ln-radio" label="global">{{
+            <el-form-item :label="$t('postTo')" prop="access">
+              <el-radio-group v-model="infoForm.access" class="ln-radio-group">
+                <el-radio class="ln-radio" label="public" value="public">{{
                   $t("global")
                 }}</el-radio>
-                <el-radio class="ln-radio" label="private">{{
+                <el-radio class="ln-radio" label="private" value="private">{{
                   $t("private")
                 }}</el-radio>
               </el-radio-group>
@@ -119,7 +119,7 @@ export default {
         caption: "",
         hashtags: "",
         posters: null,
-        postTo: "global",
+        access: "public",
         coverData: null
       }
     };
@@ -152,62 +152,26 @@ export default {
     async publish() {
       this.commiting = true;
       try {
-        writeXml("project.xml");
-        let file = FS.readFile("project.xml", { encoding: "utf8" });
-        // let file = base64ToString(videoModules.modules[0].encoded_dom_xml);
-        console.log(file); // Firework DOM
-        // Before publish
-        // Call video project / compile
-        file = new File([file], "project.xml");
-        // Upload xml
-        const response = await uploadFileToS3(file);
-        const xmlUrl = response.url;
-        // const xmlUrl = await uploadToMS(file);
-        const { caption } = this.infoForm;
         const params = {
-          projectId: "14399",
-          projectUrl: xmlUrl,
-          title: caption || "测试合成",
-          coverUrl: "",
-          sizeLevel: 480,
-          extension: "mp4"
+          access: this.infoForm.access,
+          caption: this.infoForm.caption,
+          hashtags: this.infoForm.hashtags.trim().split(","),
+          video_posters: []
         };
-        const res = await axios.post(this.$api.videoCreate, params);
-        // let res = {}
-        // Received job id
-        const { jobId } = res.data;
-        const options = {
-          jobId,
-          onSuccess: async r => {
-            // Call video project / publish
-            const res = await this.axios.post(
-              this.$api.videoProjectActionById("publish", this.$route.query.id)
-            );
-            console.log(res);
-            // Mp4
-            // get mp4 file link
-            console.log("任务完成", r);
-            this.taskFinsh(r);
-          },
-          onError(e) {
-            console.error("任务失败", e);
-            this.$message({
-              type: "error",
-              message: "Video Compose Failed"
-            });
-          }
-        };
-        const task = new TaskItem(options);
-        console.log("合成返回", res.data);
+        await this.axios.post(
+          this.$api.videoProjectActionById("publish", this.$route.query.id),
+          params
+        );
         this.$message({
           type: "info",
-          message: "Video Compose Be In Progress..."
+          message: "Video Compile In Progress..."
         });
+        return;
       } catch (error) {
         console.error("合成失败", error);
         this.$message({
           type: "error",
-          message: "Video Compose Failed"
+          message: "Video Compile Failed"
         });
       } finally {
         this.commiting = false;
@@ -215,7 +179,7 @@ export default {
       }
     },
     // 测试 - 任务完成后的处理
-    taskFinsh(task) {
+    taskFinish(task) {
       const h = this.$createElement;
       this.sorketMsg = this.$message({
         dangerouslyUseHTMLString: true,
@@ -418,7 +382,7 @@ export default {
     "caption":"Caption",
     "hashtags":"Hashtags",
     "posters":"Posters",
-    "postTo":"Post To",
+    "postTo":"Visibility",
     "global":"Global",
     "private":"Private",
     "hashtagHint":"Separate hashtag with commas (e.i Travel, Trip, Nomad)",
