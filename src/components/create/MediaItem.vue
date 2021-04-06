@@ -5,9 +5,9 @@
       class="icon-checked"
       v-if="media.selected"
     ></svg-icon>
-    <span class="duration">{{
-      (isMediaTypeVideo ? media.duration : 3000000) | msFormat
-    }}</span>
+    <span class="duration" v-if="isMediaTypeVideo">
+      {{ media.duration | msFormat }}
+    </span>
     <div class="play flex" v-if="isMediaTypeVideo" @click.stop="play">
       <svg-icon
         :class="playingId !== media.id ? 'icon-play' : 'icon-pause'"

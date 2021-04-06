@@ -4,7 +4,9 @@
       @open-media="openMedia"
       :videoProjects="videoProjects"
       v-if="status === statusMap.media"
+      :loading="loading"
       @refresh-videoproject="refreshVideoproject"
+      @loadmore-videoproject="loadMoreVideoProjects"
     ></Project>
     <Edit
       v-if="status === statusMap.edit"
@@ -48,7 +50,8 @@ export default {
       loading: false,
       medias: [], // 已选择的素材
       status: statusMap.media,
-      statusMap
+      statusMap,
+      nextPageVideoProject: null
     };
   },
   async created() {
@@ -89,8 +92,9 @@ export default {
         .get(this.$api.videoProjects)
         .then(res => {
           this.loading = false;
-          const { video_projects } = res;
+          const { video_projects, paging } = res;
           this.videoProjects = video_projects;
+          this.nextPageVideoProject = paging.next;
         })
         .catch(err => {
           console.error(err);
@@ -99,6 +103,22 @@ export default {
     },
     refreshVideoproject() {
       this.getMediaLibrary();
+    },
+    loadMoreVideoProjects() {
+      if (!this.nextPageVideoProject) return;
+      this.loading = true;
+      this.axios
+        .get(this.$api.fwAPIPath(this.nextPageVideoProject))
+        .then(res => {
+          this.loading = false;
+          const { video_projects, paging } = res;
+          this.videoProjects.push(...video_projects);
+          this.nextPageVideoProject = paging.next;
+        })
+        .catch(err => {
+          console.error(err);
+          this.$router.push({ name: "Login" });
+        });
     }
   }
 };

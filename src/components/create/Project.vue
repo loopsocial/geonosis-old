@@ -16,7 +16,14 @@
     </div>
     <div class="content project-list-wrapper">
       <h2 class="title">{{ $t("previous") }}</h2>
-      <div class="projects-list">
+      <div
+        class="projects-list"
+        infinite-list-wrapper
+        v-infinite-scroll="loadMoreVideoProjects"
+        infinite-scroll-immediate
+        :infinite-scroll-distance="5"
+        :infinite-scroll-disabled="loading"
+      >
         <div
           :class="['project-wrapper']"
           v-for="project in videoProjects"
@@ -42,7 +49,8 @@ export default {
     ProjectItem
   },
   props: {
-    videoProjects: Array
+    videoProjects: Array,
+    loading: Boolean
   },
   methods: {
     selectProject(project) {
@@ -58,6 +66,9 @@ export default {
     },
     refreshVideoproject() {
       this.$emit("refresh-videoproject");
+    },
+    loadMoreVideoProjects() {
+      this.$emit("loadmore-videoproject");
     }
   }
 };

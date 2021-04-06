@@ -5,6 +5,6 @@ export default {
   //     ? "https://api.fw.tv"
   //     : "https://studio.sandbox.fireworktv.com",
   fw: "https://studio.sandbox.fireworktv.com",
-  fwServe: "http://meishe.fireworktv.net/",
+  fwServe: "http://meishe.fireworktv.net",
   ms: "https://testeapi.meishesdk.com:8443"
 };

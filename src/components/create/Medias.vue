@@ -24,7 +24,13 @@
         <div class="empty flex" v-if="uploadList.length === 0 && !loading">
           {{ $t("msg") }}
         </div>
-        <div class="media-list">
+        <div
+          class="media-list infinite-list-wrapper"
+          v-infinite-scroll="loadMoreMediaFromUpload"
+          infinite-scroll-immediate
+          :infinite-scroll-distance="5"
+          :infinite-scroll-disabled="loading"
+        >
           <UploadItem @openUploader="openUploader"></UploadItem>
           <UploadingItem
             :progress="uploading.progress"
@@ -129,6 +135,7 @@ import { MEDIA_TYPES } from "@/utils/Global";
 import { installAsset } from "@/utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
 import { uploadMediaToS3 } from "@/utils/Uploader";
+import host from "@/api/apiHost";
 
 const cloneDeep = require("clone-deep");
 
@@ -160,7 +167,8 @@ export default {
       ],
       checkedList: ["image", "video", "gif"],
       selectedList: [], // 选中的素材列表, 有顺序
-      playingId: null // 正在播放的素材id
+      playingId: null, // 正在播放的素材id
+      nextPageMediaFromUpload: null
     };
   },
   created() {
@@ -199,6 +207,7 @@ export default {
   methods: {
     async initMediaAssets() {
       try {
+        this.nextPageMediaFromUpload = "";
         await this.getMediaFromUpload();
         // await this.getMediaFromLibrary();
         this.selectedList = cloneDeep(this.videos);
@@ -312,11 +321,16 @@ export default {
       this.libraryList = [];
       this.getMediaFromLibrary();
     },
-    getMediaFromUpload() {
+    async getMediaFromUpload() {
       if (this.loading) return;
       this.loading = true;
-      return this.axios.get(this.$api.mediaAssets).then(res => {
-        const { media_assets } = res;
+      // Load more or init load
+      const loadMediaAssetUrl = this.nextPageMediaFromUpload
+        ? this.$api.fwAPIPath(this.nextPageMediaFromUpload)
+        : this.$api.mediaAssets;
+      try {
+        const res = await this.axios.get(loadMediaAssetUrl);
+        const { media_assets, paging } = res;
         this.uploadTotal = media_assets.length;
         media_assets.map(item => {
           item.selected = false;
@@ -324,10 +338,20 @@ export default {
           item.duration = item.duration * 1000 * 1000;
           item.orgDuration = item.duration * 1000 * 1000;
         });
-        // this.uploadList.push(...media_assets);
-        this.uploadList = [...media_assets];
+        if (this.nextPageMediaFromUpload) {
+          this.uploadList.push(...media_assets);
+        } else {
+          this.uploadList = [...media_assets];
+        }
+        this.nextPageMediaFromUpload = paging.next;
         this.loading = false;
-      });
+      } catch (error) {
+        console.error("Load media faile", error);
+        this.$message({
+          type: "error",
+          message: this.$t("loadModulesFailed")
+        });
+      }
     },
     getMediaFromLibrary() {
       if (this.loading) return;
@@ -351,6 +375,14 @@ export default {
           this.libraryTotal = total;
           this.libraryList.push(...rows);
         });
+    },
+    async loadMoreMediaFromUpload() {
+      if (!this.nextPageMediaFromUpload) return;
+      try {
+        await this.getMediaFromUpload();
+      } catch (e) {
+        this.$message({ type: "warning", message: e });
+      }
     },
     openUploader() {
       this.$refs.uploadBtn.$el.click();
