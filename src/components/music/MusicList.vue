@@ -26,23 +26,28 @@
             <div class="artist">{{ music.artist }}</div>
           </div>
           <div class="btns">
-            <el-button @click="handleTrim($event, idx)" type="text">{{
-              $t(`${music.timelineVisible ? "cancel" : "trim"}`)
+            <el-button
+              v-if="activeIndex === idx"
+              @click="handleCancel($event, idx)"
+              type="text"
+              >{{ $t(`${"cancel"}`) }}</el-button
+            >
+            <el-button v-else @click="handleTrim($event, idx)" type="text">{{
+              $t(`${"trim"}`)
             }}</el-button>
             <el-button
-              :disabled="idx !== activeIndex"
               type="text"
               class="using-btn"
               @click="applyAudio(music)"
               :title="idx !== activeIndex ? 'Trim First' : 'Use Audio'"
               >{{
-                "" + usingMusicId === "" + music.id ? "using" : "use"
+                "" + usingMusicId === "" + music.id ? "Using" : "Use"
               }}</el-button
             >
           </div>
         </div>
         <div
-          :class="{ 'timeline-wrapper': true, hidden: !music.timelineVisible }"
+          :class="{ 'timeline-wrapper': true, hidden: activeIndex!== idx }"
           ref="timelineWrapper"
         >
           <div class="timeline-cover"></div>
@@ -76,16 +81,12 @@ export default {
       isNoMore: false,
       musicCount: 0,
       page: 0,
-      timelineVisible: false,
       timelineWidth: 0,
       timelineLeft: 0,
       mousePos: 0, // 鼠标相对于滑块最左边的位置
-      sliderBgPos: 0,
       activeIndex: -1,
       trimTimeline: null,
-      timelineHeight: 0,
       fixedSliderLeft: 0, // 中间彩色固定滑块距左侧父div距离（百分比显示）
-      sliderEndPercentage: 0,
       videoTimelineWidth: 0,
       nextPage: "",
       usingMusicId: ""
@@ -129,6 +130,7 @@ export default {
   },
   methods: {
     async applyAudio(audioClip) {
+      this.activeIndex = -1;
       const loading = this.$loading({
         lock: true,
         text: this.$t("loading"),
@@ -147,6 +149,10 @@ export default {
       } finally {
         loading.close();
       }
+    },
+    handleCancel() {
+      this.activeIndex = -1;
+      removeEventListener("resize", this.handleTimelineResize);
     },
     calcAudioTime(audioClip) {
       const fixedSlider = this.$refs.slider[this.activeIndex];
@@ -171,23 +177,9 @@ export default {
       }
     },
     handleTrim(e, idx) {
-      this.musicList[idx].timelineVisible ||
-        this.musicList.forEach((item, index) => {
-          this.$set(this.musicList[index], "timelineVisible", false);
-        });
-      this.musicList[idx].timelineVisible = !this.musicList[idx]
-        .timelineVisible;
-
-      this.$nextTick(() => {
-        if (this.musicList[idx].timelineVisible) {
-          this.activeIndex = idx;
-          this.calcSliderStyle();
-          addEventListener("resize", this.handleTimelineResize);
-        } else {
-          this.activeIndex = -1;
-          removeEventListener("resize", this.handleTimelineResize);
-        }
-      });
+      this.activeIndex = idx;
+      this.calcSliderStyle();
+      addEventListener("resize", this.handleTimelineResize);
     },
     getVideoDuration() {
       let time = 0;

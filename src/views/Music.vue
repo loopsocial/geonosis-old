@@ -8,7 +8,7 @@
             <el-input
               v-model="searchKeywords"
               @keypress.enter.native="handleSearch"
-              placeholder="search"
+              placeholder="Search"
             >
             </el-input>
           </div>
@@ -197,7 +197,7 @@ export default {
 <i18n>
 {
   "en": {
-    "styles": "Trending Style",
+    "styles": "Music Library",
     "none": "None"
   }
 }
