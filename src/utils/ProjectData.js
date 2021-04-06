@@ -59,7 +59,10 @@ export class VideoClip extends Clip {
     this.height = option.height; // 视频高度
     this.aspectRatio = option.aspectRatio; // 视频宽高比
     // this.videoFxs = [];
-    this.motion = !!option.motion;
+    this.motion =
+      option.motion === undefined
+        ? option.videoType === CLIP_TYPES.IMAGE
+        : !!option.motion;
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
     this.uuid = option.uuid || generateUUID();
