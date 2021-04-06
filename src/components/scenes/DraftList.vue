@@ -1027,8 +1027,7 @@ export default {
       this.destroy();
     },
     initSplit() {
-      this.splitList = this.activeClip.splitList.map(item => ({...item}));
-      debugger
+      this.splitList = this.activeClip.splitList.map(item => cloneDeep(item));
     },
     // 视频裁剪
     cut(item) {
@@ -1048,7 +1047,6 @@ export default {
       this.$nextTick(async () => {
         this.handleResize(); // 计算canvas尺寸、计算缩略图
         await this.createTrimTimeline();
-        this.initSplit(); // 根据当前splitList分隔当前缩略图
         this.operateStack = new OperateStack();
         if (this.isImage) {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
@@ -1057,6 +1055,7 @@ export default {
           this.calcDuration(null, null, true);
           this.operateStack.pushSnapshot(this.splitList);
         } else {
+          this.initSplit(); // 根据当前video的splitList分隔当前缩略图
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
           this.calcDuration(); // 计算Duration（dialog底部展示）
           this.splittreLeft = 0;

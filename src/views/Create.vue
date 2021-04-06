@@ -58,8 +58,8 @@ export default {
     if (this.$route.query.access_token) {
       this.$router.replace({});
     }
-    this.$store.commit("clip/init", {});
     await this.getMediaLibrary();
+    this.$store.commit("clip/init", {});
     this.$store.commit("clip/changeLoaded", false);
   },
   methods: {

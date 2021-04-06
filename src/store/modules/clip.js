@@ -11,7 +11,6 @@ export default {
     captions: [],
     stickers: [],
     videoModule: null, // 使用的module
-    currentModuleId: null, // 正在使用的module id
     currentVideoUuid: null,
     videoWidth: 1080,
     videoHeight: 1920,
@@ -20,9 +19,6 @@ export default {
     loaded: false
   },
   mutations: {
-    setCurrentModuleId(state, id) {
-      state.currentModuleId = id;
-    },
     changeLoaded(state, payload) {
       state.loaded = payload;
     },

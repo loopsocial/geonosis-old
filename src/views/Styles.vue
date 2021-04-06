@@ -21,17 +21,12 @@
       </div>
     </div>
     <Preview ref="preview" @on-loaded="onLoaded" />
-    <canvas id="p-window"></canvas>
   </div>
 </template>
 
 <script>
-import TimelineClass from "@/utils/TimelineClass";
 import Preview from "../components/Preview";
 import StyleList from "../components/styles/StyleList";
-import { sleep } from "@/utils/common";
-const cloneDeep = require("clone-deep");
-
 export default {
   components: { Preview, StyleList },
   data() {
@@ -53,61 +48,24 @@ export default {
       }
     },
     async onLoaded() {
-      this.createTimeline();
+      // 工程加载完成后，再获取封面
+      this.$refs.preview.getImgFromTimeline(0, data => {
+        const image = new Image();
+        image.onload = () => {
+          this.coverData = data;
+        };
+        image.onerror = this.onError;
+        image.src = data;
+        this.$bus.$emit(this.$keys.seek);
+      });
     },
     onError() {
       console.log("图片获取失败，直接从canvas拿");
       this.$bus.$emit(this.$keys.seek);
       setTimeout(() => {
-        const liveWindow = document.getElementById("p-window");
+        const liveWindow = document.getElementById("live-window");
         this.coverData = liveWindow.toDataURL();
       }, 1000);
-    },
-    async createTimeline() {
-      if (this.$route.name !== "Styles") return;
-      await this.$nextTick();
-      const t = new TimelineClass("p-window");
-      window.ttt = t;
-      const v = cloneDeep(this.videos);
-      const captions = cloneDeep(this.captions);
-      const stickers = cloneDeep(this.stickers);
-      await t.buildTimeline(
-        v,
-        {
-          captions,
-          stickers
-        },
-        true
-      );
-      t.seekTimeline();
-      await t.stopEngin();
-      // await sleep(1000);
-      this.$bus.$once(this.$keys.onImageGrabbedArrived, data => {
-        const array = new Uint8Array(data);
-        var blob = new Blob([array], { type: "image/png" });
-        const res = window.URL.createObjectURL(blob);
-        const image = new Image();
-        image.onload = () => {
-          this.coverData = res;
-          sleep(100).then(() => {
-            t.destroy();
-          });
-        };
-        image.onerror = () => {
-          this.onError();
-          sleep(100).then(() => {
-            t.destroy();
-          });
-        };
-        image.src = res;
-        this.$bus.$emit(this.$keys.seek);
-      });
-      nvsGetStreamingContextInstance().grabImageFromTimeline(
-        t.timeline,
-        0,
-        new NvsRational(1, 1),
-        0
-      );
     }
   }
 };
@@ -168,12 +126,6 @@ export default {
       height: calc(100% - 75px);
     }
   }
-}
-#p-window {
-  position: absolute;
-  z-index: -100;
-  background: black;
-  opacity: 0;
 }
 </style>
 <i18n>

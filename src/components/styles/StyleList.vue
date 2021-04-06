@@ -9,7 +9,7 @@
     >
       <li
         class="list-item"
-        :class="{ selected: currentModuleId === style.id }"
+        :class="{ selected: isCurrentSelected(style) }"
         v-for="style of compounds"
         :key="style.uuid"
         v-loading="style.isInstalling"
@@ -36,7 +36,9 @@ import { readModuleXml } from "@/utils/XmlUtils";
 
 export default {
   components: { SvgIcon },
-  props: ["coverData"],
+  props: {
+    coverData: String
+  },
   data() {
     return {
       styleList: videoModules.modules,
@@ -56,6 +58,9 @@ export default {
   },
 
   methods: {
+    isCurrentSelected(style) {
+      return this.$store.state.clip.videoModule?.alias === style.alias;
+    },
     async getStyleList() {
       const { compounds } = await this.axios.get(
         this.$api.videoProjectActionById(
@@ -76,7 +81,6 @@ export default {
     },
     load() {},
     async userModule(style) {
-      this.currentModuleId = style.id;
       this.$bus.$emit(this.$keys.destroyWorkFlow);
 
       const loading = this.$loading({
