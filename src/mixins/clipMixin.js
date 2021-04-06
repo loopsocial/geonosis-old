@@ -16,6 +16,14 @@ export default {
       set(uuid) {
         this.$store.commit("clip/setCurrentVideoUuid", uuid);
       }
+    },
+    currentModuleId: {
+      get() {
+        return this.$store.state.clip.currentModuleId;
+      },
+      set(uuid) {
+        this.$store.commit("clip/setCurrentModuleId", uuid);
+      }
     }
   },
   methods: {
