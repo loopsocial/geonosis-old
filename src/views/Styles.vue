@@ -50,8 +50,22 @@ export default {
     async onLoaded() {
       // 工程加载完成后，再获取封面
       this.$refs.preview.getImgFromTimeline(0, data => {
-        this.coverData = data;
+        const image = new Image();
+        image.onload = () => {
+          this.coverData = data;
+        };
+        image.onerror = this.onError;
+        image.src = data;
+        this.$bus.$emit(this.$keys.seek);
       });
+    },
+    onError() {
+      console.log("图片获取失败，直接从canvas拿");
+      this.$bus.$emit(this.$keys.seek);
+      setTimeout(() => {
+        const liveWindow = document.getElementById("live-window");
+        this.coverData = liveWindow.toDataURL();
+      }, 1000);
     }
   }
 };

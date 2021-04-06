@@ -19,6 +19,10 @@
         <img :src="style.thumbnail_url" alt="" class="content" />
         <img class="cover" :src="coverData" alt="" v-if="coverData" />
       </li>
+      <li class="list-item">
+        <svg-icon class="heart-icon" icon-class="heart"></svg-icon>
+        <img class="cover" :src="coverData" />
+      </li>
     </ul>
     <p v-if="isLoading">{{ $t("loading") }}</p>
   </div>

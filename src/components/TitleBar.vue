@@ -49,13 +49,13 @@
               class="form-poster"
             >
               <div class="posters flex" @click="getCover">
-                <el-image
+                <img
                   class="media-cover"
                   ref="image"
                   :src="infoForm.coverData"
                   fit="cover"
                   v-if="infoForm.coverData"
-                ></el-image>
+                />
                 <template v-else>
                   {{ $t("posterMsg") }}
                   <i class="el-icon-circle-plus"></i>
@@ -143,14 +143,8 @@ export default {
       this.showPreview = false;
     },
     getCover() {
-      this.$bus.$emit(this.$keys.getTimeline, timelineClass => {
-        const t = timelineClass.getCurrentPosition();
-        console.log("t", t);
-        this.$bus.$emit(this.$keys.getImgFromTimeline, t || 0, imageData => {
-          console.log("图片数据", imageData);
-          this.infoForm.coverData = imageData;
-        });
-      });
+      const previewWindow = document.getElementById("preview-window");
+      this.infoForm.coverData = previewWindow.toDataURL();
     },
     cancalPublish() {
       this.dialogVisible = false;
@@ -356,6 +350,9 @@ export default {
       position: absolute;
       right: 18px;
       bottom: 0;
+    }
+    .media-cover {
+      width: 100%;
     }
     .form-poster {
       display: flex;

@@ -40,7 +40,6 @@ import { VideoClip } from "@/utils/ProjectData";
 import { DEFAULT_FONT } from "@/utils/Global";
 import { writeXml, readProjectXml } from "@/utils/XmlUtils";
 import getDefaultAsset from "@/utils/getDefaultAsset";
-import { Base64 } from "js-base64";
 
 export default {
   mixins: [dragMixin, keyBindMx],
@@ -517,7 +516,9 @@ export default {
       window.timelineClass = this.timelineClass; // 调试用
       await this.timelineClass.buildTimeline();
       this.setContextEvent(); // 绑定SDK相关事件
-      this.timelineClass.seekTimeline();
+      setTimeout(() => {
+        this.timelineClass.seekTimeline();
+      });
       console.log("时间线创建完成", this.timelineClass);
       this.keyBind();
     },
@@ -676,12 +677,27 @@ export default {
       this.timelineClass
         .getImgFromTimeline(t)
         .then(data => {
+          // base64 - 1
+          // const array = new Uint8Array(data);
+          // const base64 = `data:image/jpeg;base64,${Base64.fromUint8Array(
+          //   array
+          // )}`;
+          // callback && callback(base64);
+
+          // base64 -2
+          // const array = new Uint8Array(data);
+          // const blob = new Blob([array], { type: "image/png" });
+          // var reader = new FileReader();
+          // reader.readAsDataURL(blob);
+          // reader.onload = e => {
+          //   callback && callback(reader.result);
+          // };
+
+          // object url
           const array = new Uint8Array(data);
-          const base64 = `data:image/jpeg;base64,${Base64.fromUint8Array(
-            array
-          )}`;
-          console.log(base64);
-          callback && callback(base64);
+          var blob = new Blob([array], { type: "image/png" });
+          const res = window.URL.createObjectURL(blob);
+          callback && callback(res);
         })
         .catch(() => {
           callback && callback(null);

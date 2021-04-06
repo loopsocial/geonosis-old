@@ -609,6 +609,7 @@ export default class TimelineClass {
     // store.commit("clip/clearIsModuleDate");
   }
   getImgFromTimeline(point) {
+    point = point === undefined ? this.getCurrentPosition() : point;
     return this.stopEngin().then(() => {
       return new Promise((resolve, reject) => {
         EventBus.$once(EventBusKeys.onImageGrabbedArrived, data => {
