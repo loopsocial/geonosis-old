@@ -202,7 +202,10 @@ export default class WorkFlow {
       return;
     }
     let i1, i2, i3, i4;
-    if (type === NvsCaptionTextBoundingTypeEnum.Frame) {
+    if (
+      type === NvsCaptionTextBoundingTypeEnum.Frame ||
+      clip.type === CLIP_TYPES.STICKER
+    ) {
       const v = WorkFlow.getVerticesPoint(vertices, liveWindow);
       i1 = v.i1;
       i2 = v.i2;

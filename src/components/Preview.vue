@@ -444,7 +444,7 @@ export default {
             ...target,
             inPoint,
             duration,
-            desc: target.id,
+            desc: target.desc || target.id,
             translationX: targetPoint && targetPoint.x,
             translationY: targetPoint && targetPoint.y
           });

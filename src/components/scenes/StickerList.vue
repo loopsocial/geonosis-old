@@ -30,6 +30,7 @@
 import { installAsset } from "@/utils/AssetsUtils";
 import dragMixin from "@/mixins/dragMixin";
 import { CLIP_TYPES } from "@/utils/Global";
+import sticker from "@/mock/sticker";
 
 export default {
   components: {},
@@ -120,28 +121,20 @@ export default {
       // this.$emit('onLoad')
     },
     async getStickers() {
-      const res = await this.axios.get(this.$api.materials, {
-        params: {
-          type: 4,
-          page: this.page,
-          pageSize: 40,
-          category: 1
-        }
-      });
-      const { materialCount, materialList } = res.data;
-      this.stickerCount = materialCount;
-      for (let i = 0; i < materialList.length; i++) {
+      const res = await this.axios.get(this.$api.stickers);
+      console.log("贴纸返回", res);
+      const { stickers } = res;
+      for (let i = 0; i < stickers.length; i++) {
         const sticker = {
-          ...materialList[i],
+          coverUrl: stickers[i].thumbnail_url,
+          packageUrl: stickers[i].sticker_url,
+          desc: stickers[i].sticker_uuid,
           isInstalling: true
         };
         this.stickerList.push(sticker);
-        installAsset(materialList[i].packageUrl).then(() => {
+        installAsset(sticker.packageUrl).then(() => {
           sticker.isInstalling = false;
         });
-      }
-      if (this.stickerList.length >= this.stickerCount) {
-        this.isNoMore = true;
       }
     }
   }
