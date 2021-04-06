@@ -393,6 +393,7 @@ export default {
       }
       this.addClipToVuex(audios);
       await this.timelineClass.stopEngin();
+      this.timelineClass.clearAudioTrack();
       this.timelineClass.buildAudioTrack();
       this.timelineClass.seekTimeline();
     },

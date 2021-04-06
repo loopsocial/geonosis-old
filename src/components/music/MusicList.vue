@@ -39,15 +39,13 @@
               type="text"
               class="using-btn"
               @click="applyAudio(music)"
-              :title="idx !== activeIndex ? 'Trim First' : 'Use Audio'"
-              >{{
-                "" + usingMusicId === "" + music.id ? "Using" : "Use"
-              }}</el-button
+              title="Use Audio"
+              >{{ usingMusicId == music.id ? "Using" : "Use" }}</el-button
             >
           </div>
         </div>
         <div
-          :class="{ 'timeline-wrapper': true, hidden: activeIndex!== idx }"
+          :class="{ 'timeline-wrapper': true, hidden: activeIndex !== idx }"
           ref="timelineWrapper"
         >
           <div class="timeline-cover"></div>
@@ -99,14 +97,16 @@ export default {
           this.$emit("useMusic", {
             isShow: true,
             name: newVal[0].name,
-            artist: newVal[0].artist
+            artist: newVal[0].artist,
+            volume: newVal[0].volume
           });
           this.usingMusicId = newVal[0].id;
         } else {
           this.$emit("useMusic", {
             isShow: false,
             name: "",
-            artist: ""
+            artist: "",
+            volume: 1
           });
           this.usingMusicId = "";
         }
@@ -130,7 +130,9 @@ export default {
   },
   methods: {
     async applyAudio(audioClip) {
-      this.activeIndex = -1;
+      if (this.usingMusicId === audioClip.id) {
+        return this.$emit("clearAudio");
+      }
       const loading = this.$loading({
         lock: true,
         text: this.$t("loading"),
@@ -139,7 +141,6 @@ export default {
       });
       try {
         this.$emit("clearAudio");
-        this.$bus.$emit(this.$keys.clearAudioTrack);
         this.calcAudioTime(audioClip);
         audioClip.m3u8Path = await installAsset(audioClip.file_url);
         this.$bus.$emit(this.$keys.addAudioClip, audioClip);
@@ -149,6 +150,7 @@ export default {
       } finally {
         loading.close();
       }
+      this.activeIndex = -1;
     },
     handleCancel() {
       this.activeIndex = -1;
@@ -174,6 +176,9 @@ export default {
         audioClip.inPoint =
           (audioInPointPercentage / this.videoTimelineWidth) *
           this.getVideoDuration();
+      }
+      if (this.activeIndex === -1) {
+        audioClip.inPoint = 0;
       }
     },
     handleTrim(e, idx) {

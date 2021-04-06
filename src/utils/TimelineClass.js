@@ -319,6 +319,9 @@ export default class TimelineClass {
             trimOut: item.captureOut
           };
           item.raw = this.addVideoClip(clipInfo, this.videoTrack.raw);
+          if (!isNaN(clip.volume)) {
+            item.raw.setVolumeGain(clip.volume, clip.volume);
+          }
           this.addVideoFx(item);
           if (clip.videoType === CLIP_TYPES.IMAGE) {
             item.raw.setImageMotionAnimationEnabled(clip.motion && !notMotion);
@@ -418,7 +421,7 @@ export default class TimelineClass {
     if (!this.audioTrack.raw) {
       this.audioTrack.raw = this.timeline.appendAudioTrack();
     }
-    if (Array.isArray(store.state.clip.audios)) {
+    if (Array.isArray(this.audioTrack.clips)) {
       store.state.clip.audios.map(clip => {
         clip.raw = this.addAudioClip(clip, this.audioTrack.raw);
       });
@@ -601,12 +604,17 @@ export default class TimelineClass {
   addAudioClip(clip, trackRaw) {
     const { m3u8Path, inPoint, trimIn, trimOut, orgDuration } = clip;
     trackRaw = trackRaw || this.audioTrack.raw;
-    return trackRaw.addClip2(
+    const clipRaw = trackRaw.addClip2(
       m3u8Path,
       inPoint,
       trimIn || 0,
       trimOut || orgDuration
     );
+    if (!isNaN(clip.volume)) {
+      clip.volume = parseFloat(clip.volume);
+      clipRaw.setVolumeGain(clip.volume, clip.volume);
+    }
+    return clipRaw;
   }
   clearCaptions() {
     let caption = this.timeline.getFirstCaption();

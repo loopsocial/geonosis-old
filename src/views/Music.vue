@@ -12,6 +12,8 @@
             >
             </el-input>
           </div>
+
+          <hr />
           <div class="using-music" v-if="usingMusic.isShow">
             <span class="name">{{ usingMusic.name }}</span>
             <span class="artist">{{ usingMusic.artist }}</span>
@@ -21,7 +23,11 @@
               @click="handleNone"
             ></svg-icon>
           </div>
-          <hr />
+          <VolumeSlider
+            v-model="usingMusic.volume"
+            @volumeChange="handleVolumeChange"
+            v-if="usingMusic.isShow"
+          />
           <MusicList
             ref="musicList"
             @useMusic="handleUse"
@@ -54,15 +60,19 @@
 import Preview from "../components/Preview";
 import MusicList from "../components/music/MusicList";
 import { CLIP_TYPES } from "../utils/Global";
+import VolumeSlider from "@/components/VolumeSlider.vue";
+
 export default {
-  components: { Preview, MusicList },
+  components: { Preview, MusicList, VolumeSlider },
   data() {
     return {
       active: "styles",
       searchKeywords: "",
+      lastVolume: 0,
       usingMusic: {
         name: "",
         artist: "",
+        volume: 1,
         isShow: false
       }
     };
@@ -70,8 +80,16 @@ export default {
   async mounted() {
     // await this.$refs.preview.createTimeline();
   },
+  computed: {},
   methods: {
+    handleVolumeChange(e) {
+      const clip = this.audios[0];
+      clip.volume = e;
+      if (!clip.raw) return null;
+      clip.raw.setVolumeGain(e, e);
+    },
     handleUse(music) {
+      music.volume = parseFloat(music.volume);
       this.usingMusic = music;
     },
     async handleSearch() {
@@ -153,7 +171,7 @@ export default {
     }
 
     .using-music {
-      float: right;
+      float: left;
       width: 40%;
       line-height: 36px;
       color: #fff;
@@ -171,6 +189,12 @@ export default {
       .close {
         cursor: pointer;
       }
+    }
+    .volume-slider {
+      float: right;
+    }
+    .music-list {
+      clear: both;
     }
   }
   .preview {

@@ -138,6 +138,7 @@
           </div>
         </div>
 
+        <VolumeSlider v-model="volume" />
         <div @click="handleSplit" class="split-btn inline-block">
           <svg-icon
             class="split-icon"
@@ -279,12 +280,13 @@ import { RATIO, DURATION_LIMIT } from "@/utils/Global";
 import WorkFlow from "@/utils/WorkFlow";
 import { installAsset } from "@/utils/AssetsUtils";
 import { generateUUID } from "@/utils/common";
+import VolumeSlider from "@/components/VolumeSlider";
 import cloneDeep from "clone-deep";
 
 export default {
   components: {
-    Medias
-    // DraftListItem
+    Medias,
+    VolumeSlider
   },
   props: {},
   data() {
@@ -332,7 +334,8 @@ export default {
         mousePosX: 0,
         mousePosY: 0
       },
-      isDisplayingMessage: null
+      isDisplayingMessage: null,
+      volume: 1
     };
   },
   computed: {
@@ -881,14 +884,14 @@ export default {
         video => video.uuid === this.activeClip.uuid
       );
 
+      const uuid = this.activeClip.uuid;
       const newVideos = [
         ...this.videos.slice(0, currentVideoIdx),
         ...this.splitList.map((item, idx) => {
           const activeClip = { ...this.activeClip };
           activeClip.inPoint = item.captureIn;
           activeClip.splitList = [item];
-          // activeClip.duration = item.captureOut - item.captureIn;
-          idx !== 1 && (activeClip.uuid = generateUUID());
+          idx !== 0 && (activeClip.uuid = generateUUID());
           return activeClip;
         }),
         ...this.videos.slice(currentVideoIdx + 1)
@@ -896,6 +899,7 @@ export default {
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: newVideos });
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject);
+      this.currentVideoUuid = uuid + "_0";
     },
     getCurrentSplitIdx(time) {
       let cumulatedDuration = 0;
@@ -1019,7 +1023,8 @@ export default {
           return item;
         });
 
-        this.convertSplitListToVideoClip();
+        this.activeClip.volume = this.volume;
+        this.convertSplitListToVideoClip(); // 转换splitList为audioClip
       }
       this.updateClipToVuex(this.activeClip);
       // 底层执行操作
@@ -1059,6 +1064,7 @@ export default {
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
           this.calcDuration(); // 计算Duration（dialog底部展示）
           this.splittreLeft = 0;
+          this.volume = this.activeClip.volume;
           this.operateStack.pushSnapshot(this.splitList);
           addEventListener("resize", this.handleResize);
           document.body.addEventListener("mousedown", this.handleDocumentClick);
@@ -1609,6 +1615,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     // height: 560px;
     .el-dialog__body {
       // height: calc(100% - 130px);
+      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -1813,7 +1820,11 @@ $infoBgc: rgba(0, 0, 0, 0.5);
       }
     }
   }
-
+  .volume-slider {
+    position: absolute;
+    right: 30px;
+    top: 0;
+  }
   .capture-wrapper {
     left: 0;
     top: -5px;
