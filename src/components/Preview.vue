@@ -455,6 +455,7 @@ export default {
             clip: sticker,
             timelineClass: this.timelineClass
           });
+          this.$bus.$emit(this.$keys.setPanel, sticker);
         } else if (type === CLIP_TYPES.CAPTION) {
           const caption = new CaptionClip({
             ...target,
@@ -486,6 +487,7 @@ export default {
             clip: caption,
             timelineClass: this.timelineClass
           });
+          this.$bus.$emit(this.$keys.setPanel, caption);
         }
         if (result) {
           this.draggingClip = null;
@@ -646,10 +648,7 @@ export default {
         this.timelineClass.play();
       }
       this.isPlaying = !this.isPlaying;
-      if (this.flow) {
-        this.flow.destroy();
-        this.flow = null;
-      }
+      this.closePanel();
     },
     playingEvent(timeline, position) {
       if (timeline === this.timelineClass.timeline) {

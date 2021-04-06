@@ -188,6 +188,7 @@ export default {
         opacity: 0.4;
         height: 4px;
         transition: opacity 0.3s;
+        cursor: pointer;
         &.active {
           opacity: 1;
         }
