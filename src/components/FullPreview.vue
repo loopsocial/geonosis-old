@@ -45,6 +45,9 @@ export default {
       isPlaying: false
     };
   },
+  props: {
+    autoPlay: Boolean
+  },
   computed: {
     duration() {
       return this.videos.reduce((res, item) => {
@@ -88,6 +91,11 @@ export default {
     this.$bus.$emit(this.$keys.getTimeline, timelineClass => {
       this.timelineClass = timelineClass;
       this.bindContextEvent();
+      if (this.autoPlay) {
+        this.$nextTick(() => {
+          this.play();
+        });
+      }
     });
   },
   methods: {

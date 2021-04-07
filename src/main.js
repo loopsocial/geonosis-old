@@ -25,11 +25,17 @@ Object.defineProperties(Vue.prototype, {
 });
 // 毫秒格式化
 Vue.filter("msFormat", val => {
-  const s = parseInt(val / 1000 / 1000);
+  const s = Math.round(val / 1000 / 1000);
   const min = parseInt(s / 60);
   const h = parseInt(min / 60);
   const fix = v => (v > 9 ? v : "0" + v);
   return `${fix(h)}:${fix(min % 60)}:${fix(s % 60)}`;
+});
+Vue.filter("msFormat2", val => {
+  const s = Math.round(val / 1000 / 1000);
+  const min = parseInt(s / 60);
+  const fix = v => (v > 9 ? v : "0" + v);
+  return `${fix(min % 60)}:${fix(s % 60)}`;
 });
 Vue.mixin(clipMixin);
 new Vue({

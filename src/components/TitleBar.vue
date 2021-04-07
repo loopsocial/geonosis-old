@@ -18,7 +18,7 @@
 
     <transition name="el-fade-in">
       <div class="full-preview" v-if="showPreview">
-        <FullPreview class="preview-box"></FullPreview>
+        <FullPreview :auto-play="showPreview" class="preview-box"></FullPreview>
         <svg-icon
           class="preview-close"
           icon-class="close"

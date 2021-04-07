@@ -150,7 +150,7 @@
             ></svg-icon>
 
             <span class="duration-text white">{{
-              clip.duration | msFormat
+              clip.duration | msFormat2
             }}</span>
             <svg-icon
               @click="changeDuration(1)"
