@@ -7,6 +7,25 @@
           <div class="title">
             <span>{{ $t("animation") }}</span>
           </div>
+          <div class="content">
+            <el-select
+              class="ln-select font-select"
+              v-model="animation"
+              popper-class="ln-select-popper"
+              placeholder=""
+            >
+              <el-option
+                v-for="item in []"
+                :key="item.id"
+                :label="item.label"
+                :disabled="item.installing"
+                :value="item.stringValue"
+              >
+                <span style="float: left">{{ item.label }}</span>
+                <i class="el-icon-loading" v-if="item.installing"></i>
+              </el-option>
+            </el-select>
+          </div>
         </div>
       </el-col>
       <el-col :span="12" class="scale-wrapper">
@@ -156,6 +175,7 @@ export default {
   data() {
     return {
       fonts: [],
+      animation: "Default",
       predefineColors: [
         "#ff0100",
         "#ff5050",
@@ -326,6 +346,15 @@ export default {
     }
     .duration-text {
       margin: 0 12px;
+    }
+  }
+  .animation {
+    display: flex;
+    flex-direction: column;
+    .content {
+      display: flex;
+      align-items: center;
+      flex: 1;
     }
   }
   .box {
