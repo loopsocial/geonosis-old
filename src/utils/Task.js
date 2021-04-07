@@ -28,60 +28,49 @@ export class TaskItem {
   constructor(options) {
     this.type = options.type;
     this.status = "running"; // running/finish/failed
-    this.jobId = options.jobId;
-    this.onError = options.onError || (() => {});
-    this.onSuccess = options.onSuccess || (() => {});
+    this.jobURL = options.jobURL;
+    this.onError = options.onError || (() => { });
+    this.onSuccess = options.onSuccess || (() => { });
     this.progress = 0;
     this.timer = null;
     this.result = null;
     // this.source = axios.CancelToken.source();
-    if (this.jobId) this.getProgress();
+    if (this.jobURL) this.getProgress();
   }
   getProgress() {
-    if (!this.jobId || this.jobId === -1) {
-      console.error("缺少任务id", this);
+    if (!this.jobURL) {
+      console.error("缺少任务token", this);
       return;
     }
     axios
-      .get(api.jobInfo, { params: { id: this.jobId } })
+      .get(this.jobURL)
       .then(res => {
-        if (res.code === 0) {
-          const { progress, status, videoUrl, title } = res.data;
-          this.progress = progress;
-          console.log("获取进度", progress);
-          if (status === 2) {
-            console.error(
-              title + " 任务失败, 任务ID:",
-              this.jobId,
-              "status:",
-              status
-            );
-            this.status = "failed";
-            this.onError(title);
-            return;
-          } else if (status === 1) {
-            console.log("任务完成");
-            this.result = videoUrl;
-            this.onSuccess(this);
-          } else {
-            this.timer = setTimeout(() => {
-              this.getProgress();
-            }, 1000);
-          }
+        console.log(res);
+        if (res.progress === null || res.progress === undefined) return;
+        const { progress, video_id } = res;
+        this.progress = progress;
+        console.log("获取进度", progress);
+        if (video_id) {
+          console.log("任务完成");
+          this.result = video_id;
+          this.status = "success";
+          this.onSuccess(this);
+        } else {
+          this.timer = setTimeout(() => {
+            this.getProgress();
+          }, 1000);
         }
       })
       .catch(err => {
         console.log("任务查询失败", err);
-        this.timer = setTimeout(() => {
-          this.getProgress();
-        }, 1000);
+        this.cancel(err);
       });
   }
   // 取消任务
-  cancel() {
+  cancel(err) {
     if (this.timer) {
       clearTimeout(this.timer);
     }
-    this.source.cancel("取消轮询任务, " + this.name + `  ${this.jobId}`);
+    this.onError(err);
   }
 }

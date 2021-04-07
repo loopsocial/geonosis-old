@@ -161,15 +161,31 @@ export default {
           video_posters: [],
           channelId: channelId
         };
-        await this.axios.post(
+        const res = await this.axios.post(
           this.$api.videoProjectActionById("publish", this.$route.query.id),
           params
         );
+        const progress_url = this.replaceStagingToSandBoxURL(res.progress_url);
+        console.log(progress_url);
         this.$message({
           type: "info",
           message: "Video Compile In Progress..."
         });
-        return;
+        const options = {
+          jobURL: progress_url,
+          onSuccess: async r => {
+            console.log("任务完成", r);
+            this.taskFinish(r);
+          },
+          onError: e => {
+            console.error("任务失败", e);
+            this.$message({
+              type: "error",
+              message: "Video Compile Failed"
+            });
+          }
+        };
+        const task = new TaskItem(options);
       } catch (error) {
         console.error("合成失败", error);
         this.$message({
@@ -177,38 +193,19 @@ export default {
           message: "Video Compile Failed"
         });
       } finally {
+        // Handle loading
         this.commiting = false;
         this.dialogVisible = false;
       }
     },
     // 测试 - 任务完成后的处理
     taskFinish(task) {
-      const h = this.$createElement;
-      this.sorketMsg = this.$message({
-        dangerouslyUseHTMLString: true,
-        duration: 0,
-        showClose: true,
-        center: true,
-        type: "success",
-        message: h("div", null, [
-          h("span", null, "Video Compose Finish!"),
-          h(
-            "el-button",
-            {
-              on: {
-                click: () => {
-                  window.open(task.result);
-                }
-              },
-              props: {
-                type: "text"
-              },
-              class: "reconnection"
-            },
-            "See"
-          )
-        ])
-      });
+      console.log("taskFinish", task);
+      task.result = "5mGkXz";
+      const businessId = cookie.get("businessId");
+      const channelId = cookie.get("channelId");
+      // Navigate back to bizPortal
+      window.location = this.$api.videoCreatedChannel(businessId, channelId);
     },
     handleBlur() {
       let strArr = this.infoForm.hashtags.split(",");
@@ -216,6 +213,9 @@ export default {
         strArr = strArr.map(item => item.trim());
       }
       this.infoForm.hashtags = strArr.filter(Boolean).join(",");
+    },
+    replaceStagingToSandBoxURL(url) {
+      return url.replace("//staging.", "//studio.sandbox.");
     }
   }
 };

@@ -31,5 +31,8 @@ export default {
   mediaAssetsById: id => `${isDev("fw")}/studio/media_assets/${id}`,
   mediaAssetsUploadComplete: id =>
     `${isDev("fw")}/studio/media_assets/${id}/upload_completed`,
-  fwAPIPath: apiPath => `${isDev("fw")}${apiPath}`
+  fwAPIPath: apiPath => `${isDev("fw")}${apiPath}`,
+
+  videoCreatedChannel: (biz, channel) =>
+    `${host["bizPortal"]}business/${biz}/channel/${channel}/videos`
 };

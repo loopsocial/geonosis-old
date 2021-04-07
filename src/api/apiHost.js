@@ -6,5 +6,6 @@ export default {
   //     : "https://studio.sandbox.fireworktv.com",
   fw: "https://studio.sandbox.fireworktv.com",
   fwServe: "http://meishe.fireworktv.net",
-  ms: "https://testeapi.meishesdk.com:8443"
+  ms: "https://testeapi.meishesdk.com:8443",
+  bizPortal: "https://mandalore-git-nav-to-creation-tool-firework.vercel.app/"
 };
