@@ -16,7 +16,7 @@
         @click="addCaption(caption)"
       >
         <img
-          :src="caption.thumbnail_url"
+          :src="caption.coverUrl"
           :alt="caption.displayName || ''"
           draggable="true"
           @dragstart="drag($event, caption)"
@@ -136,16 +136,18 @@ export default {
       try {
         const res = await this.axios.get(this.$api.captions);
         console.log("字幕返回", res);
-        const { captions } = res;
+        const { caption_packages: captions } = res;
         for (let i = 0; i < captions.length; i++) {
           const caption = {
             coverUrl: captions[i].thumbnail_url,
-            packageUrl: captions[i].sticker_url,
-            desc: captions[i].sticker_uuid,
+            packageUrl: captions[i].captionpackage_url,
+            desc: captions[i].captionpackage_uuid,
             text: captions[i].default_text_value || "caption",
+            // l: captions[i].captionpackage_license_url,
+            alias: captions[i].alias,
             isInstalling: true
           };
-          this.stickerList.push(caption);
+          this.captionList.push(caption);
           installAsset(caption.packageUrl).then(() => {
             caption.isInstalling = false;
           });
@@ -154,6 +156,7 @@ export default {
         console.error("获取字幕列表失败", error);
         this.getMockCaption();
       }
+      console.log("字幕列表！！", this.captionList);
     },
     getMockCaption() {
       const captions = require("../../mock/caption.json");
