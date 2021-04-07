@@ -151,15 +151,15 @@
       <!-- 图片时长设置 -->
       <div class="duration-input flex margin-top-10" v-if="isImage">
         <svg-icon
-          @click="handleImageDurationPlus"
-          class="duration-modify-icon"
-          icon-class="plus"
-        ></svg-icon>
-        <span class="white">{{ format(imageDuration, true) }}</span>
-        <svg-icon
           @click="handleImageDurationMinus"
           class="duration-modify-icon"
           icon-class="minus"
+        ></svg-icon>
+        <span class="white">{{ format(imageDuration, true) }}</span>
+        <svg-icon
+          @click="handleImageDurationPlus"
+          class="duration-modify-icon"
+          icon-class="plus"
         ></svg-icon>
       </div>
       <!-- 缩略图 -->

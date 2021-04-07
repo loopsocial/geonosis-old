@@ -125,17 +125,18 @@
           </div>
           <div class="duration-bar flex">
             <svg-icon
-              @click="changeDuration(1)"
+              @click="changeDuration(-1)"
               class="duration-modify-icon"
-              icon-class="plus"
+              icon-class="minus"
             ></svg-icon>
+
             <span class="duration-text white">{{
               clip.duration | msFormat
             }}</span>
             <svg-icon
-              @click="changeDuration(-1)"
+              @click="changeDuration(1)"
               class="duration-modify-icon"
-              icon-class="minus"
+              icon-class="plus"
             ></svg-icon>
           </div>
         </div>
