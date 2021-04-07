@@ -51,7 +51,7 @@ export default {
     }
   },
   created() {
-    this.getStickers();
+    this.getCaptions();
   },
   beforeDestroy() {
     this.$refs.list.removeEventListener("mousedown", this.handleMousedown);
@@ -125,38 +125,29 @@ export default {
     async load() {
       this.isLoading = true;
       try {
-        await this.getStickers();
+        await this.getCaptions();
       } catch (e) {
         this.$message({ type: "warning", message: e });
       }
       this.isLoading = false;
       // this.$emit('onLoad')
     },
-    async getStickers() {
-      this.getMockCaption();
-      return;
-      const res = await this.axios.get(this.$api.materials, {
-        params: {
-          type: 3,
-          page: this.page,
-          pageSize: 20,
-          category: 3
-        }
-      });
-      const { materialCount, materialList } = res.data;
-      this.captionCount = materialCount;
-      for (let i = 0; i < materialList.length; i++) {
+    async getCaptions() {
+      console.log("captions", this.$api.captions);
+      const res = await this.axios.get(this.$api.captions);
+      console.log("字幕返回", res);
+      const { captions } = res;
+      for (let i = 0; i < captions.length; i++) {
         const sticker = {
-          ...materialList[i],
+          coverUrl: captions[i].thumbnail_url,
+          packageUrl: captions[i].sticker_url,
+          desc: captions[i].sticker_uuid,
           isInstalling: true
         };
-        this.captionList.push(sticker);
-        installAsset(materialList[i].packageUrl).then(() => {
-          sticker.isInstalling = false;
-        });
-      }
-      if (this.captionList.length >= this.captionCount) {
-        this.isNoMore = true;
+        // this.stickerList.push(sticker);
+        // installAsset(sticker.packageUrl).then(() => {
+        //   sticker.isInstalling = false;
+        // });
       }
     },
     getMockCaption() {

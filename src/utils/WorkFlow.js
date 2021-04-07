@@ -199,7 +199,7 @@ export default class WorkFlow {
     }
     if (!vertices) {
       console.warn("获取素材边框失败");
-      return;
+      return {};
     }
     let i1, i2, i3, i4;
     if (
