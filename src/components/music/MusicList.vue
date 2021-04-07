@@ -32,22 +32,23 @@
               type="text"
               >{{ $t(`${"cancel"}`) }}</el-button
             >
-            <el-button v-else @click="handleTrim($event, idx)" type="text">{{
-              $t(`${"trim"}`)
-            }}</el-button>
+            <el-button
+              v-else
+              @click="handleTrim($event, idx, music.id)"
+              type="text"
+              >{{ $t(`${"trim"}`) }}</el-button
+            >
             <el-button
               type="text"
               class="using-btn"
               @click="applyAudio(music)"
-              :title="idx !== activeIndex ? 'Trim First' : 'Use Audio'"
-              >{{
-                "" + usingMusicId === "" + music.id ? "Using" : "Use"
-              }}</el-button
+              title="Use Audio"
+              >{{ usingMusicId == music.id ? "Using" : "Use" }}</el-button
             >
           </div>
         </div>
         <div
-          :class="{ 'timeline-wrapper': true, hidden: activeIndex!== idx }"
+          :class="{ 'timeline-wrapper': true, hidden: activeIndex !== idx }"
           ref="timelineWrapper"
         >
           <div class="timeline-cover"></div>
@@ -71,7 +72,6 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
-import { AudioClip } from "@/utils/ProjectData";
 import { CLIP_TYPES } from "@/utils/Global";
 export default {
   data() {
@@ -99,14 +99,16 @@ export default {
           this.$emit("useMusic", {
             isShow: true,
             name: newVal[0].name,
-            artist: newVal[0].artist
+            artist: newVal[0].artist,
+            volume: newVal[0].volume
           });
           this.usingMusicId = newVal[0].id;
         } else {
           this.$emit("useMusic", {
             isShow: false,
             name: "",
-            artist: ""
+            artist: "",
+            volume: 1
           });
           this.usingMusicId = "";
         }
@@ -130,7 +132,9 @@ export default {
   },
   methods: {
     async applyAudio(audioClip) {
-      this.activeIndex = -1;
+      if (this.activeIndex === -1 && this.usingMusicId == audioClip.id) {
+        return this.$emit("clearAudio");
+      }
       const loading = this.$loading({
         lock: true,
         text: this.$t("loading"),
@@ -139,7 +143,6 @@ export default {
       });
       try {
         this.$emit("clearAudio");
-        this.$bus.$emit(this.$keys.clearAudioTrack);
         this.calcAudioTime(audioClip);
         audioClip.m3u8Path = await installAsset(audioClip.file_url);
         this.$bus.$emit(this.$keys.addAudioClip, audioClip);
@@ -149,10 +152,31 @@ export default {
       } finally {
         loading.close();
       }
+      this.activeIndex = -1;
     },
     handleCancel() {
       this.activeIndex = -1;
       removeEventListener("resize", this.handleTimelineResize);
+    },
+    calcTimelinePos(audioClip) {
+      const videoDuration = this.musicList[this.activeIndex];
+      const fixedSlider = this.$refs.slider[this.activeIndex];
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+
+      if (audioClip.inPoint > 0) {
+        // 只需计算 audio在video入场时间 inPoint
+        const percentage = audioClip.inPoint / videoDuration;
+        const inPointPos = percentage * this.videoTimelineWidth; // 单位 %
+        return this.fixedSliderLeft - inPointPos;
+      } else if (audioClip.trimIn > 0) {
+        // 只需计算 audio裁剪开始时间 trimIn
+        const percentage = audioClip.trimIn / audioClip.orgDuration;
+        const trimInPos = percentage * fixedSlider.offsetWidth; // 单位：px
+        return (
+          (this.fixedSliderLeft * timelineWrapper.offsetWidth + trimInPos) /
+          timelineWrapper.offsetWidth
+        );
+      }
     },
     calcAudioTime(audioClip) {
       const fixedSlider = this.$refs.slider[this.activeIndex];
@@ -164,21 +188,26 @@ export default {
           (this.timelineLeft - this.fixedSliderLeft) *
           timelineWrapper.offsetWidth;
 
-        audioClip.trimIn =
-          (audioTrimInPos / fixedSlider.offsetWidth) * audioClip.orgDuration;
+        audioClip.trimIn = Math.round(
+          (audioTrimInPos / fixedSlider.offsetWidth) * audioClip.orgDuration
+        );
         audioClip.inPoint = 0;
       } else {
         // 只需计算 audio在video入场时间inPoint
         const audioInPointPercentage = this.fixedSliderLeft - this.timelineLeft;
 
-        audioClip.inPoint =
+        audioClip.inPoint = Math.round(
           (audioInPointPercentage / this.videoTimelineWidth) *
-          this.getVideoDuration();
+            this.getVideoDuration()
+        );
+      }
+      if (this.activeIndex === -1) {
+        audioClip.inPoint = 0;
       }
     },
-    handleTrim(e, idx) {
+    handleTrim(e, idx, id) {
       this.activeIndex = idx;
-      this.calcSliderStyle();
+      this.calcSliderStyle(id);
       addEventListener("resize", this.handleTimelineResize);
     },
     getVideoDuration() {
@@ -190,18 +219,21 @@ export default {
       });
       return time;
     },
-    calcSliderStyle() {
+    calcSliderStyle(id) {
       const videoDuration = this.getVideoDuration();
       const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
       const fixedSlider = this.$refs.slider[this.activeIndex];
       const { duration: audioDuration } = this.activeAudioClip;
-
+      const usingAudio = this.audios.find(audio => audio.id == id);
       this.videoTimelineWidth =
         ((videoDuration / audioDuration) * fixedSlider.offsetWidth) /
         timelineWrapper.offsetWidth; // 计算灰色时间线长度
       this.fixedSliderLeft =
         fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
 
+      if (usingAudio) {
+        // return (this.timelineLeft = this.calcTimelinePos(usingAudio));
+      }
       this.timelineLeft = fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
     },
     handleSliderMouseDown(e) {

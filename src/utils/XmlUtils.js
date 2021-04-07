@@ -64,6 +64,7 @@ function transformation() {
         scaleY,
         translationX,
         translationY,
+        volume: video.volume,
         source: {
           src: video.url,
           width: video.width,
@@ -182,14 +183,24 @@ function writeCreation(stream) {
 function writeAudio(stream) {
   const { audios } = store.state.clip;
   if (audios.length) {
-    const { inPoint, trimIn, id, name, url, orgDuration } = audios[0];
+    const {
+      inPoint,
+      trimIn,
+      id,
+      name,
+      url,
+      orgDuration,
+      volume,
+      artist
+    } = audios[0];
     stream.writeStartElement("fw-audio");
     stream.writeAttribute("soundtrack-id", "" + id);
+    stream.writeAttribute("soundtrack-artist", "" + artist);
     stream.writeAttribute("soundtrack-name", "" + name);
     stream.writeAttribute("in-point", "" + inPoint);
+    stream.writeAttribute("volume", "" + volume);
     stream.writeAttribute("soundtrack-in-point", "" + trimIn);
     stream.writeAttribute("soundtrack-duration", "" + orgDuration);
-
     // audio source
     stream.writeStartElement("source");
     stream.writeAttribute("src", "" + url);
@@ -222,6 +233,7 @@ function writeVideoLayer(stream, video) {
   if (video.orgDuration) {
     stream.writeAttribute("org-duration", "" + video.orgDuration);
   }
+  stream.writeAttribute("volume", "" + video.volume);
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
   stream.writeAttribute("scale-x", "" + video.scaleX);
@@ -365,8 +377,10 @@ async function readProjectAudio(stream, videos) {
       audio.id = stream.getAttributeValue("soundtrack-id");
       audio.name = stream.getAttributeValue("soundtrack-name");
       audio.inPoint = stream.getAttributeValue("in-point") * 1;
+      audio.artist = stream.getAttributeValue("soundtrack-artist");
       audio.trimIn = stream.getAttributeValue("soundtrack-in-point") * 1;
       audio.duration = stream.getAttributeValue("soundtrack-duration") * 1;
+      audio.volume = stream.getAttributeValue("volume");
     } else if (stream.isStartElement() && stream.name() === "source") {
       audio.url = stream.getAttributeValue("src");
       audio.m3u8Path = await installAsset(audio.url);
@@ -397,7 +411,6 @@ function audioToAudios(clipOptions, videos) {
         clipOptions.trimOut =
           clipDuration - (durationCumulate - timelineDuration);
       }
-
       clipOptions.duration = clipOptions.trimOut - clipOptions.trimIn;
       audios.push(new AudioClip(clipOptions));
     }
@@ -530,6 +543,12 @@ function readProjectVideo(stream, videos) {
       stream.isStartElement()
     ) {
       video.duration = stream.getAttributeValue("duration") * 1;
+      const volume = stream.getAttributeValue("volume");
+      if (volume) {
+        console.log(volume);
+        video.volume = parseFloat(volume);
+      }
+
       const orgDuration = stream.getAttributeValue("org-duration");
       if (orgDuration) {
         video.orgDuration = orgDuration * 1;

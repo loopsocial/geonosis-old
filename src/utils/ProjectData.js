@@ -66,6 +66,10 @@ export class VideoClip extends Clip {
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
     this.uuid = option.uuid || generateUUID();
+    this.volume = option.volume ?? 1;
+    // 视频中音频的波形图
+    // this.leftChannelUrl = option.leftChannelUrl || "";
+    // this.rightChannelUrl = option.rightChannelUrl || "";
   }
 }
 // 根据视频原始宽高比 计算放大倍数。用于视频初始时充满liveWindow
@@ -111,13 +115,15 @@ export class AudioClip extends Clip {
     this.alphaM3u8Url = "";
     this.trimIn = option.trimIn || 0;
     this.trimOut = option.trimOut || option.duration;
-    this.orgDuration = option.duration;
+    this.orgDuration = option.orgDuration || option.duration;
     this.title = option.title || "";
     this.uuid = generateUUID();
     this.leftChannelUrl = option.leftChannelUrl || "";
     this.rightChannelUrl = option.rightChannelUrl || "";
     this.name = option.name || "";
     this.artist = option.artist || "";
+    this.volume = option.volume ?? 1;
+    console.log(this)
   }
 }
 export class CaptionClip extends Clip {

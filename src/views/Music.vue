@@ -12,16 +12,24 @@
             >
             </el-input>
           </div>
-          <div class="using-music" v-if="usingMusic.isShow">
-            <span class="name">{{ usingMusic.name }}</span>
-            <span class="artist">{{ usingMusic.artist }}</span>
-            <svg-icon
-              class="close"
-              icon-class="close"
-              @click="handleNone"
-            ></svg-icon>
-          </div>
+
           <hr />
+          <div class="using-music-wrapper" :class="{ show: usingMusic.isShow }">
+            <div class="using-music">
+              <span class="name">{{ usingMusic.name }}</span>
+              <span class="artist">{{ usingMusic.artist }}</span>
+              <svg-icon
+                class="close"
+                icon-class="close"
+                @click="handleNone"
+              ></svg-icon>
+            </div>
+            <VolumeSlider
+              v-model="usingMusic.volume"
+              @volume-change="handleVolumeChange"
+            />
+          </div>
+
           <MusicList
             ref="musicList"
             @useMusic="handleUse"
@@ -54,15 +62,19 @@
 import Preview from "../components/Preview";
 import MusicList from "../components/music/MusicList";
 import { CLIP_TYPES } from "../utils/Global";
+import VolumeSlider from "@/components/VolumeSlider.vue";
+
 export default {
-  components: { Preview, MusicList },
+  components: { Preview, MusicList, VolumeSlider },
   data() {
     return {
       active: "styles",
       searchKeywords: "",
+      lastVolume: 0,
       usingMusic: {
         name: "",
         artist: "",
+        volume: 1,
         isShow: false
       }
     };
@@ -70,8 +82,18 @@ export default {
   async mounted() {
     // await this.$refs.preview.createTimeline();
   },
+  computed: {},
   methods: {
+    handleVolumeChange(e) {
+      if (!this.audios.length) return null;
+      this.audios.forEach(audio => {
+        audio.volume = e;
+        if (!audio.raw) return null;
+        audio.raw.setVolumeGain(e, e);
+      });
+    },
     handleUse(music) {
+      music.volume = parseFloat(music.volume);
       this.usingMusic = music;
     },
     async handleSearch() {
@@ -151,25 +173,33 @@ export default {
         }
       }
     }
-
-    .using-music {
-      float: right;
-      width: 40%;
-      line-height: 36px;
-      color: #fff;
+    .using-music-wrapper {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      .name {
-        font-weight: 600;
-        font-size: 16px;
+      overflow: hidden;
+      height: 0;
+      transition: 0.3s ease;
+      &.show {
+        height: 50px;
       }
-      .artist {
-        font-size: 14px;
-        color: #9b9b98;
-      }
-      .close {
-        cursor: pointer;
+      .using-music {
+        width: 40%;
+        line-height: 36px;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .name {
+          font-weight: 600;
+          font-size: 16px;
+        }
+        .artist {
+          font-size: 14px;
+          color: #9b9b98;
+        }
+        .close {
+          cursor: pointer;
+        }
       }
     }
   }
