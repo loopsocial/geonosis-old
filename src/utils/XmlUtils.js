@@ -24,12 +24,14 @@ function transformation() {
     videoWidth,
     videoHeight,
     alias,
+    currentModuleId,
     videoModule: module // vuex 中的模板信息以及经过转换，transformX、Y，fontSize都是直接给SDK的值
   } = store.state.clip;
   const creation = {
     scenes: [],
     videoWidth,
     videoHeight,
+    currentModuleId,
     version: 1,
     alias
   };
@@ -83,7 +85,7 @@ function transformation() {
 
     // 将用户添加的字幕按照 视频槽的方式进行规整
     const c = captions.reduce((res, caption) => {
-      const { inPoint, duration, isModule } = caption;
+      const { inPoint, duration, isModule, deleted } = caption;
       if (
         inPoint === v.inPoint ||
         (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
@@ -101,20 +103,24 @@ function transformation() {
           textXAlignment: caption.align,
           font: caption.fontUrl
         };
-        isModule ? moduleCaptions.push(cap) : res.push(cap);
+        if (isModule) {
+          !deleted && moduleCaptions.push(cap);
+        } else {
+          res.push(cap);
+        }
       }
       return res;
     }, []);
     // 贴纸规整
     const moduleSticker = [];
     const s = stickers.reduce((res, sticker) => {
-      const { inPoint, duration, isModule } = sticker;
+      const { inPoint, duration, isModule, deleted } = sticker;
       if (
         inPoint === v.inPoint ||
         (inPoint + duration <= v.duration && inPoint + duration > v.inPoint)
       ) {
         const diff = v.inPoint - inPoint; // 处理 一个字幕横跨两个视频的情况
-        const cap = {
+        const sti = {
           ...sticker,
           type: isModule ? "module" : "user-added",
           zValue: sticker.z || 1,
@@ -122,7 +128,11 @@ function transformation() {
           scaleX: sticker.scale,
           duration: Math.min(v.duration, duration - diff)
         };
-        isModule ? moduleSticker.push(cap) : res.push(cap);
+        if (isModule) {
+          !deleted && moduleSticker.push(sti);
+        } else {
+          res.push(sti);
+        }
       }
       return res;
     }, []);
@@ -161,6 +171,8 @@ function writeCreation(stream) {
   stream.writeAttribute("alias", "" + creation.alias);
   creation.moduleAlias &&
     stream.writeAttribute("module-alias", "" + creation.moduleAlias);
+  creation.currentModuleId &&
+    stream.writeAttribute("current-module-id", creation.currentModuleId);
   creation.scenes.map(scene => {
     writeScene(stream, scene);
   });
@@ -431,6 +443,8 @@ async function readDom(stream) {
         alias: "",
         scenes: []
       };
+      res.currentModuleId =
+        stream.getAttributeValue("current-module-id") || null;
       const moduleAlias = stream.getAttributeValue("module-alias");
       if (moduleAlias) {
         res.videoModule.alias = moduleAlias;

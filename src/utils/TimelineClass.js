@@ -6,9 +6,8 @@ import {
   TRANSFORM2D_KEYS
 } from "./Global";
 import store from "../store";
-import { installAsset } from "./AssetsUtils";
 import { HexToRGBA, NvsColorToRGBA, RGBAToNvsColor } from "./common";
-import { CaptionClip } from "./ProjectData";
+import { CaptionClip, StickerClip } from "./ProjectData";
 import EventBus from "@/EventBus";
 import EventBusKeys from "./EventBusKeys";
 
@@ -74,6 +73,7 @@ export default class TimelineClass {
     this.stickers = stickers;
   }
   // 构建时间线 material - 其他素材，贴纸、字幕等
+  // notBuildModule - 用于styles页面，生成不带module的时间线。
   async buildTimeline(clips, material, notBuildModule) {
     if (clips) {
       this.videoTrack = { clips, raw: null };
@@ -238,12 +238,15 @@ export default class TimelineClass {
     }
     // 添加模板字幕
     if (moduleLayer) {
-      const { text, image } = moduleLayer;
-      const { captions } = store.state.clip;
+      const { text, image, stickers } = moduleLayer;
+      const { captions, stickers: vuexStickers } = store.state.clip;
+      // 添加字幕
       text.map(item => {
         const cap = captions.find(c => c.uuid === item.uuid);
         if (cap) {
-          this.addCaption(cap);
+          if (!cap.deleted) {
+            this.addCaption(cap);
+          }
         } else {
           const moduleCaption = new CaptionClip({
             ...item,
@@ -256,6 +259,25 @@ export default class TimelineClass {
           moduleValues.captions.push(moduleCaption);
         }
       });
+      // 添加贴纸
+      Array.isArray(stickers) &&
+        stickers.map(sticker => {
+          const s = vuexStickers.find(st => st.uuid === sticker.uuid);
+          if (s) {
+            if (!s.deleted) {
+              this.addSticker(s);
+            }
+          } else {
+            const moduleSticker = new StickerClip({
+              ...sticker,
+              inPoint,
+              duration: duration || video.duration,
+              isModule: true
+            });
+            this.addSticker(moduleSticker);
+            moduleValues.stickers.push(moduleSticker);
+          }
+        });
       // 添加图片
       if (image && image.source) {
         const { m3u8Path } = image.source;

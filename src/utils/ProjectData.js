@@ -148,7 +148,8 @@ export class CaptionClip extends Clip {
     this.z = option.z || 0;
     this.frameWidth = option.frameWidth;
     this.frameHeight = option.frameHeight;
-    this.isModule = !!option.isModule;
+    this.isModule = !!option.isModule; // 是否为模板的字幕
+    this.deleted = !!option.deleted; // 是否已删除
     this.outlineWidth = option.outlineWidth || 0;
     this.outlineColor = option.outlineColor || "";
   }
@@ -168,5 +169,7 @@ export class StickerClip extends Clip {
     this.translationY = option.translationY || 0;
     this.z = option.z || 0;
     this.uuid = option.uuid || generateUUID();
+    this.isModule = !!option.isModule; // 是否为模板的贴纸
+    this.deleted = !!option.deleted; // 是否已删除
   }
 }

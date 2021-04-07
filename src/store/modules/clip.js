@@ -36,6 +36,7 @@ export default {
       state.videoWidth = data.videoWidth || 1080;
       state.alias = data.alias;
       state.version = data.version || 1;
+      state.currentModuleId = data.currentModuleId;
       state.loaded = true;
     },
     resetLoaded(state) {
@@ -124,6 +125,7 @@ export default {
       }
     },
     deleteClipToVuex(state, { type, index }) {
+      let target;
       switch (type) {
         case CLIP_TYPES.VIDEO:
           Vue.delete(state.videos, index);
@@ -132,10 +134,20 @@ export default {
           Vue.delete(state.audios, index);
           break;
         case CLIP_TYPES.CAPTION:
-          Vue.delete(state.captions, index);
+          target = state.captions[index];
+          if (target.isModule) {
+            target.deleted = true;
+          } else {
+            Vue.delete(state.captions, index);
+          }
           break;
         case CLIP_TYPES.STICKER:
-          Vue.delete(state.stickers, index);
+          target = state.stickers[index];
+          if (target.isModule) {
+            target.deleted = true;
+          } else {
+            Vue.delete(state.stickers, index);
+          }
           break;
         default:
           break;
