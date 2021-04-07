@@ -491,7 +491,7 @@ function readProjectVideo(stream, videos) {
     }
     stream.readNext();
   }
-  return new VideoClip(video);
+  return video;
 }
 // 读取 fw-text/fw-image
 async function readProjectCaptions(stream, video) {

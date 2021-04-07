@@ -21,6 +21,7 @@ export default {
   fwUpload: `${isDev("fw")}/api/upload_signatures`,
   videoProjects: `${isDev("fw")}/studio/video_projects`,
   stickers: `${isDev("fw")}/studio/stickers`, // 贴纸列表
+  captions: `${isDev("fw")}/studio/caption_packages`, // 字幕列表
 
   videoProjectById: id => `${isDev("fw")}/studio/video_projects/${id}`,
   videoProjectActionById: (action, id) =>

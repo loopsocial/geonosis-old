@@ -78,6 +78,7 @@ export default {
         // 读取并安装asset/styleAssets下的captionstyle
         await getDefaultAsset();
         await this.installFont(); // 安装字体
+        console.log("字体、默认资源安装完成");
       } catch (error) {
         console.warn("字体安装失败");
       }
@@ -86,6 +87,7 @@ export default {
       await this.applyAssetsXml(mediaAssets, xml); // 更新vuex 安装并应用素材
       this.updateProject();
       this.changeVuexLoaded(true);
+      console.log("工程数据加载完成");
     } else {
       await this.$nextTick();
     }
@@ -590,7 +592,7 @@ export default {
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
           video.orgDuration =
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
-          videos.push(video);
+          videos.push(new VideoClip(video));
         } else {
           console.log("工程内没有这个素材", video.id);
         }
@@ -612,14 +614,14 @@ export default {
           coverUrl: v.thumbnail_url,
           url: v[`${v.media_type}_url`],
           m3u8Url: v[`hls_${v.media_type}_url`],
-          widht: v.width,
+          width: v.width,
           height: v.height,
           aspectRatio: v.aspect_ratio,
           id: v.id,
           thumbnails: v.thumbnails
         });
         inPoint += video.duration;
-        videoList.push(video);
+        videoList.push(new VideoClip(video));
       }
       return videoList;
     },

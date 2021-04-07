@@ -39,6 +39,7 @@ module.exports = {
     NvsVectorFloat: true,
     axios: true,
     NvsCaptionTextBoundingTypeEnum: true,
-    NvsRectF: true
+    NvsRectF: true,
+    NvsVideoClipMotionModeEnum: true
   }
 };

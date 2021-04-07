@@ -274,12 +274,12 @@ export default class TimelineClass {
           return moduleValues;
         }
         clip.setImageMotionAnimationEnabled(false);
-        // clip.setImageMotionMode(0);
+        clip.setImageMotionMode(NvsVideoClipMotionModeEnum.LetterBoxZoomIn);
       }
     }
     return moduleValues;
   }
-  buildVideoTrack(clips) {
+  buildVideoTrack(clips, notMotion) {
     clips = clips || this.videoTrack.clips;
     if (!this.videoTrack.raw) {
       this.videoTrack.raw = this.timeline.appendVideoTrack();
@@ -299,8 +299,10 @@ export default class TimelineClass {
           item.raw = this.addVideoClip(clipInfo, this.videoTrack.raw);
           this.addVideoFx(item);
           if (clip.videoType === CLIP_TYPES.IMAGE) {
-            item.raw.setImageMotionAnimationEnabled(clip.motion);
-            // item.raw.setImageMotionMode(0);
+            item.raw.setImageMotionAnimationEnabled(clip.motion && !notMotion);
+            item.raw.setImageMotionMode(
+              NvsVideoClipMotionModeEnum.LetterBoxZoomIn
+            );
           }
           return res + item.captureOut - item.captureIn;
         }, clip.inPoint);

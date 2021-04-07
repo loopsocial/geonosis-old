@@ -1,4 +1,10 @@
-import { CLIP_TYPES, DEFAULT_CAPTION } from "@/utils/Global";
+import {
+  CLIP_TYPES,
+  DEFAULT_CAPTION,
+  FX_DESC,
+  PARAMS_TYPES,
+  TRANSFORM2D_KEYS
+} from "@/utils/Global";
 import { generateUUID } from "@/utils/common";
 
 class Raw {
@@ -35,15 +41,10 @@ export class VideoClip extends Clip {
     super({ ...option, type: CLIP_TYPES.VIDEO });
     this.id = option.id;
     this.m3u8Path = option.m3u8Path;
-    // this.alphaM3u8Path = option.alphaM3u8Path;
     this.coverUrl = option.coverUrl;
     this.url = option.url;
-    // this.alphaPath = "";
     this.m3u8Url = option.m3u8Url;
-    // this.alphaM3u8Url = "";
     this.videoType = option.videoType; // videoType是字符串，且只能是video、image
-    // this.trimIn = option.trimIn || 0;
-    // this.trimOut = option.trimOut || option.duration;
     this.orgDuration = option.orgDuration || option.duration;
     this.splitList = [
       {
@@ -52,13 +53,12 @@ export class VideoClip extends Clip {
         captureIn: option.trimIn || 0,
         captureOut: option.trimOut || option.duration, // 选中点
         raw: null,
-        videoFxs: option.videoFxs || []
+        videoFxs: option.videoFxs || getDefaultFx(option)
       }
     ];
     this.width = option.width; // 视频宽度
     this.height = option.height; // 视频高度
     this.aspectRatio = option.aspectRatio; // 视频宽高比
-    // this.videoFxs = [];
     this.motion =
       option.motion === undefined
         ? option.videoType === CLIP_TYPES.IMAGE
@@ -66,11 +66,30 @@ export class VideoClip extends Clip {
     this.thumbnails = option.thumbnails || [];
     this.title = option.title || "";
     this.uuid = option.uuid || generateUUID();
-
-    // 视频中音频的波形图
-    // this.leftChannelUrl = option.leftChannelUrl || "";
-    // this.rightChannelUrl = option.rightChannelUrl || "";
   }
+}
+// 根据视频原始宽高比 计算放大倍数。用于视频初始时充满liveWindow
+function getDefaultFx(option) {
+  console.log("设置默认缩放", option);
+  if (option.notDefaultScale) return [];
+  const m3u8Path = option.m3u8Path;
+  if (!m3u8Path) return [];
+  const { width, height } = option;
+  let scale = 1;
+  if (width / height > 9 / 16) {
+    scale = ((16 / 9) * width) / height;
+  } else {
+    scale = ((9 / 16) * height) / width;
+  }
+  console.warn("缩放", scale, width, height);
+  if (scale !== 1) {
+    const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
+    transformFx.params = [
+      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scale), // 缩放
+      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scale)
+    ];
+    return [transformFx];
+  } else return [];
 }
 function getType(num) {
   const temp = {

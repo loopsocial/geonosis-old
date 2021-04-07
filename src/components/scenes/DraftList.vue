@@ -684,7 +684,7 @@ export default {
           coverUrl: v.thumbnail_url,
           url: v[`${v.media_type}_url`],
           m3u8Url: v[`hls_${v.media_type}_url`],
-          widht: v.width,
+          width: v.width,
           height: v.height,
           aspectRatio: v.aspect_ratio,
           id: v.id,
@@ -1048,6 +1048,7 @@ export default {
         this.handleResize(); // 计算canvas尺寸、计算缩略图
         await this.createTrimTimeline();
         this.operateStack = new OperateStack();
+        this.initSplit(); // 根据当前video的splitList分隔当前缩略图
         if (this.isImage) {
           const { captureIn, captureOut } = this.activeClip.splitList[0];
           this.imageDuration = captureOut - captureIn;
@@ -1055,7 +1056,6 @@ export default {
           this.calcDuration(null, null, true);
           this.operateStack.pushSnapshot(this.splitList);
         } else {
-          this.initSplit(); // 根据当前video的splitList分隔当前缩略图
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
           this.calcDuration(); // 计算Duration（dialog底部展示）
           this.splittreLeft = 0;
@@ -1091,7 +1091,11 @@ export default {
     },
     // 创建监视器时间线
     async createTrimTimeline() {
-      const videoClip = new VideoClip({ ...this.activeClip, inPoint: 0 });
+      const videoClip = new VideoClip({
+        ...this.activeClip,
+        inPoint: 0,
+        notDefaultScale: true
+      });
       this.trimTimeline = new TimelineClass(
         "trim-window"
         // nvsGetStreamingContextInstance().getAVFileInfo(
@@ -1100,7 +1104,7 @@ export default {
         // ).videoStreamInfo
       );
       await this.trimTimeline.stopEngin();
-      await this.trimTimeline.buildVideoTrack([videoClip]);
+      await this.trimTimeline.buildVideoTrack([videoClip], true);
       this.setContextEvent();
       this.trimTimeline.seekTimeline();
     },
