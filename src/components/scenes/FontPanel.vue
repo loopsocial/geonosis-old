@@ -53,9 +53,10 @@
           <div class="content">
             <el-select
               class="ln-select font-select"
-              v-model="clip.font"
+              v-model="currentFont"
               @change="changeFont"
               popper-class="ln-select-popper"
+              :loading="getFontsing"
               placeholder=""
             >
               <el-option
@@ -65,8 +66,9 @@
                 :disabled="item.installing"
                 :value="item.stringValue"
               >
-                <span style="float: left">{{ item.label }}</span>
-                <i class="el-icon-loading" v-if="item.installing"></i>
+                <img :src="item.coverUrl" v-if="item.coverUrl" alt="" class="font-cover">
+                <span style="float: left" v-else>{{ item.label }}</span>
+                <i class="el-icon-loading font-loading" v-if="item.installing"></i>
               </el-option>
             </el-select>
 
@@ -174,7 +176,9 @@ export default {
   },
   data() {
     return {
+      getFontsing: false,
       fonts: [],
+      currentFont: null,
       animation: "Default",
       predefineColors: [
         "#ff0100",
@@ -198,6 +202,7 @@ export default {
   computed: {},
   mounted() {
     console.log(this.clip);
+    this.currentFont = this.clip.font;
     this.installFont();
   },
   methods: {
@@ -209,28 +214,36 @@ export default {
       this.updateClipToVuex(this.clip);
     },
     async installFont() {
-      // const res = await this.axios.get(this.$api.materials, {
-      //   params: {
-      //     type: 6,
-      //     page: 0,
-      //     pageSize: 20
-      //   }
-      // });
-      // this.fonts = res.data.materialList.map(item => {
-      //   if (item.stringValue === DEFAULT_FONT) {
-      //     item.installing = false;
-      //   } else {
-      //     item.installing = true;
-      //     installAsset(item.packageUrl).then(() => {
-      //       item.installing = false;
-      //     });
-      //   }
-      //   item.label = item.displayName;
-      //   return item;
-      // });
+      try {
+        this.getFontsing = true;
+        const res = await this.axios.get(this.$api.fonts);
+        this.fonts = res.fonts.map(item => {
+          const font = {
+            installed: false,
+            label: item.font_name,
+            packageUrl: item.font_url,
+            coverUrl: item.thumbnail_url,
+            id: item.id,
+            stringValue: item.id
+          }
+          installAsset(font.packageUrl).then(name => {
+            font.installing = false;
+            font.stringValue = name;
+          });
+          return font;
+        });
+      } catch (error) {
+        console.error("获取字体列表失败", error);
+      } finally {
+        this.getFontsing = false;
+      }
+      
     },
     changeFont(e) {
+      console.warn("fonts", e, this.currentFont);
       const font = this.fonts.find(f => f.stringValue === e);
+      if (!font) return;
+      this.clip.font = font.stringValue;
       this.clip.fontUrl = font.packageUrl;
       this.clip.raw.setFontFamily(this.clip.font);
       this.$bus.$emit(this.$keys.seek);
@@ -269,6 +282,14 @@ export default {
 </script>
 
 <style lang="scss">
+.font-cover {
+  // width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.font-loading {
+  z-index: 10;
+}
 .font-panel {
   margin-right: 65px;
   .back-icon {

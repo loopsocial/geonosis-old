@@ -76,7 +76,7 @@ export function RGBAToNvsColor(rgbaValue) {
     parseInt(rgba[0]) / 255.0,
     parseInt(rgba[1]) / 255.0,
     parseInt(rgba[2]) / 255.0,
-    parseInt(rgba[3]) / 1.0
+    rgba[3] / 1.0
   );
 }
 export function NvsColorToRGBA(color) {
