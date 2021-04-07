@@ -188,25 +188,25 @@ export default {
       this.updateClipToVuex(this.clip);
     },
     async installFont() {
-      const res = await this.axios.get(this.$api.materials, {
-        params: {
-          type: 6,
-          page: 0,
-          pageSize: 20
-        }
-      });
-      this.fonts = res.data.materialList.map(item => {
-        if (item.stringValue === DEFAULT_FONT) {
-          item.installing = false;
-        } else {
-          item.installing = true;
-          installAsset(item.packageUrl).then(() => {
-            item.installing = false;
-          });
-        }
-        item.label = item.displayName;
-        return item;
-      });
+      // const res = await this.axios.get(this.$api.materials, {
+      //   params: {
+      //     type: 6,
+      //     page: 0,
+      //     pageSize: 20
+      //   }
+      // });
+      // this.fonts = res.data.materialList.map(item => {
+      //   if (item.stringValue === DEFAULT_FONT) {
+      //     item.installing = false;
+      //   } else {
+      //     item.installing = true;
+      //     installAsset(item.packageUrl).then(() => {
+      //       item.installing = false;
+      //     });
+      //   }
+      //   item.label = item.displayName;
+      //   return item;
+      // });
     },
     changeFont(e) {
       const font = this.fonts.find(f => f.stringValue === e);

@@ -136,6 +136,10 @@ body .ln-select-popper {
   .popper__arrow {
     border-bottom-color: $main-bgc !important;
   }
+  .el-select-dropdown__empty {
+    background-color: $select-bgc;
+    border-color: $main-bgc;
+  }
 }
 
 // 颜色选择器

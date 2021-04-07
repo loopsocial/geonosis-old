@@ -70,7 +70,6 @@ export class VideoClip extends Clip {
 }
 // 根据视频原始宽高比 计算放大倍数。用于视频初始时充满liveWindow
 function getDefaultFx(option) {
-  console.log("设置默认缩放", option);
   if (option.notDefaultScale) return [];
   const m3u8Path = option.m3u8Path;
   if (!m3u8Path) return [];
@@ -85,8 +84,8 @@ function getDefaultFx(option) {
   if (scale !== 1) {
     const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
     transformFx.params = [
-      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scale), // 缩放
-      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scale)
+      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_X, scale || 1), // 缩放
+      new FxParam(PARAMS_TYPES.FLOAT, TRANSFORM2D_KEYS.SCALE_Y, scale || 1)
     ];
     return [transformFx];
   } else return [];

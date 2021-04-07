@@ -392,6 +392,16 @@ export default class WorkFlow {
       this.timelineClass.liveWindow
       // NvsCaptionTextBoundingTypeEnum.Frame
     );
+    let textArr = text.split("\n");
+    const fontSizeTemp = {
+      1: 1,
+      2: 0.8,
+      3: 0.6,
+      4: 0.5,
+      5: 0.4
+    };
+    const t = Math.max(textArr.length, Math.ceil(text.length / 50));
+    const fontRatio = fontSizeTemp[t];
     input.style.textAlign = this.clip.align || "center";
     input.style.boxSizing = "content-box";
     input.style.position = "absolute";
@@ -399,7 +409,8 @@ export default class WorkFlow {
     input.style.height = height + "px";
     input.style.lineHeight = 1;
     input.style.verticalAlign = "middle";
-    input.style.fontSize = captionClipRaw.getFontSize() * window.ABTimes + "px";
+    input.style.fontSize =
+      captionClipRaw.getFontSize() * window.ABTimes * fontRatio + "px";
     input.style.fontFamily = captionClipRaw.getFontFamily() || "sans-serif";
     input.style.fontWeight = captionClipRaw.getBold() ? "600" : "300";
     input.style.left = x + "px";

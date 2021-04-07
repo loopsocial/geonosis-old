@@ -133,21 +133,26 @@ export default {
       // this.$emit('onLoad')
     },
     async getCaptions() {
-      console.log("captions", this.$api.captions);
-      const res = await this.axios.get(this.$api.captions);
-      console.log("字幕返回", res);
-      const { captions } = res;
-      for (let i = 0; i < captions.length; i++) {
-        const sticker = {
-          coverUrl: captions[i].thumbnail_url,
-          packageUrl: captions[i].sticker_url,
-          desc: captions[i].sticker_uuid,
-          isInstalling: true
-        };
-        // this.stickerList.push(sticker);
-        // installAsset(sticker.packageUrl).then(() => {
-        //   sticker.isInstalling = false;
-        // });
+      try {
+        const res = await this.axios.get(this.$api.captions);
+        console.log("字幕返回", res);
+        const { captions } = res;
+        for (let i = 0; i < captions.length; i++) {
+          const caption = {
+            coverUrl: captions[i].thumbnail_url,
+            packageUrl: captions[i].sticker_url,
+            desc: captions[i].sticker_uuid,
+            text: captions[i].default_text_value || "caption",
+            isInstalling: true
+          };
+          this.stickerList.push(caption);
+          installAsset(caption.packageUrl).then(() => {
+            caption.isInstalling = false;
+          });
+        }
+      } catch (error) {
+        console.error("获取字幕列表失败", error);
+        this.getMockCaption();
       }
     },
     getMockCaption() {
