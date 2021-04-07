@@ -159,7 +159,7 @@ export default {
       removeEventListener("resize", this.handleTimelineResize);
     },
     calcTimelinePos(audioClip) {
-      const videoDuration = this.musicList[this.activeIndex];
+      const videoDuration = this.getVideoDuration();
       const fixedSlider = this.$refs.slider[this.activeIndex];
       const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
 
@@ -232,7 +232,7 @@ export default {
         fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
 
       if (usingAudio) {
-        // return (this.timelineLeft = this.calcTimelinePos(usingAudio));
+        return (this.timelineLeft = this.calcTimelinePos(usingAudio));
       }
       this.timelineLeft = fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
     },
