@@ -73,10 +73,15 @@ export default class TimelineClass {
     this.captions = captions;
     this.stickers = stickers;
   }
-  // 构建时间线
-  async buildTimeline(clips) {
+  // 构建时间线 material - 其他素材，贴纸、字幕等
+  async buildTimeline(clips, material, notBuildModule) {
     if (clips) {
       this.videoTrack = { clips, raw: null };
+      if (material) {
+        const { captions, stickers } = material;
+        if (captions) this.captions = captions;
+        if (stickers) this.stickers = stickers;
+      }
     } else {
       this.initData();
     }
@@ -88,7 +93,9 @@ export default class TimelineClass {
     this.clearStickers();
     this.buildVideoTrack();
     this.buildAudioTrack();
-    await this.buildModule();
+    if (!notBuildModule) {
+      await this.buildModule();
+    }
     this.captions.map(c => {
       if (!c.isModule) {
         this.addCaption(c);
@@ -267,7 +274,7 @@ export default class TimelineClass {
           return moduleValues;
         }
         clip.setImageMotionAnimationEnabled(false);
-        clip.setImageMotionMode(0);
+        // clip.setImageMotionMode(0);
       }
     }
     return moduleValues;
@@ -293,7 +300,7 @@ export default class TimelineClass {
           this.addVideoFx(item);
           if (clip.videoType === CLIP_TYPES.IMAGE) {
             item.raw.setImageMotionAnimationEnabled(clip.motion);
-            item.raw.setImageMotionMode(0);
+            // item.raw.setImageMotionMode(0);
           }
           return res + item.captureOut - item.captureIn;
         }, clip.inPoint);
