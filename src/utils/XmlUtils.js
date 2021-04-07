@@ -380,8 +380,8 @@ function audioToAudios(clipOptions, videos) {
   let audios = [];
   clipOptions.trimOut = clipOptions.duration;
   const lastVideo = videos[videos.length - 1];
-  const timelineDuration = lastVideo.splitList.reduce((sum, item) => {
-    sum += item.captureOut - item.captureIn;
+  const timelineDuration = lastVideo.reduce((sum, item) => {
+    sum += item.trimOut - item.trimIn;
     return sum;
   }, lastVideo.inPoint);
   const clipDuration = clipOptions.orgDuration;
