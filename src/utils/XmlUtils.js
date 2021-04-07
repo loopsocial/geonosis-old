@@ -379,8 +379,8 @@ async function readProjectAudio(stream, videos) {
       audio.inPoint = stream.getAttributeValue("in-point") * 1;
       audio.artist = stream.getAttributeValue("soundtrack-artist");
       audio.trimIn = stream.getAttributeValue("soundtrack-in-point") * 1;
-      audio.duration = stream.getAttributeValue("soundtrack-duration") * 1;
       audio.volume = stream.getAttributeValue("volume");
+      audio.orgDuration = stream.getAttributeValue("soundtrack-duration") * 1;
     } else if (stream.isStartElement() && stream.name() === "source") {
       audio.url = stream.getAttributeValue("src");
       audio.m3u8Path = await installAsset(audio.url);
@@ -392,12 +392,10 @@ async function readProjectAudio(stream, videos) {
 // 将xml内的audio转成vuex中的audios列表
 function audioToAudios(clipOptions, videos) {
   let audios = [];
-  clipOptions.trimOut = clipOptions.duration;
+  clipOptions.trimOut = clipOptions.orgDuration;
   const lastVideo = videos[videos.length - 1];
-  const timelineDuration = lastVideo.reduce((sum, item) => {
-    sum += item.trimOut - item.trimIn;
-    return sum;
-  }, lastVideo.inPoint);
+  const timelineDuration =
+    lastVideo.trimOut - lastVideo.trimIn + lastVideo.inPoint;
   const clipDuration = clipOptions.orgDuration;
   if (clipOptions.inPoint > 0) {
     let durationCumulate = clipOptions.inPoint;
@@ -405,8 +403,10 @@ function audioToAudios(clipOptions, videos) {
       (timelineDuration - clipOptions.inPoint) / clipDuration
     );
     for (let index = 0; index < count; index++) {
-      durationCumulate += clipDuration;
-      index >= 1 && (clipOptions.inPoint = durationCumulate);
+      if (index >= 1) {
+        durationCumulate += clipDuration;
+        clipOptions.inPoint = durationCumulate;
+      }
       if (durationCumulate > timelineDuration) {
         clipOptions.trimOut =
           clipDuration - (durationCumulate - timelineDuration);

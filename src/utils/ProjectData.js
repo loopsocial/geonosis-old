@@ -114,7 +114,7 @@ export class AudioClip extends Clip {
     this.m3u8Url = option.m3u8Url;
     this.alphaM3u8Url = "";
     this.trimIn = option.trimIn || 0;
-    this.trimOut = option.trimOut || option.duration;
+    this.trimOut = option.trimOut || option.orgDuration || option.duration;
     this.orgDuration = option.orgDuration || option.duration;
     this.title = option.title || "";
     this.uuid = generateUUID();
