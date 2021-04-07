@@ -94,6 +94,11 @@
         </div>
 
         <div class="live-window-wrapper" ref="liveWindowWrapper">
+          <VolumeSlider
+            v-if="!isImage"
+            v-model="volume"
+            @volume-change="handleVolumeChange"
+          />
           <div
             class="live-window"
             ref="liveWindow"
@@ -138,7 +143,6 @@
           </div>
         </div>
 
-        <VolumeSlider v-model="volume" />
         <div @click="handleSplit" class="split-btn inline-block">
           <svg-icon
             class="split-icon"
@@ -370,6 +374,16 @@ export default {
   },
   mounted() {},
   methods: {
+    handleVolumeChange(e) {
+      try {
+        this.trimTimeline?.timeline
+          ?.getVideoTrackByIndex(0)
+          ?.getClipByIndex(0)
+          ?.setVolumeGain(e, e);
+      } catch (e) {
+        //
+      }
+    },
     getCover(item, splitItem) {
       const inPoint = item.splitList[splitItem].captureIn;
       if (inPoint === 0) {
@@ -1615,7 +1629,6 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     // height: 560px;
     .el-dialog__body {
       // height: calc(100% - 130px);
-      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -1643,6 +1656,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
     justify-content: space-between;
     align-items: flex-end;
     .live-window-wrapper {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1822,7 +1836,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
   }
   .volume-slider {
     position: absolute;
-    right: 30px;
+    right: -10%;
     top: 0;
   }
   .capture-wrapper {

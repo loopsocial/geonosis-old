@@ -32,7 +32,7 @@ export default {
       console.log(value)
       this.$emit("input", value);
 
-      this.$emit("volumeChange", value);
+      this.$emit("volume-change", value);
     },
     handleMute() {
       if (this.value !== 0) {
@@ -41,7 +41,7 @@ export default {
       } else {
         this.$emit("input", this.lastVolume);
       }
-      this.$emit("volumeChange", this.value);
+      this.$emit("volume-change", this.value);
     }
   }
 };

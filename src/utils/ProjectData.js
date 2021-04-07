@@ -115,7 +115,7 @@ export class AudioClip extends Clip {
     this.alphaM3u8Url = "";
     this.trimIn = option.trimIn || 0;
     this.trimOut = option.trimOut || option.duration;
-    this.orgDuration = option.duration;
+    this.orgDuration = option.orgDuration || option.duration;
     this.title = option.title || "";
     this.uuid = generateUUID();
     this.leftChannelUrl = option.leftChannelUrl || "";
@@ -123,6 +123,7 @@ export class AudioClip extends Clip {
     this.name = option.name || "";
     this.artist = option.artist || "";
     this.volume = option.volume ?? 1;
+    console.log(this)
   }
 }
 export class CaptionClip extends Clip {

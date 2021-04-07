@@ -14,20 +14,22 @@
           </div>
 
           <hr />
-          <div class="using-music" v-if="usingMusic.isShow">
-            <span class="name">{{ usingMusic.name }}</span>
-            <span class="artist">{{ usingMusic.artist }}</span>
-            <svg-icon
-              class="close"
-              icon-class="close"
-              @click="handleNone"
-            ></svg-icon>
+          <div class="using-music-wrapper" :class="{ show: usingMusic.isShow }">
+            <div class="using-music">
+              <span class="name">{{ usingMusic.name }}</span>
+              <span class="artist">{{ usingMusic.artist }}</span>
+              <svg-icon
+                class="close"
+                icon-class="close"
+                @click="handleNone"
+              ></svg-icon>
+            </div>
+            <VolumeSlider
+              v-model="usingMusic.volume"
+              @volume-change="handleVolumeChange"
+            />
           </div>
-          <VolumeSlider
-            v-model="usingMusic.volume"
-            @volumeChange="handleVolumeChange"
-            v-if="usingMusic.isShow"
-          />
+
           <MusicList
             ref="musicList"
             @useMusic="handleUse"
@@ -83,10 +85,12 @@ export default {
   computed: {},
   methods: {
     handleVolumeChange(e) {
-      const clip = this.audios[0];
-      clip.volume = e;
-      if (!clip.raw) return null;
-      clip.raw.setVolumeGain(e, e);
+      if (!this.audios.length) return null;
+      this.audios.forEach(audio => {
+        audio.volume = e;
+        if (!audio.raw) return null;
+        audio.raw.setVolumeGain(e, e);
+      });
     },
     handleUse(music) {
       music.volume = parseFloat(music.volume);
@@ -169,32 +173,34 @@ export default {
         }
       }
     }
-
-    .using-music {
-      float: left;
-      width: 40%;
-      line-height: 36px;
-      color: #fff;
+    .using-music-wrapper {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      .name {
-        font-weight: 600;
-        font-size: 16px;
+      overflow: hidden;
+      height: 0;
+      transition: 0.3s ease;
+      &.show {
+        height: 50px;
       }
-      .artist {
-        font-size: 14px;
-        color: #9b9b98;
+      .using-music {
+        width: 40%;
+        line-height: 36px;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .name {
+          font-weight: 600;
+          font-size: 16px;
+        }
+        .artist {
+          font-size: 14px;
+          color: #9b9b98;
+        }
+        .close {
+          cursor: pointer;
+        }
       }
-      .close {
-        cursor: pointer;
-      }
-    }
-    .volume-slider {
-      float: right;
-    }
-    .music-list {
-      clear: both;
     }
   }
   .preview {

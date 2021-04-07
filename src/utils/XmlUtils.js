@@ -201,7 +201,6 @@ function writeAudio(stream) {
     stream.writeAttribute("volume", "" + volume);
     stream.writeAttribute("soundtrack-in-point", "" + trimIn);
     stream.writeAttribute("soundtrack-duration", "" + orgDuration);
-
     // audio source
     stream.writeStartElement("source");
     stream.writeAttribute("src", "" + url);

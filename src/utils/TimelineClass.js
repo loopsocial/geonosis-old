@@ -421,7 +421,7 @@ export default class TimelineClass {
     if (!this.audioTrack.raw) {
       this.audioTrack.raw = this.timeline.appendAudioTrack();
     }
-    if (Array.isArray(this.audioTrack.clips)) {
+    if (Array.isArray(store.state.clip.audios)) {
       store.state.clip.audios.map(clip => {
         clip.raw = this.addAudioClip(clip, this.audioTrack.raw);
       });

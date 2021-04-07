@@ -32,9 +32,12 @@
               type="text"
               >{{ $t(`${"cancel"}`) }}</el-button
             >
-            <el-button v-else @click="handleTrim($event, idx)" type="text">{{
-              $t(`${"trim"}`)
-            }}</el-button>
+            <el-button
+              v-else
+              @click="handleTrim($event, idx, music.id)"
+              type="text"
+              >{{ $t(`${"trim"}`) }}</el-button
+            >
             <el-button
               type="text"
               class="using-btn"
@@ -69,7 +72,6 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
-import { AudioClip } from "@/utils/ProjectData";
 import { CLIP_TYPES } from "@/utils/Global";
 export default {
   data() {
@@ -130,7 +132,7 @@ export default {
   },
   methods: {
     async applyAudio(audioClip) {
-      if (this.usingMusicId === audioClip.id) {
+      if (this.activeIndex === -1 && this.usingMusicId == audioClip.id) {
         return this.$emit("clearAudio");
       }
       const loading = this.$loading({
@@ -156,6 +158,26 @@ export default {
       this.activeIndex = -1;
       removeEventListener("resize", this.handleTimelineResize);
     },
+    calcTimelinePos(audioClip) {
+      const videoDuration = this.musicList[this.activeIndex];
+      const fixedSlider = this.$refs.slider[this.activeIndex];
+      const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
+
+      if (audioClip.inPoint > 0) {
+        // 只需计算 audio在video入场时间 inPoint
+        const percentage = audioClip.inPoint / videoDuration;
+        const inPointPos = percentage * this.videoTimelineWidth; // 单位 %
+        return this.fixedSliderLeft - inPointPos;
+      } else if (audioClip.trimIn > 0) {
+        // 只需计算 audio裁剪开始时间 trimIn
+        const percentage = audioClip.trimIn / audioClip.orgDuration;
+        const trimInPos = percentage * fixedSlider.offsetWidth; // 单位：px
+        return (
+          (this.fixedSliderLeft * timelineWrapper.offsetWidth + trimInPos) /
+          timelineWrapper.offsetWidth
+        );
+      }
+    },
     calcAudioTime(audioClip) {
       const fixedSlider = this.$refs.slider[this.activeIndex];
       const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
@@ -166,24 +188,26 @@ export default {
           (this.timelineLeft - this.fixedSliderLeft) *
           timelineWrapper.offsetWidth;
 
-        audioClip.trimIn =
-          (audioTrimInPos / fixedSlider.offsetWidth) * audioClip.orgDuration;
+        audioClip.trimIn = Math.round(
+          (audioTrimInPos / fixedSlider.offsetWidth) * audioClip.orgDuration
+        );
         audioClip.inPoint = 0;
       } else {
         // 只需计算 audio在video入场时间inPoint
         const audioInPointPercentage = this.fixedSliderLeft - this.timelineLeft;
 
-        audioClip.inPoint =
+        audioClip.inPoint = Math.round(
           (audioInPointPercentage / this.videoTimelineWidth) *
-          this.getVideoDuration();
+            this.getVideoDuration()
+        );
       }
       if (this.activeIndex === -1) {
         audioClip.inPoint = 0;
       }
     },
-    handleTrim(e, idx) {
+    handleTrim(e, idx, id) {
       this.activeIndex = idx;
-      this.calcSliderStyle();
+      this.calcSliderStyle(id);
       addEventListener("resize", this.handleTimelineResize);
     },
     getVideoDuration() {
@@ -195,18 +219,21 @@ export default {
       });
       return time;
     },
-    calcSliderStyle() {
+    calcSliderStyle(id) {
       const videoDuration = this.getVideoDuration();
       const timelineWrapper = this.$refs.timelineWrapper[this.activeIndex];
       const fixedSlider = this.$refs.slider[this.activeIndex];
       const { duration: audioDuration } = this.activeAudioClip;
-
+      const usingAudio = this.audios.find(audio => audio.id == id);
       this.videoTimelineWidth =
         ((videoDuration / audioDuration) * fixedSlider.offsetWidth) /
         timelineWrapper.offsetWidth; // 计算灰色时间线长度
       this.fixedSliderLeft =
         fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
 
+      if (usingAudio) {
+        // return (this.timelineLeft = this.calcTimelinePos(usingAudio));
+      }
       this.timelineLeft = fixedSlider.offsetLeft / timelineWrapper.offsetWidth;
     },
     handleSliderMouseDown(e) {
