@@ -105,8 +105,6 @@
 
 <script>
 import FullPreview from "./FullPreview";
-import { writeXml } from "@/utils/XmlUtils";
-import { uploadToMS, uploadFileToS3 } from "@/utils/Uploader";
 import { TaskItem } from "@/utils/Task";
 import cookie from "@/utils/Cookie";
 
@@ -185,7 +183,7 @@ export default {
             });
           }
         };
-        const task = new TaskItem(options);
+        new TaskItem(options);
       } catch (error) {
         console.error("合成失败", error);
         this.$message({

@@ -102,13 +102,12 @@ body .ln-tabs-body {
 // 下拉菜单
 body .ln-select {
   width: 100%;
-  .el-input__inner {
+  .el-input__inner, .is-disabled .el-input__inner {
     background: rgb(65, 65, 65);
+    color: #999;
     border: none;
   }
-  .el-input__inner {
-    color: #999;
-  }
+ 
 }
 body .ln-select-popper {
   border-color: $main-bgc;

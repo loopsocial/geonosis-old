@@ -13,6 +13,7 @@
               v-model="animation"
               popper-class="ln-select-popper"
               placeholder=""
+              :disabled="true"
             >
               <el-option
                 v-for="item in []"
@@ -66,9 +67,17 @@
                 :disabled="item.installing"
                 :value="item.stringValue"
               >
-                <img :src="item.coverUrl" v-if="item.coverUrl" alt="" class="font-cover">
+                <img
+                  :src="item.coverUrl"
+                  v-if="item.coverUrl"
+                  alt=""
+                  class="font-cover"
+                />
                 <span style="float: left" v-else>{{ item.label }}</span>
-                <i class="el-icon-loading font-loading" v-if="item.installing"></i>
+                <i
+                  class="el-icon-loading font-loading"
+                  v-if="item.installing"
+                ></i>
               </el-option>
             </el-select>
 
@@ -168,7 +177,7 @@
 
 <script>
 import { installAsset } from "@/utils/AssetsUtils";
-import { DEFAULT_FONT, TEXT_ALIGN, CLIP_TYPES } from "@/utils/Global";
+import { TEXT_ALIGN, CLIP_TYPES } from "@/utils/Global";
 import { RGBAToNvsColor } from "@/utils/common";
 export default {
   props: {
@@ -225,7 +234,7 @@ export default {
             coverUrl: item.thumbnail_url,
             id: item.id,
             stringValue: item.id
-          }
+          };
           installAsset(font.packageUrl).then(name => {
             font.installing = false;
             font.stringValue = name;
@@ -237,7 +246,6 @@ export default {
       } finally {
         this.getFontsing = false;
       }
-      
     },
     changeFont(e) {
       console.warn("fonts", e, this.currentFont);
