@@ -18,7 +18,8 @@ export default {
     videoHeight: 1920,
     alias: "",
     version: "1",
-    loaded: false
+    loaded: false,
+    videoProject: {}
   },
   mutations: {
     setCurrentModuleId(state, id) {
@@ -179,6 +180,9 @@ export default {
     clearIsModuleDate(state) {
       state.captions = state.captions.filter(c => !c.isModule);
       state.stickers = state.stickers.filter(s => !s.isModule);
+    },
+    setVideoProject(state, project) {
+      state.videoProject = project;
     }
   },
   actions: {
@@ -187,6 +191,9 @@ export default {
       if (module) {
         commit("setVideoModule", module);
       }
+    },
+    setVideoProject({ commit }, project) {
+      if (project) commit("setVideoProject", project);
     }
   }
 };

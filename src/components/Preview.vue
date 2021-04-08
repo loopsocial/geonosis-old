@@ -81,8 +81,9 @@ export default {
       } catch (error) {
         console.warn("字体安装失败");
       }
-      const { mediaAssets, xml } = await this.getProjectInfo(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
+      const { mediaAssets, xml, project } = await this.getProjectInfo(); // 获取media assets（依次是：路由参数、查询档案信息、测试素材）
       console.log("media-assets", mediaAssets);
+      this.setVideoProject(project);
       await this.applyAssetsXml(mediaAssets, xml); // 更新vuex 安装并应用素材
       this.updateProject();
       this.changeVuexLoaded(true);
@@ -104,6 +105,9 @@ export default {
     })
   },
   methods: {
+    ...mapActions({
+      setVideoProject: "clip/setVideoProject"
+    }),
     calcLivewindowStyle() {
       if (!this.timelineClass) return null;
       const liveWindowContainer = document.body.querySelector(
@@ -546,12 +550,11 @@ export default {
       const { id } = this.$route.query;
       let mediaAssets;
       let xml;
+      let project;
       // 这不是create跳转过来的，通过id查询mediaAssets
       try {
         if (id) {
-          const project = await this.axios.get(
-            `${this.$api.videoProjects}/${id}`
-          );
+          project = await this.axios.get(`${this.$api.videoProjects}/${id}`);
           mediaAssets = project.media_assets;
           xml = project.dom_xml;
         } else {
@@ -561,7 +564,7 @@ export default {
         console.error("获取工程信息失败, 使用测试素材", error);
         mediaAssets = resource.resourceList; // 测试素材
       }
-      return { mediaAssets, xml };
+      return { mediaAssets, xml, project };
     },
     // 安装m3u8 并且更新到vuex
     async applyAssetsXml(mediaAssets, xml) {

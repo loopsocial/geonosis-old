@@ -44,6 +44,7 @@
 </template>
 <script>
 import ProjectItem from "./ProjectItem";
+import { mapActions } from "vuex";
 export default {
   components: {
     ProjectItem
@@ -53,14 +54,17 @@ export default {
     loading: Boolean
   },
   methods: {
-    selectProject(project) {
-      const res = this.axios.get(`${this.$api.videoProjects}/${project.id}`);
+    async selectProject(project) {
+      const res = await this.axios.get(
+        `${this.$api.videoProjects}/${project.id}`
+      );
       this.medias = res.media_assets;
       this.$router.push({
         name: "Scenes",
         query: { id: project.id },
         params: {
-          mediaAssets: res.media_assets
+          mediaAssets: res.media_assets,
+          videoProject: res
         }
       });
     },

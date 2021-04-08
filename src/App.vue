@@ -43,12 +43,12 @@
             <span slot="title">{{ $t("music") }}</span>
           </div>
         </el-menu-item>
-        <el-menu-item index="Branding">
+        <!-- <el-menu-item index="Branding">
           <div class="menu-item">
             <svg-icon class="menu-icon" icon-class="brand"></svg-icon>
             <span slot="title">{{ $t("branding") }}</span>
           </div>
-        </el-menu-item>
+        </el-menu-item> -->
       </el-menu>
       <router-view></router-view>
     </el-main>
@@ -212,7 +212,7 @@ body {
     width: 100%;
     height: 100%;
     position: absolute;
-    z-index: 3;
+    z-index: 1002;
     color: white;
   }
   .publish-progress {

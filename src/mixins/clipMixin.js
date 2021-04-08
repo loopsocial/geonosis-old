@@ -8,7 +8,8 @@ export default {
       captions: state => state.clip.captions,
       stickers: state => state.clip.stickers,
       videoModule: state => state.clip.videoModule,
-      vuexLoaded: state => state.clip.loaded
+      vuexLoaded: state => state.clip.loaded,
+      videoProject: state => state.clip.videoProject
     }),
     currentVideoUuid: {
       get() {

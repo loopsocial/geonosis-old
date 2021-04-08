@@ -10,7 +10,8 @@
         round
         class="round-btn"
         size="medium"
-        @click="dialogVisible = true"
+        @click="openDiablog"
+        :disabled="isProjectNotPublishable"
       >
         {{ $t("publish") }}
       </el-button>
@@ -31,8 +32,22 @@
       <div class="publish-dialog" v-if="dialogVisible">
         <div class="publish-content">
           <FullPreview class="preview-box"></FullPreview>
-          <el-form :model="infoForm" class="ln-form publish-form">
-            <el-form-item :label="$t('caption')" prop="caption">
+          <el-form
+            :model="infoForm"
+            class="ln-form publish-form"
+            :rules="rules"
+            ref="infoForm"
+          >
+            <el-alert
+              v-if="this.duration <= this.minVideoDuration"
+              class="publish-warning"
+              :closable="false"
+              type="warning"
+              :title="
+                `Minimum video duration is ${this.minVideoDuration} seconds. Right now is ${this.duration} seconds.`
+              "
+            ></el-alert>
+            <el-form-item :label="$t('caption')" prop="caption" required>
               <el-input v-model="infoForm.caption" class="ln-input"></el-input>
             </el-form-item>
             <el-form-item :label="$t('hashtags')" prop="hashtags">
@@ -86,7 +101,7 @@
                 class="round-btn"
                 size="medium"
                 :loading="commiting"
-                @click="publish"
+                @click="submitForm"
               >
                 {{ $t("publish") }}
               </el-button>
@@ -111,6 +126,7 @@ import cookie from "@/utils/Cookie";
 export default {
   data() {
     return {
+      minVideoDuration: 6, // Seconds
       showPreview: false,
       dialogVisible: false,
       commiting: false,
@@ -120,6 +136,9 @@ export default {
         posters: null,
         access: "public",
         coverData: null
+      },
+      rules: {
+        caption: [{ require: true, trigger: "blur" }]
       }
     };
   },
@@ -130,6 +149,22 @@ export default {
     isEditPages() {
       const pages = ["Branding", "Music", "Scenes", "Styles"];
       return pages.includes(this.$route.name);
+    },
+    duration() {
+      const duration = this.videos.reduce((res, item) => {
+        if (item.media_type === "image") {
+          res += 3000000;
+        } else {
+          res += item.duration;
+        }
+        return res;
+      }, 0);
+      return parseInt(duration / 1000000);
+    },
+    isProjectNotPublishable() {
+      if (!this.videoProject) return false;
+      const unPublishableState = ["published", "publish_pending", "compiled"];
+      return unPublishableState.includes(this.videoProject.state);
     }
   },
   methods: {
@@ -147,6 +182,13 @@ export default {
     },
     cancalPublish() {
       this.dialogVisible = false;
+    },
+    submitForm() {
+      if (this.duration < this.minVideoDuration) return false;
+      this.$refs["infoForm"].validate(valid => {
+        if (!valid) return false;
+        this.publish();
+      });
     },
     async publish() {
       const channelId = cookie.get("channelId");
@@ -217,6 +259,10 @@ export default {
     },
     replaceStagingToSandBoxURL(url) {
       return url.replace("//staging.", "//studio.sandbox.");
+    },
+    openDiablog() {
+      this.dialogVisible = true;
+      this.$bus.$emit(this.$keys.updateProject);
     }
   }
 };
@@ -370,6 +416,9 @@ export default {
       cursor: pointer;
     }
   }
+}
+.el-alert.publish-warning {
+  overflow: unset;
 }
 </style>
 
