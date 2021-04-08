@@ -10,6 +10,7 @@ export default {
     audios: [],
     captions: [],
     stickers: [],
+    images: [], // 模板里 放图片的轨道内容
     videoModule: null, // 使用的module
     currentModuleId: null, // 正在使用的module id
     currentVideoUuid: null,
@@ -30,6 +31,7 @@ export default {
       state.videos = cloneDeep(data.videos || []);
       state.audios = cloneDeep(data.audios || []);
       state.captions = cloneDeep(data.captions || []);
+      state.images = cloneDeep(data.images || []);
       state.stickers = cloneDeep(data.stickers || []);
       state.videoModule = cloneDeep(data.videoModule || data.module || {});
       state.videoHeight = data.videoHeighth || 1920;
@@ -87,10 +89,21 @@ export default {
       }
     },
     addMultipleClipToVuex(state, object) {
+      if (object.needClear) {
+        state.videoModule = null;
+        state.captions = state.captions.filter(c => !c.isModule);
+        state.stickers = state.stickers.filter(s => !s.isModule);
+        state.images = [];
+      }
       for (const key in object) {
         if (Object.hasOwnProperty.call(object, key)) {
           const value = cloneDeep(object[key]);
-          state[key].push(...value);
+          if (key === "needClear") continue;
+          if (Array.isArray(value)) {
+            state[key].push(...value);
+          } else {
+            state[key] = value;
+          }
         }
       }
     },
@@ -160,6 +173,8 @@ export default {
       state.videoModule = null;
       state.captions = state.captions.filter(c => !c.isModule);
       state.stickers = state.stickers.filter(s => !s.isModule);
+      state.images = [];
+      state.currentModuleId = null;
     },
     clearIsModuleDate(state) {
       state.captions = state.captions.filter(c => !c.isModule);

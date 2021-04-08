@@ -95,17 +95,35 @@ export default class TimelineClass {
     this.buildAudioTrack();
     if (!notBuildModule) {
       await this.buildModule();
+      this.buildOtherTrack();
     }
     this.captions.map(c => {
-      if (!c.isModule) {
+      if (c.deleted) return;
+      if (notBuildModule) {
+        !c.isModule && this.addCaption(c);
+      } else {
         this.addCaption(c);
       }
     });
     this.stickers.map(s => {
-      if (!s.isModule) {
+      if (s.deleted) return;
+      if (notBuildModule) {
+        !s.isModule && this.addSticker(s);
+      } else {
         this.addSticker(s);
       }
     });
+  }
+  buildOtherTrack() {
+    const { images } = store.state.clip;
+    if (!this.otherTrackRaw) {
+      this.otherTrackRaw = this.timeline.appendVideoTrack();
+    }
+    Array.isArray(images) &&
+      images.map(clip => {
+        const raw = this.addVideoClip(clip, this.otherTrackRaw);
+        raw.setImageMotionAnimationEnabled(false);
+      });
   }
   async play(startTime, endTime) {
     startTime = startTime === undefined ? this.getCurrentPosition() : startTime;
@@ -174,7 +192,6 @@ export default class TimelineClass {
       end
     );
     let j = 0;
-    const moduleValues = { captions: [], stickers: [] };
 
     for (let index = 0; index < videos.length; index++) {
       const video = videos[index];
@@ -188,41 +205,24 @@ export default class TimelineClass {
           videoType: video.videoType
         };
         if (j === 0) {
-          const { captions, stickers } = await this.applyModuleScene(
-            v,
-            intro || defaultScenes[0]
-          );
-          moduleValues.captions.push(...captions);
-          moduleValues.stickers.push(...stickers);
+          await this.applyModuleScene(v, intro || defaultScenes[0]);
         } else if (index === videos.length - 1 && arr.length - 1 === i) {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          const { captions, stickers } = await this.applyModuleScene(
-            v,
-            end || defaultScenes[index]
-          );
-          moduleValues.captions.push(...captions);
-          moduleValues.stickers.push(...stickers);
+          await this.applyModuleScene(v, end || defaultScenes[index]);
         } else {
           const index = Math.min(j - Number(!!intro), defaultScenes.length - 1);
-          const { captions, stickers } = await this.applyModuleScene(
-            v,
-            defaultScenes[index]
-          );
-          moduleValues.captions.push(...captions);
-          moduleValues.stickers.push(...stickers);
+          await this.applyModuleScene(v, defaultScenes[index]);
         }
         j += 1;
       }
     }
-    store.commit("clip/addMultipleClipToVuex", moduleValues);
   }
   // 再视频上应用模板scene
   async applyModuleScene(video, scene) {
     const moduleValues = { captions: [], stickers: [] };
     if (!scene) return moduleValues;
-    const { raw, inPoint, duration, videoType } = video;
+    const { raw, videoType } = video;
     const rawLayer = scene.layers.find(l => l.type === "raw");
-    const moduleLayer = scene.layers.find(l => l.type === "module");
     const module = rawLayer && rawLayer[videoType];
     if (module) {
       const { scaleX, scaleY, translationX, translationY } = module;
@@ -236,70 +236,6 @@ export default class TimelineClass {
       !isNaN(translationY) &&
         transform2DFx.setFloatVal(TRANSFORM2D_KEYS.TRANS_Y, translationY * 1);
     }
-    // 添加模板字幕
-    if (moduleLayer) {
-      const { text, image, stickers } = moduleLayer;
-      const { captions, stickers: vuexStickers } = store.state.clip;
-      // 添加字幕
-      text.map(item => {
-        const cap = captions.find(c => c.uuid === item.uuid);
-        if (cap) {
-          if (!cap.deleted) {
-            this.addCaption(cap);
-          }
-        } else {
-          const moduleCaption = new CaptionClip({
-            ...item,
-            text: item.value || item.text,
-            inPoint: inPoint,
-            duration: duration || video.duration,
-            isModule: true
-          });
-          this.addCaption(moduleCaption);
-          moduleValues.captions.push(moduleCaption);
-        }
-      });
-      // 添加贴纸
-      Array.isArray(stickers) &&
-        stickers.map(sticker => {
-          const s = vuexStickers.find(st => st.uuid === sticker.uuid);
-          if (s) {
-            if (!s.deleted) {
-              this.addSticker(s);
-            }
-          } else {
-            const moduleSticker = new StickerClip({
-              ...sticker,
-              inPoint,
-              duration: duration || video.duration,
-              isModule: true
-            });
-            this.addSticker(moduleSticker);
-            moduleValues.stickers.push(moduleSticker);
-          }
-        });
-      // 添加图片
-      if (image && image.source) {
-        const { m3u8Path } = image.source;
-        if (!m3u8Path) {
-          console.warn("图片添加失败，缺少m3u8Path", image);
-          return moduleValues;
-        }
-        const clip = this.otherTrackRaw.addClip2(
-          m3u8Path,
-          inPoint,
-          0,
-          duration
-        );
-        if (!clip) {
-          console.warn("图片添加失败", m3u8Path, image);
-          return moduleValues;
-        }
-        clip.setImageMotionAnimationEnabled(false);
-        clip.setImageMotionMode(NvsVideoClipMotionModeEnum.LetterBoxZoomIn);
-      }
-    }
-    return moduleValues;
   }
   buildVideoTrack(clips, notMotion) {
     clips = clips || this.videoTrack.clips;

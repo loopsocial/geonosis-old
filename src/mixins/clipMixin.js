@@ -4,6 +4,7 @@ export default {
     ...mapState({
       videos: state => state.clip.videos,
       audios: state => state.clip.audios,
+      images: state => state.clip.images,
       captions: state => state.clip.captions,
       stickers: state => state.clip.stickers,
       videoModule: state => state.clip.videoModule,
@@ -36,7 +37,9 @@ export default {
       initVuex: "clip/init",
       // setVideoModule: "clip/setVideoModule",
       clearIsModuleDate: "clip/clearIsModuleDate",
-      resetLoaded: "clip/resetLoaded"
+      clearModuleDate: "clip/clearModuleDate",
+      resetLoaded: "clip/resetLoaded",
+      addMultipleClipToVuex: "clip/addMultipleClipToVuex"
     }),
     ...mapActions({
       setVideoModule: "clip/setVideoModule"

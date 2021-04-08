@@ -21,20 +21,19 @@ function transformation() {
     videos,
     captions,
     stickers,
+    images,
     videoWidth,
     videoHeight,
-    alias,
-    currentModuleId,
-    videoModule: module // vuex 中的模板信息以及经过转换，transformX、Y，fontSize都是直接给SDK的值
+    currentModuleId
   } = store.state.clip;
   const creation = {
     scenes: [],
     videoWidth,
     videoHeight,
     currentModuleId,
-    version: 1,
-    alias
+    version: 1
   };
+  // 整理videos
   const videoList = [];
   videos.map(video => {
     video.splitList.map(item => {
@@ -74,17 +73,15 @@ function transformation() {
           id: video.id
         }
       };
-      if (vItem.videoType) vItem.motion = video.motion;
+      if (vItem.videoType === CLIP_TYPES.IMAGE) vItem.motion = video.motion;
       videoList.push(vItem);
     });
   });
-  if (module) {
-    creation.moduleAlias = module.alias;
-  }
-  creation.scenes = videoList.map((v, index) => {
-    const moduleCaptions = []; // 使用的模板字幕
-
+  // 整理贴纸和字幕
+  creation.scenes = videoList.map(v => {
     // 将用户添加的字幕按照 视频槽的方式进行规整
+    const moduleCaptions = [],
+      moduleStickers = [];
     const c = captions.reduce((res, caption) => {
       const { inPoint, duration, isModule, deleted } = caption;
       if (
@@ -113,7 +110,6 @@ function transformation() {
       return res;
     }, []);
     // 贴纸规整
-    const moduleSticker = [];
     const s = stickers.reduce((res, sticker) => {
       const { inPoint, duration, isModule, deleted } = sticker;
       if (
@@ -130,25 +126,44 @@ function transformation() {
           duration: Math.min(v.duration, duration - diff)
         };
         if (isModule) {
-          !deleted && moduleSticker.push(sti);
+          !deleted && moduleStickers.push(sti);
         } else {
           res.push(sti);
         }
       }
       return res;
     }, []);
+    // 字幕的背景图片
+    if (moduleCaptions.length) {
+      const imgs = images.filter(
+        i =>
+          i.inPoint === v.inPoint ||
+          (i.inPoint + i.duration <= v.duration &&
+            i.inPoint + i.duration > v.inPoint)
+      );
+      if (imgs.length) {
+        moduleCaptions[moduleCaptions.length - 1].backgroundImage = imgs.map(
+          img => {
+            const diff = v.inPoint - img.inPoint; // 处理 一个字幕横跨两个视频的情况
+            return {
+              ...img,
+              duration: Math.min(v.duration, img.duration - diff)
+            };
+          }
+        );
+      }
+    }
     return {
       video: v,
       captions: c,
       moduleCaptions,
-      moduleSticker,
+      moduleStickers,
       stickers: s
     };
   });
-  console.log("合并module后的json", creation);
+  console.warn("规整后", creation);
   return creation;
 }
-
 export function writeXml(xmlPath) {
   // console.log(transformation());
   const stream = new NvsXmlStreamWriter(xmlPath);
@@ -215,7 +230,7 @@ function writeScene(stream, scene) {
   writeCaptionLayer(stream, scene.captions, "user-added");
   writeCaptionLayer(stream, scene.moduleCaptions, "module");
   writeStickerLayer(stream, scene.stickers, "user-added");
-  writeStickerLayer(stream, scene.moduleSticker, "module");
+  writeStickerLayer(stream, scene.moduleStickers, "module");
 
   stream.writeEndElement();
 }
@@ -345,9 +360,18 @@ function writeCaption(stream, caption) {
   stream.writeAttribute("value", "" + caption.value);
   stream.writeEndElement();
   if (caption.backgroundImage) {
-    stream.writeStartElement(`fw-image`);
-    stream.writeAttribute("src", "" + caption.backgroundImage);
-    stream.writeEndElement();
+    caption.backgroundImage.map(({ src, duration, inPoint, m3u8Url }) => {
+      stream.writeStartElement(`fw-image`);
+      stream.writeAttribute("duration", "" + duration);
+      stream.writeAttribute("in-point", "" + inPoint);
+
+      stream.writeStartElement(`source`);
+      stream.writeAttribute("src", "" + src);
+      m3u8Url && stream.writeAttribute("m3u8-url", m3u8Url);
+
+      stream.writeEndElement();
+      stream.writeEndElement();
+    });
   }
 }
 // 读取工程的XML
@@ -452,6 +476,7 @@ async function readDom(stream) {
       res.audios = [];
       res.captions = [];
       res.stickers = [];
+      res.images = [];
       res.videoModule = {
         alias: "",
         scenes: []
@@ -463,22 +488,14 @@ async function readDom(stream) {
         res.videoModule.alias = moduleAlias;
       }
     } else if (stream.isStartElement() && stream.name() === "fw-scene") {
-      const { video, captions, videoModule, stickers } = await readProjectScene(
+      const { video, captions, stickers, images } = await readProjectScene(
         stream,
         res
       );
       res.videos.push(video);
       res.stickers.push(...stickers);
       res.captions.push(...captions);
-      res.videoModule.scenes.push({
-        temporal: "default",
-        layers: [
-          {
-            type: "module",
-            text: videoModule.text
-          }
-        ]
-      });
+      res.images.push(...images);
     } else if (stream.isStartElement() && stream.name() === "fw-audio") {
       const audios = await readProjectAudio(stream, res.videos);
       res.audios = audios;
@@ -493,31 +510,22 @@ async function readProjectScene(stream, res) {
     video: null,
     captions: [],
     stickers: [],
-    videoModule: {
-      text: []
-    }
+    images: []
   };
   while (!(stream.isEndElement() && stream.name() === "fw-scene")) {
     if (stream.name() === "fw-scene-layer" && stream.isStartElement()) {
       const type = stream.getAttributeValue("type");
       if (type == "raw") {
         scene.video = readProjectVideo(stream, res.videos);
-      } else if (type === "module") {
-        // TODO: 用户使用的模板（字幕、贴纸）
-        const { captions, stickers } = await readProjectLayer(
+      } else {
+        const { captions, stickers, images } = await readProjectLayer(
           stream,
-          scene.video
-        );
-        scene.videoModule.text = captions;
-        scene.videoModule.stickers = stickers;
-      } else if (type === "user-added") {
-        // TODO: 用户添加的字幕、贴纸等
-        const { captions, stickers } = await readProjectLayer(
-          stream,
-          scene.video
+          scene.video,
+          type === "module"
         );
         scene.captions.push(...captions);
         scene.stickers.push(...stickers);
+        scene.images.push(...images);
       }
     }
     stream.readNext();
@@ -591,13 +599,14 @@ function readProjectVideo(stream, videos) {
   return video;
 }
 // 读取 fw-text/fw-image
-async function readProjectLayer(stream, video) {
-  const layer = { captions: [], stickers: [] };
+async function readProjectLayer(stream, video, isModule) {
+  const layer = { captions: [], stickers: [], images: [] };
   const { videoWidth, videoHeight } = store.state.clip;
   const videoLength = Math.max(videoHeight, videoWidth);
   while (!(stream.isEndElement() && stream.name() === "fw-scene-layer")) {
     if (stream.isStartElement() && stream.name() === "fw-text") {
       const caption = {
+        isModule,
         inPoint: video.inPoint,
         duration: (stream.getAttributeValue("duration") || video.duration) * 1,
         z: stream.getAttributeValue("z-value") * 1,
@@ -653,10 +662,30 @@ async function readProjectLayer(stream, video) {
       if (outlineColor) caption.outlineColor = HexToRGBA(outlineColor);
       layer.captions.push(new CaptionClip(caption));
     } else if (stream.isStartElement() && stream.name() === "fw-image") {
+      const img = { trimIn: 0 };
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
-        if (stream.isStartElement() && stream.name() === "source") {
-          const caption = layer.captions[layer.captions.length - 1];
-          caption.backgroundImage = stream.getAttributeValue("src");
+        if (stream.isStartElement() && stream.name() === "fw-image") {
+          img.inPoint = video.inPoint;
+          const duration = stream.getAttributeValue("duration") * 1;
+          if (duration) {
+            img.duration = duration;
+            img.trimOut = duration;
+          }
+        } else if (stream.isStartElement() && stream.name() === "source") {
+          const src = stream.getAttributeValue("src");
+          const m3u8Url = stream.getAttributeValue("m3u8-url");
+          if (src) {
+            img.src = src;
+          }
+          if (m3u8Url) {
+            img.m3u8Url = m3u8Url;
+          }
+          if (img.m3u8Url || img.src) {
+            img.m3u8Path = await installAsset(img.src || img.m3u8Url, {
+              isCustom: true
+            });
+          }
+          layer.images.push(img);
         }
         stream.readNext();
       }
@@ -677,6 +706,7 @@ async function readProjectLayer(stream, video) {
       // const scaleY = stream.getAttributeValue("scale-y") * 1 || 1;
       layer.stickers.push(
         new StickerClip({
+          isModule,
           inPoint: video.inPoint,
           duration: stream.getAttributeValue("duration") * 1 || video.duration,
           rotation,
@@ -776,7 +806,9 @@ async function readLayer(stream) {
             const width = stream.getAttributeValue("width") * 1;
             const height = stream.getAttributeValue("height") * 1;
             const aspectRatio = stream.getAttributeValue("aspect-ratio");
-            const m3u8Url = stream.getAttributeValue("m3u8-url");
+            const m3u8Url =
+              stream.getAttributeValue("m3u8-url") ||
+              stream.getAttributeValue("m3u8Url");
             const id = stream.getAttributeValue("id");
             if (src) source.src = src;
             if (width) source.width = width;
@@ -785,7 +817,7 @@ async function readLayer(stream) {
             if (m3u8Url) source.m3u8Url = m3u8Url;
             if (id) source.id = id;
             if (m3u8Url || src) {
-              source.m3u8Path = await installAsset(m3u8Url || src, {
+              source.m3u8Path = await installAsset(src || m3u8Url, {
                 isCustom: true
               });
             }
@@ -793,7 +825,8 @@ async function readLayer(stream) {
           stream.readNext();
         }
       }
-      if (Object.keys(source)) layer.image.source = source;
+      console.warn("模板 - 图片", layer.image, source);
+      if (Object.keys(source).length) layer.image.source = source;
       // layer.image.source = readSource(stream);
     } else if (stream.name() === "fw-text" && stream.isStartElement()) {
       if (!Array.isArray(layer.text)) layer.text = [];
