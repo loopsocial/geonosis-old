@@ -31,6 +31,7 @@ export class TaskItem {
     this.jobURL = options.jobURL;
     this.onError = options.onError || (() => { });
     this.onSuccess = options.onSuccess || (() => { });
+    this.onProgress = options.onProgress || (() => { });
     this.progress = 0;
     this.timer = null;
     this.result = null;
@@ -56,6 +57,7 @@ export class TaskItem {
           this.status = "success";
           this.onSuccess(this);
         } else {
+          this.onProgress(this);
           this.timer = setTimeout(() => {
             this.getProgress();
           }, 1000);
