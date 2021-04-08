@@ -7,7 +7,6 @@ import {
 } from "./Global";
 import store from "../store";
 import { HexToRGBA, NvsColorToRGBA, RGBAToNvsColor } from "./common";
-import { CaptionClip, StickerClip } from "./ProjectData";
 import EventBus from "@/EventBus";
 import EventBusKeys from "./EventBusKeys";
 
@@ -25,7 +24,9 @@ export default class TimelineClass {
     this.captions = [];
     this.stickers = [];
     this.otherTrackRaw = null;
-    this.init();
+    if (!options || (options && !options.notInit)) {
+      this.init();
+    }
   }
   // 初始化
   async init() {

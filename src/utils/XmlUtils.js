@@ -9,7 +9,6 @@ import {
 import {
   FxParam,
   VideoFx,
-  VideoClip,
   CaptionClip,
   AudioClip,
   StickerClip

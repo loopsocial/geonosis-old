@@ -42,7 +42,7 @@ export default {
   },
   async mounted() {
     // await this.$refs.preview.createTimeline();
-    await this.$nextTick();
+    // await this.$nextTick();
   },
   methods: {
     clearModule() {
@@ -66,22 +66,22 @@ export default {
     async createTimeline() {
       if (this.$route.name !== "Styles") return;
       await this.$nextTick();
-      const t = new TimelineClass("p-window");
-      window.ttt = t;
+      this.t = new TimelineClass("p-window", { notInit: true });
+      await this.t.init();
       const v = cloneDeep(this.videos);
       const captions = cloneDeep(this.captions);
       const stickers = cloneDeep(this.stickers);
-      await t.buildTimeline(
-        v,
-        {
-          captions,
-          stickers
-        },
-        true
-      );
-      t.seekTimeline();
-      await t.stopEngin();
-      // await sleep(1000);
+      this.t.buildVideoTrack(v);
+      captions.map(c => {
+        if (c.deleted || c.isModule) return;
+        this.t.addCaption({ ...c });
+      });
+      stickers.map(s => {
+        if (s.deleted || s.isModule) return;
+        this.t.addSticker({ ...s });
+      });
+      this.t.seekTimeline();
+      await this.t.stopEngin();
       this.$bus.$once(this.$keys.onImageGrabbedArrived, data => {
         const array = new Uint8Array(data);
         var blob = new Blob([array], { type: "image/png" });
@@ -89,27 +89,36 @@ export default {
         const image = new Image();
         image.onload = () => {
           this.coverData = res;
-          sleep(100).then(() => {
-            t.destroy();
-          });
+          sleep(100)
+            .then(() => {
+              return this.t.stopEngin();
+            })
+            .then(() => {
+              this.t.destroy();
+            });
         };
         image.onerror = () => {
           this.onError();
-          sleep(100).then(() => {
-            t.destroy();
-          });
+          sleep(100)
+            .then(() => {
+              return this.t.stopEngin();
+            })
+            .then(() => {
+              this.t.destroy();
+            });
         };
         image.src = res;
         this.$bus.$emit(this.$keys.seek);
       });
       nvsGetStreamingContextInstance().grabImageFromTimeline(
-        t.timeline,
+        this.t.timeline,
         0,
         new NvsRational(1, 1),
         0
       );
     }
-  }
+  },
+  beforeDestroy() {}
 };
 </script>
 

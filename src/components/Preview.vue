@@ -37,7 +37,6 @@ import { mapActions, mapState } from "vuex";
 import resource from "../mock/resource.json";
 import { installAsset } from "../utils/AssetsUtils";
 import { VideoClip } from "@/utils/ProjectData";
-import { DEFAULT_FONT } from "@/utils/Global";
 import { writeXml, readProjectXml } from "@/utils/XmlUtils";
 import getDefaultAsset from "@/utils/getDefaultAsset";
 
@@ -171,6 +170,7 @@ export default {
       }
       const target = this.findClipAtNowPoint(e);
       if (target) {
+        console.warn("target", target);
         this.flow = new WorkFlow({
           containerId: "work-flow",
           clip: target,
