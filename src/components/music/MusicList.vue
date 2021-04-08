@@ -146,6 +146,7 @@ export default {
         this.calcAudioTime(audioClip);
         audioClip.m3u8Path = await installAsset(audioClip.file_url);
         this.$bus.$emit(this.$keys.addAudioClip, audioClip);
+        this.$bus.$emit(this.$keys.rebuildTimeline);
       } catch (error) {
         console.error("应用音频失败", error);
         this.$message({ type: "error", message: this.$t("applyAudioFailed") });
