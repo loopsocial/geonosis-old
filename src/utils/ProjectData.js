@@ -139,7 +139,7 @@ export class CaptionClip extends Clip {
     this.fontSize = option.fontSize;
     this.scale = option.scale || 1;
     this.rotation = option.rotation || 0; // 角度
-    this.uuid = option.uuid || generateUUID();
+    this.uuid = generateUUID();
     this.packageUrl = option.packageUrl;
     this.align = option.align || "center"; // string, left/center/right
     // 前端的颜色存储为RGBA，XML内的颜色存储为#FFFFFFF, SDK使用的是NvsColor
@@ -173,7 +173,7 @@ export class StickerClip extends Clip {
     this.translationX = option.translationX || 0;
     this.translationY = option.translationY || 0;
     this.z = option.z || 0;
-    this.uuid = option.uuid || generateUUID();
+    this.uuid = generateUUID();
     this.isModule = !!option.isModule; // 是否为模板的贴纸
     this.deleted = !!option.deleted; // 是否已删除
   }
