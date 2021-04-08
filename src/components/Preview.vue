@@ -314,7 +314,11 @@ export default {
     async addAudioClip(clip) {
       const clipOptions = { ...clip, url: clip.file_url };
       let audios = [];
-      const timelineDuration = this.timelineClass.timeline.getDuration();
+      const timelineDuration = this.videos.reduce((prev, video) => {
+        return (
+          prev + video.splitList[0].captureOut - video.splitList[0].captureIn
+        );
+      }, 0);
       const clipDuration = clipOptions.orgDuration;
 
       if (clipOptions.inPoint > 0) {
@@ -391,11 +395,8 @@ export default {
           audios.push(new AudioClip(clipOptions));
         }
       }
+      this.resetClips({ type: CLIP_TYPES.AUDIO, clips: [] });
       this.addClipToVuex(audios);
-      await this.timelineClass.stopEngin();
-      this.timelineClass.clearAudioTrack();
-      this.timelineClass.buildAudioTrack();
-      this.timelineClass.seekTimeline();
     },
     calcMaterialDuration(currentTime) {
       let inPoint = 0;

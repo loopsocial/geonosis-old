@@ -263,7 +263,11 @@
       center
       :visible.sync="mediaDialog"
     >
-      <Medias @cancel="cancel" @selected-finish="selectedFinish"></Medias>
+      <Medias
+        @cancel="cancel"
+        @selected-finish="selectedFinish"
+        :key="mediaDialog"
+      ></Medias>
     </el-dialog>
   </div>
 </template>
@@ -374,6 +378,9 @@ export default {
   },
   mounted() {},
   methods: {
+    refreshAudios() {
+      this.$bus.$emit(this.$keys.addAudioClip, this.audios[0]);
+    },
     handleVolumeChange(e) {
       try {
         this.trimTimeline?.timeline
@@ -712,8 +719,12 @@ export default {
       }
       if (!assets.length) return (this.mediaDialog = false);
       this.addClipToVuex(assets);
+      if (this.audios.length) {
+        this.$bus.$emit(this.$keys.addAudioClip, this.audios[0]);
+      }
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
+      // this.$bus.$emit(this.$keys.seek);
       this.mediaDialog = false;
     },
     calcSplittedItemWidth(startTime, endTime) {
@@ -1100,6 +1111,10 @@ export default {
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
       const i = Math.min(index, v.length);
       this.currentVideoUuid = v[i] && v[i].uuid + "_0";
+
+      if (this.audios.length) {
+        this.refreshAudios();
+      }
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
     },
@@ -1263,7 +1278,6 @@ export default {
       this.trimTimeline.seekTimeline(clip.captureIn);
       this.isShowSplitedSelector = true;
       this.calcDuration(clip.captureIn, clip.captureOut);
-      this.calcRectBy = "clip";
       this.captureLeft = clip.captureIn / this.activeClip.orgDuration;
       this.captureWidth =
         (clip.captureOut - clip.captureIn) / this.activeClip.orgDuration;
