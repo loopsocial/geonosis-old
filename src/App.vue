@@ -1,8 +1,17 @@
 <template>
   <el-container id="app" v-loading="isLoading">
     <el-header class="app-header flex">
-      <TitleBar></TitleBar>
+      <TitleBar @publish-loading="publishLoading"></TitleBar>
     </el-header>
+    <div
+      class="publish-loading-overlay flex flex-column"
+      v-if="isPublishLoading"
+    >
+      <h4>{{ $t("publishing") }}</h4>
+      <div class="publish-progress">
+        <el-progress :show-text="false" :percentage="progress"></el-progress>
+      </div>
+    </div>
     <el-main class="app-main" v-if="isCreate">
       <Create />
     </el-main>
@@ -61,7 +70,10 @@ export default {
     Login
   },
   data() {
-    return {};
+    return {
+      isPublishLoading: false,
+      progress: 0
+    };
   },
   computed: {
     ...mapState({
@@ -100,6 +112,11 @@ export default {
         query: { id }
       };
       this.$router.push(r);
+    },
+    publishLoading(progress) {
+      console.log("publishLoading");
+      this.isPublishLoading = true;
+      this.progress = progress;
     }
   }
 };
@@ -189,6 +206,18 @@ body {
     background-position: center;
     transform: translate(-50%, -50%);
   }
+
+  .publish-loading-overlay {
+    background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 3;
+    color: white;
+  }
+  .publish-progress {
+    width: 300px;
+  }
 }
 </style>
 <i18n>
@@ -197,7 +226,8 @@ body {
     "scenes":"Scenes",
     "styles":"Styles",
     "music":"Music",
-    "branding":"Branding"
+    "branding":"Branding",
+    "publishing": "Publishing ..."
   }
 }
 </i18n>

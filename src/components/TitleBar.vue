@@ -157,7 +157,7 @@ export default {
           caption: this.infoForm.caption,
           hashtags: this.infoForm.hashtags.trim().split(","),
           video_posters: [],
-          channelId: channelId
+          channel_id: channelId
         };
         const res = await this.axios.post(
           this.$api.videoProjectActionById("publish", this.$route.query.id),
@@ -181,6 +181,9 @@ export default {
               type: "error",
               message: "Video Compile Failed"
             });
+          },
+          onProgress: task => {
+            this.$emit("publish-loading", task.progress);
           }
         };
         new TaskItem(options);
