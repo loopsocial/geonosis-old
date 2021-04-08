@@ -1,10 +1,17 @@
 <template>
-  <div class="draft-list">
-    <div class="draft-list-container">
+  <div
+    class="draft-list"
+    @drop.prevent="handleDrop"
+    @dragover.prevent="handleDragOver($event)"
+  >
+    <div class="draft-list-container" ref="listContainer">
       <div
         :class="['draft-list-item']"
+        :id="item.uuid"
         v-for="(item, index) in videos"
         :key="item.uuid"
+        draggable
+        @dragstart="handleDragStart($event, index)"
       >
         <div
           :class="[
@@ -291,6 +298,9 @@ import { generateUUID } from "@/utils/common";
 import VolumeSlider from "@/components/VolumeSlider";
 import cloneDeep from "clone-deep";
 
+const dropLine = document.createElement("div");
+dropLine.classList.add("drop-line");
+
 export default {
   components: {
     Medias,
@@ -378,8 +388,74 @@ export default {
   },
   mounted() {},
   methods: {
+    handleDragStart(e, idx) {
+      e.dataTransfer.setData("text", e.target.id);
+      e.dataTransfer.setData("index", idx);
+    },
+    handleDragOver(e) {
+      const list = this.$refs.listContainer;
+      let childrenArr = Array.from(this.$refs.listContainer.childNodes);
+      const currentDropZone = childrenArr.find(child =>
+        child.classList.contains("drop-line")
+      );
+      if (currentDropZone) {
+        list.removeChild(currentDropZone);
+        childrenArr = Array.from(this.$refs.listContainer.childNodes);
+      }
+      // 判断在哪里插入 dropLine：
+      if (
+        e.clientY >
+        childrenArr.slice(-1)[0].getBoundingClientRect().y +
+          childrenArr.slice(-1)[0].offsetHeight
+      ) {
+        list.appendChild(dropLine);
+      } else {
+        for (let i = 0; i < childrenArr.length; i++) {
+          if (
+            childrenArr[i].getBoundingClientRect().y +
+              childrenArr[i].offsetHeight >
+            e.clientY
+          ) {
+            list.insertBefore(dropLine, childrenArr[i]);
+            break;
+          }
+        }
+      }
+    },
+    handleDrop(e) {
+      const videos = cloneDeep(this.videos);
+      const list = this.$refs.listContainer;
+      const childrenArr = Array.from(this.$refs.listContainer.childNodes);
+      const data = e.dataTransfer.getData("text");
+      const dragIdx = e.dataTransfer.getData("index");
+      const dragEle = document.getElementById(data);
+
+      // DOM 以及 Model 操作：
+      childrenArr.forEach((item, idx) => {
+        if (item.classList.contains("drop-line")) {
+          list.insertBefore(dragEle, item);
+          list.removeChild(item);
+          videos.splice(
+            idx - 1 < 0 ? 0 : idx - 1,
+            0,
+            videos.splice(dragIdx, 1)[0]
+          );
+        }
+      });
+      // 重新计算 inPoint
+      videos.reduce((prev, video) => {
+        video.inPoint = prev;
+        return (
+          prev + video.splitList[0].captureOut - video.splitList[0].captureIn
+        );
+      }, 0);
+      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: videos });
+      this.$bus.$emit(this.$keys.rebuildTimeline, 0);
+    },
     refreshAudios() {
-      this.$bus.$emit(this.$keys.addAudioClip, this.audios[0]);
+      if (this.audios.length) {
+        this.$bus.$emit(this.$keys.addAudioClip, this.audios[0]);
+      }
     },
     handleVolumeChange(e) {
       try {
@@ -719,9 +795,7 @@ export default {
       }
       if (!assets.length) return (this.mediaDialog = false);
       this.addClipToVuex(assets);
-      if (this.audios.length) {
-        this.$bus.$emit(this.$keys.addAudioClip, this.audios[0]);
-      }
+      this.refreshAudios();
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
       // this.$bus.$emit(this.$keys.seek);
@@ -1052,6 +1126,7 @@ export default {
         this.convertSplitListToVideoClip(); // 转换splitList为audioClip
       }
       this.updateClipToVuex(this.activeClip);
+      this.refreshAudios();
       // 底层执行操作
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.destroy();
@@ -1111,10 +1186,7 @@ export default {
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
       const i = Math.min(index, v.length);
       this.currentVideoUuid = v[i] && v[i].uuid + "_0";
-
-      if (this.audios.length) {
-        this.refreshAudios();
-      }
+      this.refreshAudios();
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
     },
@@ -1512,6 +1584,18 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.draft-list {
+  .drop-line {
+    margin: 5px 0;
+    width: 100%;
+
+    height: 2px;
+    background-color: #fff;
+    border-radius: 19px;
+  }
+}
+</style>
 <style lang="scss" scoped>
 $infoBgc: rgba(0, 0, 0, 0.5);
 .draft-list {

@@ -252,9 +252,9 @@ export default {
       }
     },
     // 重新构建timeline
-    async rebuildTimeline() {
+    async rebuildTimeline(t) {
       await this.timelineClass.buildTimeline();
-      this.timelineClass.seekTimeline();
+      this.timelineClass.seekTimeline(t);
     },
     drawBox(clip) {
       if (this.flow) {
