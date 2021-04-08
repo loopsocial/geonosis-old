@@ -190,11 +190,11 @@ export default {
       const seekVal = this.timelineClass.getCurrentPosition();
       const captions = this.captions.filter(
         ({ inPoint, duration }) =>
-          seekVal >= inPoint && seekVal <= inPoint + duration
+          seekVal >= inPoint && seekVal < inPoint + duration
       );
       const stickers = this.stickers.filter(
         ({ inPoint, duration }) =>
-          seekVal >= inPoint && seekVal <= inPoint + duration
+          seekVal >= inPoint && seekVal < inPoint + duration
       );
       if (captions.length || stickers.length) {
         return [...captions, ...stickers].find(item => {
