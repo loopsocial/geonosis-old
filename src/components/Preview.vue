@@ -174,7 +174,6 @@ export default {
       }
       const target = this.findClipAtNowPoint(e);
       if (target) {
-        console.warn("target", target);
         this.flow = new WorkFlow({
           containerId: "work-flow",
           clip: target,

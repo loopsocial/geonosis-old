@@ -78,55 +78,44 @@ export default class WorkFlow {
           this.stickerDrag(offsetPointF);
         }
         this.timelineClass.seekTimeline();
-        const p = this.targetPos({ ...this.box, ...pos });
-        this.deleteNode.x(p.x);
-        this.deleteNode.y(p.y);
+        // const p = this.targetPos({ ...this.box, ...pos });
+        // this.deleteNode.x(p.x);
+        // this.deleteNode.y(p.y);
 
+        const {
+          x: curX,
+          y: curY,
+          width: curW,
+          height: curH
+        } = WorkFlow.getCoordinateFromPoint(
+          this.clip,
+          this.timelineClass.liveWindow
+        );
+        this.deleteNode.x(curX + curW / 2);
+        this.deleteNode.y(curY + curH / 2);
         return pos;
       }
     });
     const image = await this.getImage();
-    this.deleteNode = new Konva.Image({
-      x: x + width / 2,
-      y: y + height,
-      image,
-      width: 46,
-      height: 46,
-      offset: {
-        x: 23,
-        y: 0
-      }
-    });
-    if (this.clip.rotation !== 0) {
-      this.node.offsetX(this.node.width() / 2);
-      this.node.offsetY(this.node.height() / 2);
-      this.node.x(this.node.x() + this.node.width() / 2);
-      this.node.y(this.node.y() + this.node.height() / 2);
-      this.node.rotation(-this.clip.rotation);
-      this.deleteNode.rotation(-this.clip.rotation);
-      this.deleteNode.x(x + width / 2);
-    }
     this.box = {
       width,
       height,
       rotation: this.clip.rotation / 180
     };
-    this.layer.add(this.deleteNode);
     this.layer.add(this.node);
-    window.node = this.deleteNode;
     this.rectTransform = new Konva.Transformer({
       nodes: [this.node],
-      rotateEnabled: false,
+      rotateEnabled: this.clip.type === CLIP_TYPES.STICKER,
       borderStrokeWidth: 1,
       borderStroke: "white",
       anchorFill: "white",
       anchorSize: 8,
       anchorStroke: "white",
       anchorCornerRadius: 4,
-      // rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
+      rotationSnaps: [0, 45, 90, 135, 180, 225, 270],
       centeredScaling: this.clip.type === CLIP_TYPES.STICKER,
       keepRatio: this.clip.type === CLIP_TYPES.STICKER,
-      // rotateAnchorOffset: 20,
+      rotateAnchorOffset: 20,
       enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
       boundBoxFunc: (oldBox, newBox) => {
         const box = this.node.getClientRect();
@@ -140,14 +129,50 @@ export default class WorkFlow {
         }
         this.timelineClass.seekTimeline();
         // 缩放、旋转时设置删除按钮位置
-        const tarPos = this.targetPos(newBox);
-        this.deleteNode.x(tarPos.x);
-        this.deleteNode.y(tarPos.y);
+        const {
+          x: curX,
+          y: curY,
+          width: curW,
+          height: curH
+        } = WorkFlow.getCoordinateFromPoint(
+          this.clip,
+          this.timelineClass.liveWindow
+        );
+        this.deleteNode.x(curX + curW / 2);
+        this.deleteNode.y(curY + curH / 2);
+        this.deleteNode.offsetY(-curH / 2);
         this.deleteNode.rotation((newBox.rotation / Math.PI) * 180);
         return newBox;
       }
     });
+    this.deleteNode = new Konva.Image({
+      x: x + width / 2,
+      y: y + height / 2,
+      image,
+      width: 46,
+      height: 46,
+      offset: {
+        x: 23,
+        // y: 0
+        y: -height / 2
+      }
+    });
+    window.deleteNode = this.deleteNode;
+    window.rect1 = this.rectTransform;
+    window.node = this.node;
+    window.layer = this.layer;
+    if (this.clip.rotation !== 0) {
+      this.node.offsetX(this.node.width() / 2);
+      this.node.offsetY(this.node.height() / 2);
+      this.node.x(this.node.x() + this.node.width() / 2);
+      this.node.y(this.node.y() + this.node.height() / 2);
+      this.node.rotation(-this.clip.rotation);
+      this.deleteNode.rotation(-this.clip.rotation);
+      this.deleteNode.x(x + width / 2);
+    }
     this.layer.add(this.rectTransform);
+    this.layer.add(this.deleteNode);
+
     this.layer.draw();
     this.setEvent();
   }
@@ -185,7 +210,7 @@ export default class WorkFlow {
     );
   }
   static getCoordinateFromPoint(clip, liveWindow, type = 3) {
-    const rotation = parseInt(clip.raw.getRotationZ());
+    const rotation = Math.round(clip.raw.getRotationZ() * 100) / 100;
     let vertices;
     if (clip.type === CLIP_TYPES.CAPTION) {
       // if (isRectangle) {
@@ -307,7 +332,7 @@ export default class WorkFlow {
     this.clip.translationX = targetPointF.x;
     this.clip.translationY = targetPointF.y;
   }
-  captionTransformer(oldBox, newBox, rectCenter) {
+  captionTransformer(oldBox, newBox) {
     // 容器宽高
     const {
       width: viewWidth,
@@ -345,7 +370,7 @@ export default class WorkFlow {
     const diffRotation = oldBox.rotation - newBox.rotation;
     if (diffRotation) {
       this.clip.raw.rotateCaption2((diffRotation / Math.PI) * 180);
-      this.clip.rotation = this.clip.raw.getRotationZ();
+      this.clip.rotation = Math.round(this.clip.raw.getRotationZ() * 100) / 100;
     }
     // 重新记录位置
     const targetPointF = this.clip.raw.getCaptionTranslation();
@@ -368,7 +393,7 @@ export default class WorkFlow {
         (diffRotation / Math.PI) * 180,
         WorkFlow.aTob(centerPointF, this.timelineClass.liveWindow)
       );
-      this.clip.rotation = this.clip.raw.getRotationZ();
+      this.clip.rotation = Math.round(this.clip.raw.getRotationZ() * 100) / 100;
     }
     // 重新记录位置
     const targetPointF = this.clip.raw.getTranslation();
@@ -430,24 +455,24 @@ export default class WorkFlow {
       input.style.transformOrigin = "top left";
     }
 
-    const calculateTranslate = diffWidth => {
-      const cosValue = Math.cos((rotation / 180) * Math.PI);
-      let translateX = 0;
-      if (cosValue) translateX = diffWidth / cosValue;
-      let translateY = parseInt(
-        Math.sqrt(Math.pow(diffWidth, 2) - Math.pow(translateX, 2))
-      );
+    // const calculateTranslate = diffWidth => {
+    //   const cosValue = Math.cos((rotation / 180) * Math.PI);
+    //   let translateX = 0;
+    //   if (cosValue) translateX = diffWidth / cosValue;
+    //   let translateY = parseInt(
+    //     Math.sqrt(Math.pow(diffWidth, 2) - Math.pow(translateX, 2))
+    //   );
 
-      if (diffWidth < 0) translateY = -translateY;
-      return {
-        translateX,
-        translateY
-      };
-    };
+    //   if (diffWidth < 0) translateY = -translateY;
+    //   return {
+    //     translateX,
+    //     translateY
+    //   };
+    // };
 
     const calculateRect = (preWidth, text) => {
       ctx.font = `${parseInt(input.style.fontSize)}px sans-serif`;
-      const width = ctx.measureText(text).width;
+      // const width = ctx.measureText(text).width;
       // const diffTranslate = (width - preWidth) / 2;
       // const { translateX, translateY } = calculateTranslate(diffTranslate);
       // if (translateX) {

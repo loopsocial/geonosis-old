@@ -94,14 +94,14 @@ function getDefaultFx(option) {
     return [transformFx];
   } else return [];
 }
-function getType(num) {
-  const temp = {
-    1: "VIDEO",
-    2: "AUDIO",
-    3: "IMAGE"
-  };
-  return temp[num] || "VIDEO";
-}
+// function getType(num) {
+//   const temp = {
+//     1: "VIDEO",
+//     2: "AUDIO",
+//     3: "IMAGE"
+//   };
+//   return temp[num] || "VIDEO";
+// }
 export class AudioClip extends Clip {
   constructor(option) {
     super({ ...option, type: CLIP_TYPES.AUDIO });
@@ -123,7 +123,6 @@ export class AudioClip extends Clip {
     this.name = option.name || "";
     this.artist = option.artist || "";
     this.volume = option.volume ?? 1;
-    console.log(this)
   }
 }
 export class CaptionClip extends Clip {
