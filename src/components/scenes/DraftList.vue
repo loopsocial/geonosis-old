@@ -12,6 +12,7 @@
         :key="item.uuid"
         draggable
         @dragstart="handleDragStart($event, index)"
+        @dragend="handleDragEnd($event, index)"
       >
         <div
           :class="[
@@ -391,6 +392,7 @@ export default {
     handleDragStart(e, idx) {
       e.dataTransfer.setData("text", e.target.id);
       e.dataTransfer.setData("index", idx);
+      e.dataTransfer.setData("type", 'video');
     },
     handleDragOver(e) {
       const list = this.$refs.listContainer;
@@ -422,6 +424,17 @@ export default {
         }
       }
     },
+    handleDragEnd() {
+      const list = this.$refs.listContainer;
+      const childrenArr = Array.from(this.$refs.listContainer.childNodes);
+
+      // 删除 dropLine
+      childrenArr.forEach(item => {
+        if (item.classList.contains("drop-line")) {
+          list.removeChild(item);
+        }
+      });
+    },
     handleDrop(e) {
       const videos = cloneDeep(this.videos);
       const list = this.$refs.listContainer;
@@ -435,11 +448,7 @@ export default {
         if (item.classList.contains("drop-line")) {
           list.insertBefore(dragEle, item);
           list.removeChild(item);
-          videos.splice(
-            idx - 1 < 0 ? 0 : idx - 1,
-            0,
-            videos.splice(dragIdx, 1)[0]
-          );
+          videos.splice(idx, 0, videos.splice(dragIdx, 1)[0]);
         }
       });
       // 重新计算 inPoint

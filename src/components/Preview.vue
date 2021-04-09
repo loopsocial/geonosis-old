@@ -306,6 +306,7 @@ export default {
     },
     // 拖放
     drop(e) {
+      if (e.dataTransfer.getData("type") === "video") return null;
       const data = JSON.parse(e.dataTransfer.getData("Text"));
       this.editClip(e, data);
     },
