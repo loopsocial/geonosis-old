@@ -762,9 +762,6 @@ export default {
       return sum + splitIndex;
     },
     async selectedFinish(videos) {
-      let medias = videos.filter(
-        ({ id }) => !this.videos.find(v => v.id === id)
-      );
       const assets = [];
       const lastVideo = this.videos[this.videos.length - 1]; // 用户可能是删除完所有的素材，然后再添加
       let inPoint = lastVideo
@@ -773,8 +770,8 @@ export default {
             return duration;
           }, lastVideo.inPoint || 0)
         : 0;
-      for (let i = 0; i < medias.length; i++) {
-        const v = medias[i];
+      for (let i = 0; i < videos.length; i++) {
+        const v = videos[i];
         const m3u8Path = await installAsset(v[`hls_${v.media_type}_url`]);
         const video = new VideoClip({
           m3u8Path,

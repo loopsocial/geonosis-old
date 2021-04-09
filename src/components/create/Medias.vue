@@ -210,7 +210,8 @@ export default {
         this.nextPageMediaFromUpload = "";
         await this.getMediaFromUpload();
         // await this.getMediaFromLibrary();
-        this.selectedList = cloneDeep(this.videos);
+        // 不显示正在使用的素材了！！
+        // this.selectedList = cloneDeep(this.videos);
         this.uploadList.map(item => {
           if (this.videos.find(i => i.id === item.id)) {
             item.selected = true;

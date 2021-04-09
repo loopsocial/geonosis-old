@@ -152,7 +152,7 @@ export default {
       if (!scene) return moduleValues;
       const { inPoint, duration } = video;
       const moduleLayer = scene.layers.find(l => l.type === "module");
-
+      const temporal = scene.temporal;
       // 添加模板字幕
       if (moduleLayer) {
         const { text, image, stickers } = moduleLayer;
@@ -163,7 +163,8 @@ export default {
             text: item.value || item.text,
             inPoint: inPoint,
             duration: duration || video.duration,
-            isModule: true
+            isModule: true,
+            temporal
           });
           moduleValues.captions.push(moduleCaption);
         });
@@ -174,7 +175,8 @@ export default {
               ...sticker,
               inPoint,
               duration: duration || video.duration,
-              isModule: true
+              isModule: true,
+              temporal
             });
             moduleValues.stickers.push(moduleSticker);
           });
@@ -192,6 +194,7 @@ export default {
             src,
             duration,
             trimIn: 0,
+            temporal,
             trimOut: duration
           });
         }
