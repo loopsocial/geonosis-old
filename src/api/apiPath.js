@@ -9,6 +9,7 @@ function isDev(path) {
   return isDevelopment ? `/${path}` : host[path];
 }
 export default {
+  defaultFont: `http://cdn1-staging.fireworktv.com/studio/assets/font/NotoSansCJK-Regular.ttc`,
   resources: `${isDev("ms")}/resource/list`,
   materials: `${isDev("ms")}/material/list`,
   msSts: `${isDev("ms")}/upload/sts/info`,
