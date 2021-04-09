@@ -226,10 +226,33 @@ function writeAudio(stream) {
 function writeScene(stream, scene) {
   stream.writeStartElement("fw-scene");
   writeVideoLayer(stream, scene.video);
-  writeCaptionLayer(stream, scene.captions, "user-added");
-  writeCaptionLayer(stream, scene.moduleCaptions, "module");
-  writeStickerLayer(stream, scene.stickers, "user-added");
-  writeStickerLayer(stream, scene.moduleStickers, "module");
+
+  const { captions, stickers, moduleCaptions, moduleStickers } = scene;
+  // user-added
+  if ([...captions,...stickers].length) {
+    stream.writeStartElement("fw-scene-layer");
+    stream.writeAttribute("type", "user-added");
+    for (let i = 0; i < captions.length; i++) {
+      writeCaption(stream, captions[i]);
+    }
+    for (let i = 0; i < stickers.length; i++) {
+      writeSticker(stream, stickers[i]);
+    }
+    stream.writeEndElement();
+  }
+
+  // module
+  if ([...moduleCaptions, ...moduleStickers].length) {
+    stream.writeStartElement("fw-scene-layer");
+    stream.writeAttribute("type", "module");
+    for (let i = 0; i < moduleCaptions.length; i++) {
+      writeCaption(stream, moduleCaptions[i]);
+    }
+    for (let i = 0; i < moduleStickers.length; i++) {
+      writeSticker(stream, moduleStickers[i]);
+    }
+    stream.writeEndElement();
+  }
 
   stream.writeEndElement();
 }
@@ -269,15 +292,15 @@ function writeVideoLayer(stream, video) {
 
   stream.writeEndElement(); // fw-scene-layer
 }
-function writeStickerLayer(stream, stickers, type) {
-  if (!stickers.length) return;
-  stream.writeStartElement("fw-scene-layer");
-  stream.writeAttribute("type", type || "user-added");
-  for (let i = 0; i < stickers.length; i++) {
-    writeSticker(stream, stickers[i]);
-  }
-  stream.writeEndElement();
-}
+// function writeStickerLayer(stream, stickers, type) {
+//   if (!stickers.length) return;
+//   stream.writeStartElement("fw-scene-layer");
+//   stream.writeAttribute("type", type || "user-added");
+//   for (let i = 0; i < stickers.length; i++) {
+//     writeSticker(stream, stickers[i]);
+//   }
+//   stream.writeEndElement();
+// }
 function writeSticker(stream, sticker) {
   const { videoWidth, videoHeight } = store.state.clip;
   const translationX = sticker.translationX / videoWidth;
@@ -295,18 +318,18 @@ function writeSticker(stream, sticker) {
 
   sticker.scaleX && stream.writeAttribute("scale-x", "" + sticker.scaleX);
   sticker.scaleY && stream.writeAttribute("scale-y", "" + sticker.scaleY);
-
+  sticker.rotation && stream.writeAttribute("rotation", "" + sticker.rotation);
   stream.writeEndElement();
 }
-function writeCaptionLayer(stream, captions, type) {
-  if (!captions.length) return;
-  stream.writeStartElement("fw-scene-layer");
-  stream.writeAttribute("type", type || "user-added");
-  for (let i = 0; i < captions.length; i++) {
-    writeCaption(stream, captions[i]);
-  }
-  stream.writeEndElement();
-}
+// function writeCaptionLayer(stream, captions, type) {
+//   if (!captions.length) return;
+//   stream.writeStartElement("fw-scene-layer");
+//   stream.writeAttribute("type", type || "user-added");
+//   for (let i = 0; i < captions.length; i++) {
+//     writeCaption(stream, captions[i]);
+//   }
+//   stream.writeEndElement();
+// }
 function writeCaption(stream, caption) {
   const { videoWidth, videoHeight } = store.state.clip;
   const translationX = caption.translationX / videoWidth;
