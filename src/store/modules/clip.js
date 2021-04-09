@@ -1,5 +1,6 @@
 // 该module与撤销栈相关
 import { CLIP_TYPES } from "@/utils/Global";
+import { CaptionClip, StickerClip } from "@/utils/ProjectData";
 import Vue from "vue";
 const cloneDeep = require("clone-deep");
 
@@ -120,7 +121,7 @@ export default {
         case CLIP_TYPES.VIDEO:
           index = state.videos.findIndex(item => item.uuid === value.uuid);
           Vue.set(state.videos, index, value);
-          computedInPoint(state.videos);
+          computedInPoint(state.videos, state.captions, state.stickers);
           break;
         case CLIP_TYPES.AUDIO:
           index = state.audios.findIndex(item => item.uuid === value.uuid);
@@ -139,32 +140,25 @@ export default {
       }
     },
     deleteClipToVuex(state, { type, index }) {
-      let target;
-      switch (type) {
-        case CLIP_TYPES.VIDEO:
-          Vue.delete(state.videos, index);
-          break;
-        case CLIP_TYPES.AUDIO:
-          Vue.delete(state.audios, index);
-          break;
-        case CLIP_TYPES.CAPTION:
-          target = state.captions[index];
-          if (target.isModule) {
-            target.deleted = true;
-          } else {
-            Vue.delete(state.captions, index);
-          }
-          break;
-        case CLIP_TYPES.STICKER:
-          target = state.stickers[index];
-          if (target.isModule) {
-            target.deleted = true;
-          } else {
-            Vue.delete(state.stickers, index);
-          }
-          break;
-        default:
-          break;
+      const { VIDEO, AUDIO, CAPTION, STICKER } = CLIP_TYPES;
+      if (type === VIDEO) {
+        beforeDel(state, index);
+      } else if (type === AUDIO) {
+        Vue.delete(state.audios, index);
+      } else if (type === CAPTION) {
+        const target = state.captions[index];
+        if (target.isModule) {
+          target.deleted = true;
+        } else {
+          Vue.delete(state.captions, index);
+        }
+      } else if (type === STICKER) {
+        const target = state.stickers[index];
+        if (target.isModule) {
+          target.deleted = true;
+        } else {
+          Vue.delete(state.stickers, index);
+        }
       }
     },
     setCurrentVideoUuid(state, uuid) {
@@ -197,10 +191,44 @@ export default {
     }
   }
 };
-// 重新计算视频的inPoint
-function computedInPoint(clips) {
+// 视频split、修改trim后重新计算
+function computedInPoint(clips, captions, stickers) {
   clips.reduce((inPoint, video) => {
     video.inPoint = inPoint;
+    const vDuration =
+      video.splitList[0].captureOut - video.splitList[0].captureIn;
+    // 处理字幕
+    const cas = captions.filter(c => c.inPoint === inPoint);
+    cas.map(c => {
+      if (c.duration > vDuration) {
+        const index = captions.indexOf(c);
+        const spliceCaption = [
+          new CaptionClip({ ...c, inPoint, duration: vDuration }),
+          new CaptionClip({
+            ...c,
+            inPoint: inPoint + vDuration,
+            duration: c.duration - vDuration
+          })
+        ];
+        captions.splice(index, 1, ...spliceCaption);
+      }
+    });
+    // 处理贴纸
+    const sts = stickers.filter(c => c.inPoint === inPoint);
+    sts.map(c => {
+      if (c.duration > vDuration) {
+        const index = captions.indexOf(c);
+        const spliceSticker = [
+          new StickerClip({ ...c, inPoint, duration: vDuration }),
+          new StickerClip({
+            ...c,
+            inPoint: inPoint + vDuration,
+            duration: c.duration - vDuration
+          })
+        ];
+        stickers.splice(index, 1, ...spliceSticker);
+      }
+    });
     inPoint += video.splitList.reduce((duration, item) => {
       const d = item.captureOut - item.captureIn;
       duration += d;
@@ -208,4 +236,40 @@ function computedInPoint(clips) {
     }, 0);
     return inPoint;
   }, 0);
+}
+// 视频删除后，重新计算
+function beforeDel(state, index) {
+  const { inPoint, splitList } = state.videos[index];
+  const { videos, captions, stickers } = state;
+  const vDuration = splitList[0].captureOut - splitList[0].captureIn;
+  // 删除对应的字幕, 之后的字幕往前移动
+  for (let i = 0; i < captions.length; i++) {
+    const c = captions[i];
+    if (c.inPoint === inPoint) {
+      state.captions.splice(i, 1);
+      i--;
+    } else if (c.inPoint > inPoint) {
+      state.captions[i].inPoint -= vDuration;
+    }
+  }
+  // 删除对应的贴纸, 之后的贴纸往前移动
+  for (let i = 0; i < stickers.length; i++) {
+    const s = stickers[i];
+    if (s.inPoint === inPoint) {
+      state.stickers.splice(i, 1);
+      i--;
+    } else if (s.inPoint > inPoint) {
+      state.stickers[i].inPoint -= vDuration;
+    }
+  }
+  // 删除视频，并且后面的视频往前放
+  state.videos.splice(index, 1);
+  for (let i = index; i < videos.length; i++) {
+    let inPoint = 0;
+    if (videos[i - 1]) {
+      const { inPoint: preIn, splitList: preSplit } = videos[i - 1];
+      inPoint = preIn + preSplit[0].captureOut - preSplit[0].captureIn;
+    }
+    state.videos[i].inPoint = inPoint;
+  }
 }

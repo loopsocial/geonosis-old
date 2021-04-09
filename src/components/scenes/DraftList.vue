@@ -996,8 +996,6 @@ export default {
         ...this.videos.slice(currentVideoIdx + 1)
       ];
       this.resetClips({ type: CLIP_TYPES.VIDEO, clips: newVideos });
-      this.$bus.$emit(this.$keys.rebuildTimeline);
-      this.$bus.$emit(this.$keys.updateProject);
       this.currentVideoUuid = uuid + "_0";
     },
     getCurrentSplitIdx(time) {
@@ -1129,6 +1127,7 @@ export default {
       this.refreshAudios();
       // 底层执行操作
       this.$bus.$emit(this.$keys.rebuildTimeline);
+      this.$bus.$emit(this.$keys.updateProject);
       this.destroy();
     },
     initSplit() {
@@ -1173,19 +1172,9 @@ export default {
       });
     },
     del(index) {
-      const v = [];
-      let inPoint = 0;
-      for (let i = 0; i < this.videos.length; i++) {
-        const el = this.videos[i];
-        if (!el.splitList.length) continue;
-        if (i === index) continue;
-        el.inPoint = inPoint;
-        inPoint += el.splitList[0].captureOut - el.splitList[0].captureIn;
-        v.push(el);
-      }
-      this.resetClips({ type: CLIP_TYPES.VIDEO, clips: v });
-      const i = Math.min(index, v.length);
-      this.currentVideoUuid = v[i] && v[i].uuid + "_0";
+      this.deleteClipToVuex({ type: CLIP_TYPES.VIDEO, index });
+      this.currentVideoUuid =
+        (this.videos[index] || this.videos[0] || {}).uuid + "_0";
       this.refreshAudios();
       this.$bus.$emit(this.$keys.rebuildTimeline);
       this.$bus.$emit(this.$keys.updateProject); // 更新工程 media assets和dom xml
