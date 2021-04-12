@@ -126,6 +126,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
+  font-family: "Avenir Next";
 }
 #app {
   background-color: $main-bgc;
@@ -134,9 +135,6 @@ body {
   // > * {
   //   padding: 0 48px;
   // }
-  *:not(i) {
-    font-family: "Avenir Next" !important;
-  }
   .el-menu-vertical {
     overflow-y: scroll;
     padding-top: 10px;

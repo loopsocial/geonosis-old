@@ -1,5 +1,6 @@
 <template>
   <div class="media-content">
+    <!-- Uploader -->
     <el-upload
       class="ln-upload"
       action="/"
@@ -263,7 +264,12 @@ export default {
       // Remove uploading item
       const index = this.uploadingList.findIndex(i => i.id === randomId);
       this.uploadingList.splice(index, 1);
-      this.initMediaAssets();
+      await this.initMediaAssets();
+      // Pre-Select Uploaded assets
+      const uploadedMedia = this.getMediaByMediaAssetId(
+        uploadToS3Res.media_asset_id
+      );
+      this.selectedMedia(uploadedMedia, true);
       return false;
     },
     selectedMedia(media, forceSelect) {
@@ -278,6 +284,9 @@ export default {
         const index = this.selectedList.findIndex(m => m.id === media.id);
         this.selectedList.splice(index, 1);
       }
+    },
+    getMediaByMediaAssetId(mediaAssetId) {
+      return this.uploadList.find(mediaItem => mediaItem.id === mediaAssetId);
     },
     async next() {
       this.playingId = null;
@@ -444,6 +453,7 @@ export default {
   height: 100%;
   position: relative;
   .ln-upload {
+    visibility: hidden;
     z-index: 10;
     position: absolute;
     top: 0;

@@ -81,7 +81,7 @@ export default {
       this.setNvsStatus(false);
       this.setProjectStatus(false);
       this.$router.push({
-        name: "Scenes",
+        name: "Styles",
         query: { id: videoProject.id }
       });
     },
@@ -134,7 +134,7 @@ export default {
 <i18n>
 {
   "en": {
-    "pick": "Pick Media"
+    "pick": "Add Media"
   }
 }
 </i18n>

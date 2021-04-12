@@ -60,7 +60,7 @@ export default {
       );
       this.medias = res.media_assets;
       this.$router.push({
-        name: "Scenes",
+        name: "Styles",
         query: { id: project.id },
         params: {
           mediaAssets: res.media_assets,
