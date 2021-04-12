@@ -117,12 +117,13 @@ export default {
       height: 24px;
       border-radius: 12px;
       color: white;
-      background-color: rgba(0, 0, 0, 0.2);
+      background-color: rgba(0, 0, 0, 0.3);
     }
     &:hover {
-      opacity: 1;
+      opacity: 0.8;
       .delete-asset:hover {
-        background: rgba(0, 0, 0, 0.5);
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.9);
       }
     }
   }

@@ -1,6 +1,8 @@
 <template>
   <div class="flex" id="title-bar">
-    <svg-icon class="logo" icon-class="logo"></svg-icon>
+    <router-link to="/Create">
+      <svg-icon class="logo" icon-class="logo"></svg-icon>
+    </router-link>
     {{ isEditPages }}
     <div class="btn" v-if="isEditPages">
       <el-button type="text" size="medium" @click="preview">
