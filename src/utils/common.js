@@ -93,10 +93,10 @@ export function RGBAToHex(rgbaValue) {
   }
   const [r, g, b, a] = rgbaValue.match(/(\d(\.\d+)?)+/g);
   const toHex = v => {
-    const hex = v.toString(16);
+    const hex = parseInt(v).toString(16);
     return hex.length === 1 ? "0" + hex : hex;
   };
-  return `#${toHex(a)}${toHex(r)}${toHex(g)}${toHex(b)}`;
+  return `#${toHex(a * 255)}${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 export function HexToRGBA(hexValue) {
   if (hexValue === "" || hexValue === null || hexValue === undefined) {
