@@ -643,7 +643,11 @@ export default {
       if (this.isPlaying) {
         this.timelineClass.stop();
       } else {
-        this.timelineClass.play();
+        const current = this.timelineClass.getCurrentPosition();
+        const duration = this.timelineClass.timeline.getDuration();
+        let time;
+        if (duration - current < 100000) time = 0;
+        this.timelineClass.play(time);
       }
       this.isPlaying = !this.isPlaying;
       this.closePanel();

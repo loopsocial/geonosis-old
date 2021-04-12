@@ -88,19 +88,15 @@ export function NvsColorToRGBA(color) {
   return `rgb(${r}, ${g}, ${b}, ${a})`;
 }
 export function RGBAToHex(rgbaValue) {
-  if (rgbaValue === "" || rgbaValue === null || rgbaValue === undefined) {
+  if (!rgbaValue) {
     return "";
   }
-  var rgba = rgbaValue.match(/(\d(\.\d+)?)+/g);
-  var r = parseInt(rgba[0]);
-  var g = parseInt(rgba[1]);
-  var b = parseInt(rgba[2]);
-  var a = parseInt(rgba[3] * 255);
-  var hex =
-    "#" +
-    a.toString(16) +
-    ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-  return hex;
+  const [r, g, b, a] = rgbaValue.match(/(\d(\.\d+)?)+/g);
+  const toHex = v => {
+    const hex = v.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  };
+  return `#${toHex(a)}${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 export function HexToRGBA(hexValue) {
   if (hexValue === "" || hexValue === null || hexValue === undefined) {
