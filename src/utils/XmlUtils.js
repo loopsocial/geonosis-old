@@ -882,7 +882,9 @@ async function readLayer(stream) {
         caption.packageUrl = captionStyle;
         try {
           const captionPath = await installAsset(captionStyle);
-          caption.styleDesc = captionPath.split("/").pop();
+          caption.styleDesc = getNameFromUrl(captionPath)
+            .split(".")
+            .shift();
         } catch (error) {
           console.error("字幕安装失败 使用默认字幕", captionStyle);
         }
