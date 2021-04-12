@@ -379,7 +379,6 @@ function writeCaption(stream, caption) {
       "" + RGBAToHex(caption.outlineColor)
     );
   }
-  console.error(caption, caption.fontStyle);
   if (caption.lineSpacing) {
     stream.writeAttribute("line-spacing", "" + caption.lineSpacing);
   }
