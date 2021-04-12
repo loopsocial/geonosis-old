@@ -534,16 +534,7 @@ export default {
     },
     // 安装字体
     async installFont() {
-      // const res = await this.axios.get(this.$api.materials, {
-      //   params: {
-      //     type: 6,
-      //     page: 0,
-      //     pageSize: 20
-      //   }
-      // });
-      // const fonts = res.data.materialList;
-      // const font = fonts.find(item => item.stringValue === DEFAULT_FONT);
-      // await installAsset(font.packageUrl);
+      await installAsset(this.$api.defaultFont);
     },
     // 获取工程的mediaAssets
     async getProjectInfo() {

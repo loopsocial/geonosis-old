@@ -392,7 +392,7 @@ export default {
     handleDragStart(e, idx) {
       e.dataTransfer.setData("text", e.target.id);
       e.dataTransfer.setData("index", idx);
-      e.dataTransfer.setData("type", 'video');
+      e.dataTransfer.setData("type", "video");
     },
     handleDragOver(e) {
       const list = this.$refs.listContainer;
@@ -440,7 +440,7 @@ export default {
       const list = this.$refs.listContainer;
       const childrenArr = Array.from(this.$refs.listContainer.childNodes);
       const data = e.dataTransfer.getData("text");
-      const dragIdx = e.dataTransfer.getData("index");
+      const dragIdx = e.dataTransfer.getData("index") * 1;
       const dragEle = document.getElementById(data);
 
       // DOM 以及 Model 操作：
@@ -448,6 +448,9 @@ export default {
         if (item.classList.contains("drop-line")) {
           list.insertBefore(dragEle, item);
           list.removeChild(item);
+          if (idx > dragIdx) {
+            idx = idx - 1 < 0 ? 0 : idx - 1;
+          }
           videos.splice(idx, 0, videos.splice(dragIdx, 1)[0]);
         }
       });
