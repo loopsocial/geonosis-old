@@ -461,6 +461,17 @@ export default class TimelineClass {
       const nvsColor = RGBAToNvsColor(outlineColor);
       captionRaw.setOutlineColor(nvsColor);
     }
+    if (caption.lineSpacing) {
+      captionRaw.setLineSpacing(caption.lineSpacing);
+    }
+    if (caption.fontStyle) {
+      const temp = {
+        italic: "setItalic", // 斜体
+        bold: "setBold" // 粗体
+      };
+      const key = temp[caption.fontStyle];
+      captionRaw[key](true);
+    }
     return captionRaw;
   }
   getValue(string, length) {
@@ -587,7 +598,7 @@ export default class TimelineClass {
   getImgFromTimeline(point) {
     point = point === undefined ? this.getCurrentPosition() : point;
     return this.stopEngin().then(() => {
-      return new Promise((resolve, reject) => {
+      return new Promise(resolve => {
         EventBus.$once(EventBusKeys.onImageGrabbedArrived, data => {
           resolve(data);
         });

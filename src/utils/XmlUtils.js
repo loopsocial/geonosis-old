@@ -379,6 +379,13 @@ function writeCaption(stream, caption) {
       "" + RGBAToHex(caption.outlineColor)
     );
   }
+  console.error(caption, caption.fontStyle);
+  if (caption.lineSpacing) {
+    stream.writeAttribute("line-spacing", "" + caption.lineSpacing);
+  }
+  if (caption.fontStyle) {
+    stream.writeAttribute("font-style", "" + caption.fontStyle);
+  }
   stream.writeAttribute("value", "" + caption.value);
   stream.writeEndElement();
   if (caption.backgroundImage) {
@@ -682,6 +689,14 @@ async function readProjectLayer(stream, video, isModule) {
       if (outlineWidth) caption.outlineWidth = outlineWidth * 1;
       const outlineColor = stream.getAttributeValue("outline-color");
       if (outlineColor) caption.outlineColor = HexToRGBA(outlineColor);
+      const lineSpacing = stream.getAttributeValue("line-spacing");
+      if (lineSpacing) {
+        caption.lineSpacing = lineSpacing * 1;
+      }
+      const fontStyle = stream.getAttributeValue("font-style");
+      if (fontStyle) {
+        caption.fontStyle = fontStyle;
+      }
       layer.captions.push(new CaptionClip(caption));
     } else if (stream.isStartElement() && stream.name() === "fw-image") {
       const img = { trimIn: 0 };
@@ -847,7 +862,6 @@ async function readLayer(stream) {
           stream.readNext();
         }
       }
-      console.warn("模板 - 图片", layer.image, source);
       if (Object.keys(source).length) layer.image.source = source;
       // layer.image.source = readSource(stream);
     } else if (stream.name() === "fw-text" && stream.isStartElement()) {
@@ -884,6 +898,10 @@ async function readLayer(stream) {
           console.error("字体安装失败");
         }
       }
+      const fontStyle = stream.getAttributeValue("font-style");
+      if (fontStyle) {
+        caption.fontStyle = fontStyle;
+      }
       let color = stream.getAttributeValue("font-color");
       if (color) {
         caption.color = HexToRGBA(color);
@@ -899,6 +917,10 @@ async function readLayer(stream) {
       const outlineWidth = stream.getAttributeValue("outline-width");
       if (outlineWidth) {
         caption.outlineWidth = outlineWidth * 1;
+      }
+      const lineSpacing = stream.getAttributeValue("line-spacing");
+      if (lineSpacing) {
+        caption.lineSpacing = lineSpacing * 1;
       }
       layer.text.push(new CaptionClip(caption));
     } else if (stream.name() === "fw-sticker" && stream.isStartElement()) {

@@ -156,6 +156,8 @@ export class CaptionClip extends Clip {
     this.deleted = !!option.deleted; // 是否已删除
     this.outlineWidth = option.outlineWidth || 0;
     this.outlineColor = option.outlineColor || "";
+    this.lineSpacing = option.lineSpacing;
+    this.fontStyle = option.fontStyle;
     this.temporal = option.temporal || ""; // 模板字幕时， 表示字幕类型（intro-片头、end-片尾、default-默认)
   }
 }
