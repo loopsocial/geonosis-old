@@ -1,6 +1,6 @@
 import Konva from "konva";
 import { CLIP_TYPES } from "@/utils/Global";
-import { toPercentage, vectorRotate } from "@/utils/common";
+import { loadFonts, toPercentage, vectorRotate } from "@/utils/common";
 import delImg from "../assets/images/delete.png";
 import store from "../store/index";
 import Keys from "../utils/EventBusKeys";
@@ -402,6 +402,7 @@ export default class WorkFlow {
   }
   captionInput(captionClip) {
     const captionClipRaw = captionClip.raw;
+    loadFonts(captionClip.fontUrl, captionClipRaw.getFontFamily());
     let text = captionClipRaw.getText();
     // captionClipRaw.setText('')
     const captionColor = captionClipRaw.getTextColor();
@@ -509,6 +510,8 @@ export default class WorkFlow {
     };
     input.onblur = onChange;
     input.onchange = onChange;
+    input.ondblclick = e => e.stopPropagation();
+    input.onclick = e => e.stopPropagation();
     input.oninput = e => {
       const preWidth = parseInt(input.style.width);
       calculateRect(preWidth, e.target.value || "");

@@ -158,7 +158,8 @@ export default {
       });
     },
     // 点击livewindow, 是否显示操作转换框
-    clickLiveWindow(e) {
+    async clickLiveWindow(e) {
+      if (e.target.type === "textarea") return;
       // 注释部分用来测试，只是为了看坐标系转换时计算是否正确
       //       const { offsetX, offsetY } = e;
       //       let v = WorkFlow.aTob(

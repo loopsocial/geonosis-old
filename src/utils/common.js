@@ -1,4 +1,5 @@
 import { encode, decode } from "js-base64";
+import { getAssetFromIndexDB } from "./AssetsUtils";
 // 小数转百分数
 export function toPercentage(number, fixed = 2) {
   number = number * 100;
@@ -134,4 +135,21 @@ export function base64ToString(data) {
 }
 export function stringToBase64(string) {
   return encode(string);
+}
+
+// 应用字体
+export async function loadFonts(url, familyName) {
+  if (!url || !familyName) {
+    return;
+  }
+  let data = await getAssetFromIndexDB(url);
+  if (!data) {
+    data = `url(${url})`;
+  }
+  const font = new FontFace(familyName, data);
+  if (document.fonts.has(font)) {
+    return;
+  }
+  await font.load();
+  document.fonts.add(font);
 }
