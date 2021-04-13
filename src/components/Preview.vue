@@ -13,7 +13,7 @@
         :width="liveWindowStyle.width"
         :height="liveWindowStyle.height"
       ></canvas>
-      <div id="work-flow" @mousedown="clickLiveWindow"></div>
+      <div id="work-flow" @mousedown="clickLiveWindow" @mouseup="mouseup"></div>
     </div>
     <div class="controls flex" @click="play">
       <svg-icon
@@ -180,7 +180,7 @@ export default {
           timelineClass: this.timelineClass
         });
         window.flow = this.flow;
-        setTimeout(() => {
+        this.downTimer = setTimeout(() => {
           const evt = document.createEvent("MouseEvents");
           evt.initMouseEvent(
             "mousedown",
@@ -208,6 +208,12 @@ export default {
         }
       }
       this.$bus.$emit(this.$keys.setPanel, target);
+    },
+    mouseup() {
+      if (this.downTimer) {
+        clearTimeout(this.downTimer);
+        this.downTimer = null;
+      }
     },
     // 查找当前时刻点击位置是否有字幕/贴纸
     findClipAtNowPoint(e) {
