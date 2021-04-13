@@ -78,6 +78,6 @@ export const MEDIA_TYPES = {
 };
 export const RATIO = 0.5625;
 
-export const DURATION_LIMIT = 0.5 * 1000 * 1000;
+export const DURATION_LIMIT = 1 * 1000 * 1000;
 
 export const ENGINE_STATE = { STREAMING_ENGINE_STATE_STOPPED: 0 };

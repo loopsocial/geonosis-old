@@ -202,7 +202,9 @@
                 v-for="(clip, idx) of splitList"
                 :style="{
                   width:
-                    calcSplittedItemWidth(clip.trimIn, clip.trimOut) * 100 + '%'
+                    calcSplittedItemWidth(clip.trimIn, clip.trimOut) * 100 +
+                    '%',
+                  left: calcSplittedItemPos(clip.trimIn) * 100 + '%'
                 }"
                 :data-index="idx"
                 :key="clip.id"
@@ -240,7 +242,7 @@
 
             <div
               class="splitter"
-              :style="{ left: splittreLeft * 100 + '%' }"
+              :style="{ left: splitterLeft * 100 + '%' }"
               @mousedown="handleSplitterMouseDown"
             ></div>
           </div>
@@ -324,7 +326,7 @@ export default {
       captureLeft: 0, // 滑块距离缩略图轨道左边距离
       captureEndPercentage: 0, // 滑块右边占整个缩略图轨道比例，只用于滑块左边箭头拉动前计算
       vectorLeft: 0,
-      splittreLeft: 0,
+      splitterLeft: 0,
       item: null,
       background: "",
       duration: 0,
@@ -389,6 +391,10 @@ export default {
   },
   mounted() {},
   methods: {
+    calcSplittedItemPos(trimIn) {
+      if (!this.activeClip) return 0;
+      return trimIn / this.activeClip.orgDuration;
+    },
     handleDragStart(e, idx) {
       e.dataTransfer.setData("text", e.target.id);
       e.dataTransfer.setData("index", idx);
@@ -684,7 +690,10 @@ export default {
     },
     calcSelectRectSize() {
       const { width, height } = this.$refs.liveWindow.getBoundingClientRect();
-      const { videoFxs } = this.splitList[this.calcRectIdx];
+      const { videoFxs } =
+        this.splitList.length === 1
+          ? this.splitList[0]
+          : this.splitList[this.calcRectIdx];
       const {
         width: videoWidth,
         height: videoHeight
@@ -812,6 +821,9 @@ export default {
     },
     calcSplittedItemWidth(startTime, endTime) {
       const { activeClip } = this;
+      if (!activeClip) {
+        return 0;
+      }
       return (
         endTime / activeClip.orgDuration - startTime / activeClip.orgDuration
       );
@@ -852,27 +864,37 @@ export default {
       document.body.addEventListener("mousemove", this.handleSplitterMouseMove);
     },
     handleSplitterMouseMove(e) {
-      const { clipList } = this.$refs;
+      const {
+        activeClip,
+        $refs: { clipList }
+      } = this;
 
       e.preventDefault();
-      this.splittreLeft =
+      this.splitterLeft =
         (e.clientX - clipList.getBoundingClientRect().left) /
         clipList.offsetWidth;
 
-      if (this.splittreLeft < 0) {
+      if (
+        this.splitterLeft <
+        activeClip.splitList[0].trimIn / activeClip.orgDuration
+      ) {
         // 处理左拖拽限制
-        this.splittreLeft = 0;
+        this.splitterLeft =
+          activeClip.splitList[0].trimIn / activeClip.orgDuration;
       }
-      if (this.splittreLeft > 1) {
+      if (
+        this.splitterLeft >
+        activeClip.splitList[0].trimOut / activeClip.orgDuration
+      ) {
         // 处理右侧拖拽限制
-        this.splittreLeft = 1;
+        this.splitterLeft =
+          activeClip.splitList[0].trimOut / activeClip.orgDuration;
       }
 
-      const currentSeekTime = this.splittreLeft * this.activeClip.orgDuration;
+      const currentSeekTime = this.splitterLeft * activeClip.orgDuration;
       this.trimTimeline.seekTimeline(currentSeekTime);
 
       this.calcRectIdx = this.getCurrentSplitIdx(currentSeekTime);
-      console.log(this.calcRectIdx);
       this.calcSelectRectSize();
 
       document.body.addEventListener("mouseup", this.handleSplitterMouseUp, {
@@ -892,7 +914,7 @@ export default {
         this.motion = !this.motion;
         return;
       }
-      const splitterPercentage = this.splittreLeft;
+      const splitterPercentage = this.splitterLeft;
       const splitPoint = splitterPercentage * this.activeClip.orgDuration;
       let splitedArr = [];
       let splitFailed = false;
@@ -951,7 +973,7 @@ export default {
     },
     handlePlaying(timeline, currentTime) {
       if (timeline === this.trimTimeline.timeline) {
-        this.splittreLeft = this.calcCurrentPercentage(currentTime);
+        this.splitterLeft = this.calcCurrentPercentage(currentTime);
       }
     },
     handleResize() {
@@ -983,15 +1005,9 @@ export default {
       }
     },
     convertSplitListToVideoClip() {
-      this.splitList = this.splitList.map(item => {
-        item.trimIn = 0;
-        item.trimOut = this.activeClip.orgDuration;
-        return item;
-      });
       const currentVideoIdx = this.videos.findIndex(
         video => video.uuid === this.activeClip.uuid
       );
-
       const uuid = this.activeClip.uuid;
       const newVideos = [
         ...this.videos.slice(0, currentVideoIdx),
@@ -1014,6 +1030,7 @@ export default {
         cumulatedDuration += item.trimOut - item.trimIn;
         if (cumulatedDuration >= time) return i;
       }
+      return 0
     },
     saveTranslateFx() {
       const { transX, transY, scaleX, scaleY } = this.calcTransformParams();
@@ -1171,7 +1188,8 @@ export default {
         } else {
           this.refreshBackgroundCover(); // 计算缩略图灰色半透明覆盖部分
           this.calcDuration(); // 计算Duration（dialog底部展示）
-          this.splittreLeft = 0;
+          this.splitterLeft =
+            this.activeClip.splitList[0].trimIn / this.activeClip.orgDuration;
           this.volume = this.activeClip.volume;
           this.operateStack.pushSnapshot(this.splitList);
           addEventListener("resize", this.handleResize);
@@ -1199,7 +1217,8 @@ export default {
       const videoClip = new VideoClip({
         ...this.activeClip,
         inPoint: 0,
-        notDefaultScale: true
+        notDefaultScale: true,
+        splitList: null
       });
       this.trimTimeline = new TimelineClass(
         "trim-window"
@@ -1247,7 +1266,7 @@ export default {
       if (!this.isPlaying) {
         if (!this.isShowSplitedSelector) {
           // 片段未选中
-          this.trimTimeline.play(0);
+          this.trimTimeline.play(this.activeClip.splitList[0].trimIn);
         } else {
           // 片段已选中
           this.trimTimeline.seekTimeline(
@@ -1591,6 +1610,7 @@ export default {
     height: 2px;
     background-color: #fff;
     border-radius: 19px;
+    min-width: 216px;
   }
 }
 </style>
@@ -1723,6 +1743,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
   .el-dialog {
     // width: 600px;
     // height: 560px;
+    min-width: 800px;
     .el-dialog__body {
       // height: calc(100% - 130px);
       display: flex;
@@ -1899,6 +1920,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
         box-sizing: border-box;
         overflow: hidden;
         .clip-item {
+          position: absolute;
           flex-shrink: 0;
           flex-grow: 0;
           height: 100%;
@@ -1932,7 +1954,7 @@ $infoBgc: rgba(0, 0, 0, 0.5);
   }
   .volume-slider {
     position: absolute;
-    right: -10%;
+    right: -120px;
     top: 0;
   }
   .capture-wrapper {

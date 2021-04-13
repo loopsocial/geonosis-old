@@ -256,7 +256,7 @@ export default class TimelineClass {
             trimOut: item.captureOut
           };
           item.raw = this.addVideoClip(clipInfo, this.videoTrack.raw);
-          if (!isNaN(clip.volume)) {
+          if (!isNaN(clip.volume) && item.raw) {
             item.raw.setVolumeGain(clip.volume, clip.volume);
           }
           this.addVideoFx(item);

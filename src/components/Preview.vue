@@ -588,6 +588,14 @@ export default {
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
           video.orgDuration =
             media.media_type === "image" ? 3000000 : media.duration * 1000000;
+          video.splitList = [
+            {
+              trimIn: video.trimIn,
+              trimOut: video.trimOut,
+              captureIn: video.captureIn,
+              captureOut: video.captureOut
+            }
+          ];
           videos.push(new VideoClip(video));
         } else {
           console.log("工程内没有这个素材", video.id);
