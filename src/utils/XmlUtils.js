@@ -229,7 +229,7 @@ function writeScene(stream, scene) {
 
   const { captions, stickers, moduleCaptions, moduleStickers } = scene;
   // user-added
-  if ([...captions,...stickers].length) {
+  if ([...captions, ...stickers].length) {
     stream.writeStartElement("fw-scene-layer");
     stream.writeAttribute("type", "user-added");
     for (let i = 0; i < captions.length; i++) {
@@ -371,7 +371,10 @@ function writeCaption(stream, caption) {
   caption.scaleX && stream.writeAttribute("scale-x", "" + caption.scaleX);
   caption.scaleY && stream.writeAttribute("scale-y", "" + caption.scaleY);
   if (caption.outlineWidth) {
-    stream.writeAttribute("outline-width", "" + caption.outlineWidth);
+    stream.writeAttribute(
+      "outline-width",
+      "" + (caption.outlineWidth * 720) / videoLength
+    );
   }
   if (caption.outlineColor) {
     stream.writeAttribute(
@@ -917,7 +920,7 @@ async function readLayer(stream) {
       }
       const outlineWidth = stream.getAttributeValue("outline-width");
       if (outlineWidth) {
-        caption.outlineWidth = outlineWidth * 1;
+        caption.outlineWidth = (outlineWidth * videoLength) / 720;
       }
       const lineSpacing = stream.getAttributeValue("line-spacing");
       if (lineSpacing) {
