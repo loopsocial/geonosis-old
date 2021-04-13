@@ -37,7 +37,7 @@ export class FxParam {
   }
 }
 export class VideoClip extends Clip {
-  constructor(option) {
+   constructor(option) {
     super({ ...option, type: CLIP_TYPES.VIDEO });
     this.id = option.id;
     this.m3u8Path = option.m3u8Path;
@@ -46,16 +46,24 @@ export class VideoClip extends Clip {
     this.m3u8Url = option.m3u8Url;
     this.videoType = option.videoType; // videoType是字符串，且只能是video、image
     this.orgDuration = option.orgDuration || option.duration;
-    this.splitList = [
-      {
-        trimIn: 0,
-        trimOut: option.orgDuration || option.duration, // 切割点
-        captureIn: option.trimIn || 0,
-        captureOut: option.trimOut || option.duration, // 选中点
-        raw: null,
-        videoFxs: option.videoFxs || getDefaultFx(option)
-      }
-    ];
+    this.splitList = option.splitList
+      ? [
+          {
+            ...option.splitList[0],
+            raw: null,
+            videoFxs: option.videoFxs || getDefaultFx(option)
+          }
+        ]
+      : [
+          {
+            trimIn: 0,
+            trimOut: option.orgDuration || option.duration, // 切割点
+            captureIn: option.trimIn || 0,
+            captureOut: option.trimOut || option.duration, // 选中点
+            raw: null,
+            videoFxs: option.videoFxs || getDefaultFx(option)
+          }
+        ];
     this.width = option.width; // 视频宽度
     this.height = option.height; // 视频高度
     this.aspectRatio = option.aspectRatio; // 视频宽高比

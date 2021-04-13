@@ -56,8 +56,10 @@ function transformation() {
         inPoint: video.inPoint + item.captureIn,
         duration: item.captureOut - item.captureIn,
         orgDuration: video.orgDuration,
-        trimIn: item.captureIn,
-        trimOut: item.captureOut,
+        captureIn: item.captureIn,
+        captureOut: item.captureOut,
+        trimIn: item.trimIn,
+        trimOut: item.trimOut,
         scaleX,
         scaleY,
         translationX,
@@ -271,6 +273,8 @@ function writeVideoLayer(stream, video) {
     stream.writeAttribute("org-duration", "" + video.orgDuration);
   }
   stream.writeAttribute("volume", "" + video.volume);
+  stream.writeAttribute("capture-in", "" + video.captureIn);
+  stream.writeAttribute("capture-out", "" + video.captureOut);
   stream.writeAttribute("trim-in", "" + video.trimIn);
   stream.writeAttribute("trim-out", "" + video.trimOut);
   stream.writeAttribute("scale-x", "" + video.scaleX);
@@ -584,7 +588,6 @@ function readProjectVideo(stream, videos) {
       video.duration = stream.getAttributeValue("duration") * 1;
       const volume = stream.getAttributeValue("volume");
       if (volume) {
-        console.log(volume);
         video.volume = parseFloat(volume);
       }
 
@@ -592,6 +595,8 @@ function readProjectVideo(stream, videos) {
       if (orgDuration) {
         video.orgDuration = orgDuration * 1;
       }
+      video.captureIn = stream.getAttributeValue("capture-in") * 1;
+      video.captureOut = stream.getAttributeValue("capture-out") * 1;
       video.trimIn = stream.getAttributeValue("trim-in") * 1;
       video.trimOut = stream.getAttributeValue("trim-out") * 1;
       const transformFx = new VideoFx(FX_DESC.TRANSFORM2D);
@@ -701,7 +706,7 @@ async function readProjectLayer(stream, video, isModule) {
       }
       layer.captions.push(new CaptionClip(caption));
     } else if (stream.isStartElement() && stream.name() === "fw-image") {
-      const img = { trimIn: 0 };
+      const img = { trimIn: 0, captureIn: 0 };
       while (!(stream.isEndElement() && stream.name() === "fw-image")) {
         if (stream.isStartElement() && stream.name() === "fw-image") {
           img.inPoint = video.inPoint;
