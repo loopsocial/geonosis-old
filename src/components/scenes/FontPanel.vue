@@ -129,6 +129,7 @@
                   :predefine="predefineColors"
                   class="ln-color-picker"
                   @change="changeColor"
+                  @active-change="changeActiveColor"
                 ></el-color-picker>
               </div>
               <div class="bg-color">
@@ -140,6 +141,7 @@
                   class="ln-color-picker"
                   :predefine="predefineColors"
                   @change="changeBackground"
+                  @active-change="changeActiveBgColor"
                 ></el-color-picker>
               </div>
             </div>
@@ -215,6 +217,16 @@ export default {
     this.installFont();
   },
   methods: {
+    changeActiveColor(color) {
+      if (/,\s{0,1}0\)$/.test(color)) {
+        this.clip.color = color.replace(/,\s{0,1}0\)/, ", 1)");
+      }
+    },
+    changeActiveBgColor(color) {
+      if (/,\s{0,1}0\)$/.test(color)) {
+        this.clip.backgroundColor = color.replace(/,\s{0,1}0\)/, ", 1)");
+      }
+    },
     changeDuration(v) {
       this.clip.duration += v * 1000000;
       const outPoint = this.clip.inPoint + this.clip.duration;
