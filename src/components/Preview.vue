@@ -13,7 +13,7 @@
         :width="liveWindowStyle.width"
         :height="liveWindowStyle.height"
       ></canvas>
-      <div id="work-flow" @click="clickLiveWindow"></div>
+      <div id="work-flow" @mousedown="clickLiveWindow"></div>
     </div>
     <div class="controls flex" @click="play">
       <svg-icon
@@ -179,6 +179,28 @@ export default {
           clip: target,
           timelineClass: this.timelineClass
         });
+        window.flow = this.flow;
+        setTimeout(() => {
+          const evt = document.createEvent("MouseEvents");
+          evt.initMouseEvent(
+            "mousedown",
+            true,
+            true,
+            window,
+            0,
+            e.screenX,
+            e.screenY,
+            e.clientX,
+            e.clientY,
+            false,
+            false,
+            false,
+            false,
+            0,
+            null
+          );
+          document.querySelector("#work-flow canvas").dispatchEvent(evt);
+        }, 0);
       } else {
         if (this.flow) {
           this.flow.destroy();

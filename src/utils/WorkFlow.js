@@ -446,6 +446,10 @@ export default class WorkFlow {
     input.style.backgroundColor = "transparent";
     const { r, g, b, a } = captionColor;
     input.style.color = `rgba(${r * 255}, ${g * 255}, ${b * 255}, ${a})`;
+
+    // const { r: bR, g: bG, b: bB, a: bA } = captionClipRaw.getBackgroundColor();
+    // input.style.backgroundColor = `rgba(${bR * 255}, ${bG * 255}, ${bB * 255}, ${bA})`;
+
     input.style.outline = 0;
     input.value = text + "";
 
